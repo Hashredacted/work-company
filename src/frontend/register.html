@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register Company — 7-Day Free Trial</title>
+  <meta name="description" content="Register your company and start your 7-day free trial on our multi-tenant SaaS platform." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .auth-layout { max-width: 580px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 540px) { .form-grid { grid-template-columns: 1fr; } }
+    .full-width { grid-column: 1 / -1; }
+    .section-divider {
+      grid-column: 1 / -1;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--primary);
+      margin-top: 8px;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .trial-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      color: #4ade80;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+
+  <main class="auth-layout">
+
+    <div class="brand" aria-label="Platform brand">
+      <div class="brand-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <rect width="28" height="28" rx="8" fill="url(#brandGrad)"/>
+          <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/>
+          <defs>
+            <linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="brand-name">WorkSpace</span>
+    </div>
+
+    <div class="card" role="region" aria-label="Company registration form">
+
+      <div class="card-header">
+        <h1 class="card-title">Register Your Company</h1>
+        <p class="card-subtitle">Get started in seconds. No credit card required.</p>
+        <div class="trial-badge">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          7-Day Full Feature Free Trial
+        </div>
+      </div>
+
+      <form id="register-form" class="login-form" novalidate>
+        <div class="form-grid">
+
+          <div class="section-divider">Company Details</div>
+
+          <div class="field-group full-width">
+            <label class="field-label" for="companyName">Company Name *</label>
+            <input id="companyName" name="name" type="text" class="field-input" placeholder="Acme Technologies Inc." required />
+            <span id="name-error" class="field-error" role="alert"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="companyEmail">Company Email *</label>
+            <input id="companyEmail" name="email" type="email" class="field-input" placeholder="contact@acme.com" required />
+            <span id="email-error" class="field-error" role="alert"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="companyPhone">Phone / Mobile</label>
+            <input id="companyPhone" name="phone" type="tel" class="field-input" placeholder="+91 98765 43210" />
+            <span id="phone-error" class="field-error"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="companyGst">GST Number</label>
+            <input id="companyGst" name="gst" type="text" class="field-input" placeholder="22AAAAA0000A1Z5" />
+            <span id="gst-error" class="field-error"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="companyLicense">Registration / License</label>
+            <input id="companyLicense" name="license" type="text" class="field-input" placeholder="REG-2026-9821" />
+            <span id="license-error" class="field-error"></span>
+          </div>
+
+          <div class="field-group full-width">
+            <label class="field-label" for="companyAddress">Headquarters Address</label>
+            <input id="companyAddress" name="address" type="text" class="field-input" placeholder="123 Tech Park, Phase 2, City" />
+            <span id="address-error" class="field-error"></span>
+          </div>
+
+          <div class="section-divider">Admin User Account</div>
+
+          <div class="field-group full-width">
+            <label class="field-label" for="adminName">Admin Full Name *</label>
+            <input id="adminName" name="adminName" type="text" class="field-input" placeholder="Jane Doe" required />
+            <span id="adminName-error" class="field-error" role="alert"></span>
+          </div>
+
+          <div class="field-group full-width">
+            <label class="field-label" for="adminEmail">Admin Login Email *</label>
+            <input id="adminEmail" name="adminEmail" type="email" class="field-input" placeholder="jane.doe@acme.com" required />
+            <span id="adminEmail-error" class="field-error" role="alert"></span>
+          </div>
+
+          <div class="field-group full-width">
+            <label class="field-label" for="adminPassword">Password *</label>
+            <input id="adminPassword" name="adminPassword" type="password" class="field-input" placeholder="Minimum 6 characters" required />
+            <span id="adminPassword-error" class="field-error" role="alert"></span>
+          </div>
+
+        </div>
+
+        <div id="form-error" class="form-error" role="alert" hidden></div>
+
+        <button type="submit" id="submit-btn" class="btn-primary">
+          <span id="btn-text">Create Company Account</span>
+          <span id="btn-spinner" class="spinner" hidden aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+        Already registered? <a href="index.html" class="forgot-link">Sign in here</a>
+      </p>
+
+    </div>
+
+    <p class="footer-note">
+      Multi-tenant enterprise isolation enabled automatically.
+    </p>
+
+  </main>
+
+  <script src="register.js"></script>
+</body>
+</html>

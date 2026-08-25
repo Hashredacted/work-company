@@ -1,63 +1,23 @@
-# AI Development Rules
+## Project Overview
+Multi-tenant SaaS app. Agent tasks use this fixed context:
+- **Roles & Auth:** Use RBAC model, token auth.
+- **Entities:** Company, User, Role, Permission, Subscription, Invoice, etc.
+- **Features:** Auth/login, company management, roles, billing.
+- **Data Security:** Always apply `tenant_id` filter on queries.
 
-## Project
-Multi-tenant SaaS platform.
+## Workflow
+1. **Plan** tasks using static rules/schemas (cacheable).
+2. **Load Context:** On each task, load only relevant schema and docs (lazy-load).
+3. **Implementation:** Write minimal code per task; use existing services/libraries.
+4. **Validation:** Test with example inputs and verify tenant isolation.
 
-## Rules
+## Agent Rules
+- **Minimal Prompt:** Include only needed info per request (no full docs).  
+- **Reuse Context:** Put stable info (schemas, libraries) at prompt start for caching.  
+- **Safety:** Don’t expose secrets or PII. Validate inputs.  
+- **Iterations:** Each task: plan → implement → test → revise.
 
-- Read README.md before coding.
-- Check relevant docs before modifying a feature.
-- Follow existing project structure and conventions.
-- Do not invent business rules.
-- Ask/flag unclear requirements.
-- Prefer small, isolated changes.
-- Do not rewrite working code unnecessarily.
-- Keep tenant isolation enforced server-side.
-- Keep authorization server-side.
-- Never expose secrets or credentials.
-- Validate all external/user input.
-- Use migrations for DB changes.
-- Add/update tests for changed behavior.
-- Do not modify unrelated files.
-
-## Architecture
-
-Follow:
-
-UI → API → Service → Repository → DB
-
-Keep business logic out of controllers/UI.
-
-## Multi-Tenancy
-
-Every tenant-owned query must be tenant-scoped.
-
-Super Admin may access cross-tenant data.
-
-Never accept `tenant_id` from an untrusted client as the source of authorization.
-
-## RBAC
-
-Authorization flow:
-
-User → Role → Permission → Resource
-
-Frontend permissions are for UX only.
-Backend permissions are authoritative.
-
-## Changes
-
-Before implementation:
-1. Identify affected modules.
-2. Check relevant docs.
-3. Make the smallest correct change.
-4. Test.
-5. Report changed files and tests.
-
-## Do Not
-
-- Hard-code secrets.
-- Bypass authorization.
-- Disable security checks to make tests pass.
-- Create duplicate utilities/components without checking existing code.
-- Add dependencies without justification.
+## Development
+- **Branching:** Work in small increments (feature branches).  
+- **Tests:** Add unit tests for new behavior; CI should catch regressions.  
+- **Tools:** Use migrations for DB changes; linting & formatting per style.  
