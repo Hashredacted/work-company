@@ -1,109 +1,561 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Payments & Khata Bahi — WorkSpace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    body { overflow-y: auto; display: block; padding: 0; background-color: var(--bg); }
-    .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
-    
-    .top-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
-    .inv-nav { display: flex; gap: 8px; flex-wrap: wrap; }
-    .inv-nav a { font-size: 0.8rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
-    .inv-nav a.active { background: var(--primary); color: #fff; }
-    .inv-nav a:not(.active) { background: var(--surface-2); color: var(--text-sub); border: 1px solid var(--border); }
-    
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
-    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, #6366f1); }
-    .kpi-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .kpi-val { font-size: 1.65rem; font-weight: 800; margin-top: 6px; letter-spacing: -0.5px; }
-    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    body {
+      overflow-y: auto;
+      display: block;
+      padding: 0;
+      background-color: var(--bg);
+    }
 
-    .pay-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab-btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-sub); padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
-    .tab-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-    .tab-btn.active { background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.5); color: #a5b4fc; }
-    .pay-panel { display: none; }
-    .pay-panel.active { display: block; }
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      position: relative;
+      z-index: 1;
+    }
 
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-    .filter-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; justify-content: space-between; }
-    .form-group-inline { display: flex; flex-direction: column; gap: 4px; }
-    .form-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
-    .form-input, .form-select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; transition: border-color 0.2s; width: 100%; box-sizing: border-box; }
-    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .inv-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .inv-nav a {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    .inv-nav a.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .inv-nav a:not(.active) {
+      background: var(--surface-2);
+      color: var(--text-sub);
+      border: 1px solid var(--border);
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .kpi::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent, #6366f1);
+    }
+
+    .kpi-lbl {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-val {
+      font-size: 1.65rem;
+      font-weight: 800;
+      margin-top: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pay-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 9px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: rgba(99, 102, 241, 0.18);
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #a5b4fc;
+    }
+
+    .pay-panel {
+      display: none;
+    }
+
+    .pay-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-input,
+    .form-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+    }
 
     /* Modal System */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.show { display: flex !important; }
-    .modal { background: #121218; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.85); box-sizing: border-box; position: relative; }
-    .modal-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter-pill { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .filter-pill:hover { color: var(--text); border-color: var(--border-light); }
-    .filter-pill.active { background: rgba(99,102,241,0.2); border-color: #6366f1; color: #a5b4fc; }
+    .modal-overlay.show {
+      display: flex !important;
+    }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    th { padding: 11px 14px; background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); text-align: left; }
-    td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text-sub); }
-    tr:hover td { background: rgba(255,255,255,0.015); }
-    tfoot td { background: var(--surface-2); font-weight: 700; color: var(--text); border-top: 2px solid var(--border); }
-    
-    .status-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .status-CLEARED { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-    .status-CURRENT { background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); }
-    .status-DUE_SOON { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-    .status-OVERDUE { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-    .status-CRITICAL { background: rgba(239,68,68,0.25); color: #ef4444; border: 1px solid rgba(239,68,68,0.6); }
+    .modal {
+      background: #121218;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
+      box-sizing: border-box;
+      position: relative;
+    }
 
-    .mode-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; font-family: monospace; }
-    .mode-UPI { background: rgba(99,102,241,0.15); color: #a5b4fc; }
-    .mode-NEFT_RTGS { background: rgba(56,189,248,0.15); color: #38bdf8; }
-    .mode-CHEQUE { background: rgba(251,191,36,0.15); color: #fbbf24; }
-    .mode-CASH { background: rgba(74,222,128,0.15); color: #4ade80; }
-    .mode-NET_BANKING { background: rgba(167,139,250,0.15); color: #a78bfa; }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    .btn-action { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc; padding: 5px 11px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s; }
-    .btn-action:hover { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.4); }
-    .btn-wa { background: rgba(37,211,102,0.12); border: 1px solid rgba(37,211,102,0.3); color: #25d366; }
-    .btn-wa:hover { background: rgba(37,211,102,0.25); }
-    .btn-pay { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
-    .btn-pay:hover { background: rgba(74,222,128,0.25); }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 560px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-pill:hover {
+      color: var(--text);
+      border-color: var(--border-light);
+    }
+
+    .filter-pill.active {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: #6366f1;
+      color: #a5b4fc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+
+    th {
+      padding: 11px 14px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-sub);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    tfoot td {
+      background: var(--surface-2);
+      font-weight: 700;
+      color: var(--text);
+      border-top: 2px solid var(--border);
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-CLEARED {
+      background: rgba(74, 222, 128, 0.12);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    .status-CURRENT {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .status-DUE_SOON {
+      background: rgba(251, 191, 36, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    .status-OVERDUE {
+      background: rgba(248, 113, 113, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .status-CRITICAL {
+      background: rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.6);
+    }
+
+    .mode-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-family: monospace;
+    }
+
+    .mode-UPI {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+    }
+
+    .mode-NEFT_RTGS {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .mode-CHEQUE {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+
+    .mode-CASH {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+
+    .mode-NET_BANKING {
+      background: rgba(167, 139, 250, 0.15);
+      color: #a78bfa;
+    }
+
+    .btn-action {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      padding: 5px 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-action:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-wa {
+      background: rgba(37, 211, 102, 0.12);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      color: #25d366;
+    }
+
+    .btn-wa:hover {
+      background: rgba(37, 211, 102, 0.25);
+    }
+
+    .btn-pay {
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+    }
+
+    .btn-pay:hover {
+      background: rgba(74, 222, 128, 0.25);
+    }
 
     /* Statement Modal Specifics */
-    .stmt-header { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
-    .stmt-party-name { font-size: 1.15rem; font-weight: 800; color: var(--text); }
-    .stmt-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
-    .stmt-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-    .stmt-metric-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; text-align: center; }
-    .stmt-metric-lbl { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .stmt-metric-val { font-size: 1.15rem; font-weight: 800; margin-top: 4px; }
+    .stmt-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .stmt-party-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .stmt-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .stmt-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stmt-metric-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+
+    .stmt-metric-lbl {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .stmt-metric-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-top: 4px;
+    }
 
     /* Print Styles */
     @media print {
-      body * { visibility: hidden; }
-      #statement-modal, #statement-modal * { visibility: visible; }
-      #statement-modal { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; color: #000 !important; }
-      .modal { max-width: 100% !important; border: none !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
-      .modal-overlay { background: transparent !important; display: block !important; }
-      button, .modal-title, .print-hide { display: none !important; }
-      table { border: 1px solid #ccc; width: 100%; color: #000 !important; }
-      th { background: #f0f0f0 !important; color: #000 !important; border-bottom: 1px solid #000 !important; }
-      td { border-bottom: 1px solid #eee !important; color: #000 !important; }
-      .stmt-metric-box { border: 1px solid #ccc !important; background: #fafafa !important; color: #000 !important; }
-      .stmt-metric-val, .stmt-party-name { color: #000 !important; }
+      body * {
+        visibility: hidden;
+      }
+
+      #statement-modal,
+      #statement-modal * {
+        visibility: visible;
+      }
+
+      #statement-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff !important;
+        color: #000 !important;
+      }
+
+      .modal {
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        color: #000 !important;
+      }
+
+      .modal-overlay {
+        background: transparent !important;
+        display: block !important;
+      }
+
+      button,
+      .modal-title,
+      .print-hide {
+        display: none !important;
+      }
+
+      table {
+        border: 1px solid #ccc;
+        width: 100%;
+        color: #000 !important;
+      }
+
+      th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border-bottom: 1px solid #000 !important;
+      }
+
+      td {
+        border-bottom: 1px solid #eee !important;
+        color: #000 !important;
+      }
+
+      .stmt-metric-box {
+        border: 1px solid #ccc !important;
+        background: #fafafa !important;
+        color: #000 !important;
+      }
+
+      .stmt-metric-val,
+      .stmt-party-name {
+        color: #000 !important;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
@@ -114,10 +566,21 @@
       <div>
         <div class="brand" style="margin-bottom:6px;">
           <div class="brand-logo">
-            <svg width="26" height="26" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#pG)"/><path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/><defs><linearGradient id="pG" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>
+            <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="8" fill="url(#pG)" />
+              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
+              <defs>
+                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
+                  <stop offset="0%" stop-color="#10b981" />
+                  <stop offset="100%" stop-color="#6366f1" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
           <span class="brand-name">WorkSpace</span>
-          <span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">💳 PAYMENTS & OUTSTANDINGS</span>
+          <span
+            style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">💳
+            PAYMENTS & OUTSTANDINGS</span>
         </div>
         <div class="inv-nav">
           <a href="inv-dashboard.html">📊 Dashboard</a>
@@ -129,11 +592,16 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
-        <button id="btn-open-record-modal" onclick="openPaymentModal()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;">
+        <button id="btn-open-record-modal" onclick="openPaymentModal()"
+          style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;">
           <span>+ Record Payment Voucher</span>
         </button>
-        <a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">← Main</a>
-        <button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button>
+        <a id="main-nav-link" href="company-dashboard.html"
+          style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">←
+          Back</a>
+        <button id="logout-btn"
+          style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign
+          Out</button>
       </div>
     </header>
 
@@ -163,9 +631,12 @@
 
     <!-- Tabs -->
     <div class="pay-tabs">
-      <button class="tab-btn active" id="tab-btn-customers" onclick="switchTab('customers')">👥 Customer Receivables (लेनदार)</button>
-      <button class="tab-btn" id="tab-btn-suppliers" onclick="switchTab('suppliers')">🏭 Supplier Payables (देनदार)</button>
-      <button class="tab-btn" id="tab-btn-vouchers" onclick="switchTab('vouchers')">📋 Payment History / Vouchers</button>
+      <button class="tab-btn active" id="tab-btn-customers" onclick="switchTab('customers')">👥 Customer Receivables
+        (लेनदार)</button>
+      <button class="tab-btn" id="tab-btn-suppliers" onclick="switchTab('suppliers')">🏭 Supplier Payables
+        (देनदार)</button>
+      <button class="tab-btn" id="tab-btn-vouchers" onclick="switchTab('vouchers')">📋 Payment History /
+        Vouchers</button>
     </div>
 
     <!-- Customer Receivables Panel -->
@@ -173,7 +644,8 @@
       <div class="card">
         <div class="filter-row">
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input id="search-cust" class="form-input" style="min-width:260px;" type="text" placeholder="🔍 Search customer name, GSTIN, phone…" oninput="debounceCust()" />
+            <input id="search-cust" class="form-input" style="min-width:260px;" type="text"
+              placeholder="🔍 Search customer name, GSTIN, phone…" oninput="debounceCust()" />
             <div class="pill-group">
               <button class="filter-pill active" onclick="setCustFilter('ALL', this)">All</button>
               <button class="filter-pill" onclick="setCustFilter('DUE', this)">Pending (> ₹0)</button>
@@ -181,7 +653,9 @@
               <button class="filter-pill" onclick="setCustFilter('CLEARED', this)">Cleared</button>
             </div>
           </div>
-          <button onclick="loadCustomerOutstandings()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 Refresh</button>
+          <button onclick="loadCustomerOutstandings()"
+            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+            Refresh</button>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -197,7 +671,11 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="cust-tbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…</td></tr></tbody>
+            <tbody id="cust-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…</td>
+              </tr>
+            </tbody>
             <tfoot id="cust-tfoot" style="display:none;">
               <tr>
                 <td colspan="2">Total Summary</td>
@@ -217,7 +695,8 @@
       <div class="card">
         <div class="filter-row">
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input id="search-supp" class="form-input" style="min-width:260px;" type="text" placeholder="🔍 Search supplier name, GSTIN, phone…" oninput="debounceSupp()" />
+            <input id="search-supp" class="form-input" style="min-width:260px;" type="text"
+              placeholder="🔍 Search supplier name, GSTIN, phone…" oninput="debounceSupp()" />
             <div class="pill-group">
               <button class="filter-pill active" onclick="setSuppFilter('ALL', this)">All</button>
               <button class="filter-pill" onclick="setSuppFilter('DUE', this)">Pending (> ₹0)</button>
@@ -225,7 +704,9 @@
               <button class="filter-pill" onclick="setSuppFilter('CLEARED', this)">Cleared</button>
             </div>
           </div>
-          <button onclick="loadSupplierOutstandings()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 Refresh</button>
+          <button onclick="loadSupplierOutstandings()"
+            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+            Refresh</button>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -241,7 +722,11 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="supp-tbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…</td></tr></tbody>
+            <tbody id="supp-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…</td>
+              </tr>
+            </tbody>
             <tfoot id="supp-tfoot" style="display:none;">
               <tr>
                 <td colspan="2">Total Summary</td>
@@ -273,9 +758,12 @@
               <option value="CHEQUE">📝 Cheque</option>
               <option value="CASH">💵 Cash</option>
             </select>
-            <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Notes…" oninput="loadVouchers()" style="min-width:220px;width:auto;" />
+            <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Notes…"
+              oninput="loadVouchers()" style="min-width:220px;width:auto;" />
           </div>
-          <button onclick="loadVouchers()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 Refresh</button>
+          <button onclick="loadVouchers()"
+            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+            Refresh</button>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -292,7 +780,11 @@
                 <th>Statement</th>
               </tr>
             </thead>
-            <tbody id="vouchers-tbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…</td></tr></tbody>
+            <tbody id="vouchers-tbody">
+              <tr>
+                <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -314,23 +806,30 @@
           </div>
           <div class="form-group">
             <label class="form-label">Select Party *</label>
-            <select id="pm-party-id" class="form-select" required onchange="onPartySelected()"><option value="">— Select Party —</option></select>
+            <select id="pm-party-id" class="form-select" required onchange="onPartySelected()">
+              <option value="">— Select Party —</option>
+            </select>
           </div>
         </div>
 
         <!-- Dynamic Outstanding Info Box -->
-        <div id="pm-due-info" style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;justify-content:space-between;align-items:center;">
+        <div id="pm-due-info"
+          style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;justify-content:space-between;align-items:center;">
           <div>
-            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current Outstanding</div>
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current
+              Outstanding</div>
             <div id="pm-due-val" style="font-size:1.1rem;font-weight:800;color:#f87171;">₹0</div>
           </div>
-          <button type="button" onclick="fillFullOutstanding()" style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡ Settle Full</button>
+          <button type="button" onclick="fillFullOutstanding()"
+            style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡
+            Settle Full</button>
         </div>
 
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
             <label class="form-label">Amount (₹) *</label>
-            <input id="pm-amount" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 5000" />
+            <input id="pm-amount" class="form-input" type="number" min="0.01" step="any" required
+              placeholder="e.g. 5000" />
           </div>
           <div class="form-group">
             <label class="form-label">Payment Mode *</label>
@@ -357,15 +856,18 @@
 
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label">Notes / Remarks</label>
-          <input id="pm-notes" class="form-input" type="text" placeholder="e.g. Settled against Sales Invoice / Part payment" />
+          <input id="pm-notes" class="form-input" type="text"
+            placeholder="e.g. Settled against Sales Invoice / Part payment" />
         </div>
 
         <div id="pm-hint" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;"></div>
         <div id="pm-error" class="form-error" style="display:none;margin-top:8px;"></div>
 
         <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
-          <button type="button" onclick="closePaymentModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="pm-save-btn" class="btn-primary" style="width:auto;padding:8px 22px;">Save & Update Khata</button>
+          <button type="button" onclick="closePaymentModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="pm-save-btn" class="btn-primary" style="width:auto;padding:8px 22px;">Save & Update
+            Khata</button>
         </div>
       </form>
     </div>
@@ -374,14 +876,19 @@
   <!-- Party Statement / Khata Bahi Modal -->
   <div class="modal-overlay" id="statement-modal">
     <div class="modal" style="max-width:900px;">
-      <div class="print-hide" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div class="print-hide"
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <div class="modal-title" style="margin-bottom:0;">📜 Party Statement (खाता बही)</div>
         <div style="display:flex;gap:8px;">
-          <button onclick="window.print()" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">🖨️ Print Statement</button>
-          <button type="button" onclick="closeStatementModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">✕ Close</button>
+          <button onclick="window.print()"
+            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">🖨️
+            Print Statement</button>
+          <button type="button" onclick="closeStatementModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">✕
+            Close</button>
         </div>
       </div>
-      
+
       <div id="stmt-content">
         <div style="text-align:center;padding:30px;color:var(--text-muted);">Generating statement…</div>
       </div>
@@ -392,7 +899,7 @@
   <div class="modal-overlay" id="wa-modal">
     <div class="modal" style="max-width:500px;">
       <div class="modal-title">📲 Send WhatsApp Payment Reminder</div>
-      
+
       <div style="margin-bottom:12px;">
         <label class="form-label">Message Template</label>
         <select id="wa-template" class="form-select" style="margin-top:4px;" onchange="applyWaTemplate()">
@@ -409,12 +916,16 @@
 
       <div style="margin-bottom:14px;">
         <label class="form-label">Message Preview</label>
-        <textarea id="wa-msg" class="form-input" style="height:140px;resize:vertical;margin-top:4px;font-family:inherit;font-size:0.85rem;line-height:1.45;"></textarea>
+        <textarea id="wa-msg" class="form-input"
+          style="height:140px;resize:vertical;margin-top:4px;font-family:inherit;font-size:0.85rem;line-height:1.45;"></textarea>
       </div>
 
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
-        <button type="button" onclick="closeWaModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-        <button type="button" onclick="launchWhatsApp()" class="btn-primary" style="background:#25d366;border-color:#25d366;color:#fff;width:auto;padding:8px 20px;font-weight:700;">Launch WhatsApp ↗</button>
+        <button type="button" onclick="closeWaModal()"
+          style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+        <button type="button" onclick="launchWhatsApp()" class="btn-primary"
+          style="background:#25d366;border-color:#25d366;color:#fff;width:auto;padding:8px 20px;font-weight:700;">Launch
+          WhatsApp ↗</button>
       </div>
     </div>
   </div>
@@ -482,13 +993,13 @@
 
         const recEl = document.getElementById('kpi-receivables');
         const payEl = document.getElementById('kpi-payables');
-        const odEl  = document.getElementById('kpi-overdue-rec');
-        const wcEl  = document.getElementById('kpi-working-cap');
+        const odEl = document.getElementById('kpi-overdue-rec');
+        const wcEl = document.getElementById('kpi-working-cap');
 
         if (recEl) recEl.textContent = inr(data.totalReceivables);
         if (payEl) payEl.textContent = inr(data.totalPayables);
-        if (odEl)  odEl.textContent  = inr(data.overdueReceivables);
-        
+        if (odEl) odEl.textContent = inr(data.overdueReceivables);
+
         if (wcEl) {
           const workingCap = (data.totalReceivables || 0) - (data.totalPayables || 0);
           wcEl.textContent = (workingCap >= 0 ? '+' : '') + inr(workingCap);
@@ -781,7 +1292,7 @@
         const r = await fetch(`${API}/inventory/payments/outstandings?type=${pType}`, { headers: H() });
         const json = await r.json();
         const list = Array.isArray(json.data) ? json.data : (json.data?.items || []);
-        
+
         // Cache party list
         if (pType === 'CUSTOMER') rawCustomers = list;
         else rawSuppliers = list;
@@ -1135,4 +1646,5 @@
     Promise.all([loadKpis(), loadCustomerOutstandings()]);
   </script>
 </body>
+
 </html>

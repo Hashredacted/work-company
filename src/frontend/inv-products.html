@@ -1,59 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Products — WorkSpace Inventory</title>
   <meta name="description" content="Product catalog with HSN codes, GST rates, stock levels and barcode scanning." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
   <!-- QuaggaJS for barcode scanning -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <link rel="stylesheet" href="style.css" />
   <style>
-    body { overflow-y: auto; display: block; padding: 0; }
-    .page { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
-    .top-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
-    .inv-nav { display: flex; gap: 8px; flex-wrap: wrap; }
-    .inv-nav a { font-size: 0.8rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
-    .inv-nav a.active { background: var(--primary); color: #fff; }
-    .inv-nav a:not(.active) { background: var(--surface-2); color: var(--text-sub); border: 1px solid var(--border); }
-    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .search-box { flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; color: var(--text); font-size: 0.875rem; outline: none; }
-    .search-box:focus { border-color: var(--primary); }
-    .select-filter { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; }
-    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th { padding: 12px 16px; background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); text-align: left; }
-    td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-sub); vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.015); }
-    .tracking-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; font-family: monospace; }
-    .tracking-NONE   { background: rgba(148,163,184,0.12); color: #94a3b8; }
-    .tracking-BATCH  { background: rgba(56,189,248,0.12); color: #38bdf8; }
-    .tracking-SERIAL { background: rgba(167,139,250,0.12); color: #a78bfa; }
-    .gst-badge { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
-    .stock-num { font-weight: 700; }
-    .stock-low { color: #f87171; }
-    .stock-ok { color: #4ade80; }
+    body {
+      overflow-y: auto;
+      display: block;
+      padding: 0;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .inv-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .inv-nav a {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    .inv-nav a.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .inv-nav a:not(.active) {
+      background: var(--surface-2);
+      color: var(--text-sub);
+      border: 1px solid var(--border);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--text);
+      font-size: 0.875rem;
+      outline: none;
+    }
+
+    .search-box:focus {
+      border-color: var(--primary);
+    }
+
+    .select-filter {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      padding: 12px 16px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-sub);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .tracking-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 8px;
+      font-family: monospace;
+    }
+
+    .tracking-NONE {
+      background: rgba(148, 163, 184, 0.12);
+      color: #94a3b8;
+    }
+
+    .tracking-BATCH {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+    }
+
+    .tracking-SERIAL {
+      background: rgba(167, 139, 250, 0.12);
+      color: #a78bfa;
+    }
+
+    .gst-badge {
+      background: rgba(251, 191, 36, 0.1);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .stock-num {
+      font-weight: 700;
+    }
+
+    .stock-low {
+      color: #f87171;
+    }
+
+    .stock-ok {
+      color: #4ade80;
+    }
+
     /* Modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.show { display: flex !important; }
-    .modal { background: #14162b; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; padding: 28px; }
-    .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
-    .form-input, .form-select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.875rem; outline: none; width: 100%; }
-    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex !important;
+    }
+
+    .modal {
+      background: #14162b;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media(max-width:600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-input,
+    .form-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 0.875rem;
+      outline: none;
+      width: 100%;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+    }
+
     /* Barcode scanner */
-    #scanner-container { position: fixed; inset: 0; background: #000; z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    #scanner-container.show { display: flex; }
-    #interactive video { width: 100%; max-width: 480px; border-radius: 8px; }
-    .scan-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; height: 80px; border: 2px solid #6366f1; border-radius: 6px; box-shadow: 0 0 0 1000px rgba(0,0,0,0.5); pointer-events: none; }
+    #scanner-container {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #scanner-container.show {
+      display: flex;
+    }
+
+    #interactive video {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 8px;
+    }
+
+    .scan-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px;
+      height: 80px;
+      border: 2px solid #6366f1;
+      border-radius: 6px;
+      box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
   </style>
 </head>
+
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
@@ -64,16 +303,29 @@
     <div style="color:#fff;font-size:0.9rem;margin-bottom:16px;">📷 Point camera at barcode</div>
     <div id="interactive" class="viewport" style="position:relative;"></div>
     <div class="scan-overlay"></div>
-    <button onclick="stopScan()" style="margin-top:24px;background:rgba(248,113,113,0.2);border:1px solid #f87171;color:#f87171;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.9rem;">✕ Cancel</button>
+    <button onclick="stopScan()"
+      style="margin-top:24px;background:rgba(248,113,113,0.2);border:1px solid #f87171;color:#f87171;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.9rem;">✕
+      Cancel</button>
   </div>
 
   <div class="page">
     <header class="top-nav">
       <div>
         <div class="brand" style="margin-bottom:6px;">
-          <div class="brand-logo"><svg width="26" height="26" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#pG)"/><path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/><defs><linearGradient id="pG" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg></div>
+          <div class="brand-logo"><svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="8" fill="url(#pG)" />
+              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
+              <defs>
+                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
+                  <stop offset="0%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg></div>
           <span class="brand-name">WorkSpace</span>
-          <span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">📦 INVENTORY</span>
+          <span
+            style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">📦
+            INVENTORY</span>
         </div>
         <div class="inv-nav">
           <a href="inv-dashboard.html">📊 Dashboard</a>
@@ -85,23 +337,36 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
-        <a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">← Main</a>
-        <button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button>
+        <a id="main-nav-link" href="company-dashboard.html"
+          style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">←
+          Back</a>
+        <button id="logout-btn"
+          style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign
+          Out</button>
       </div>
     </header>
 
     <div class="toolbar">
-      <input id="search" class="search-box" type="text" placeholder="🔍 Search name, SKU, barcode…" oninput="debounceLoad()" />
-      <select id="filter-cat" class="select-filter" onchange="loadProducts()"><option value="">All Categories</option></select>
+      <input id="search" class="search-box" type="text" placeholder="🔍 Search name, SKU, barcode…"
+        oninput="debounceLoad()" />
+      <select id="filter-cat" class="select-filter" onchange="loadProducts()">
+        <option value="">All Categories</option>
+      </select>
       <select id="filter-tracking" class="select-filter" onchange="loadProducts()">
         <option value="">All Tracking</option>
         <option value="NONE">None</option>
         <option value="BATCH">Batch</option>
         <option value="SERIAL">Serial</option>
       </select>
-      <button onclick="startScan()" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">📷 Scan</button>
-      <button onclick="openQuickStockModal()" style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">⚡ Quick Stock In / Out</button>
-      <button onclick="openModal()" style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+ Add Product</button>
+      <button onclick="startScan()"
+        style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">📷
+        Scan</button>
+      <button onclick="openQuickStockModal()"
+        style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">⚡
+        Quick Stock In / Out</button>
+      <button onclick="openModal()"
+        style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
+        Add Product</button>
     </div>
 
     <div class="table-wrap">
@@ -119,7 +384,11 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody id="products-tbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td></tr></tbody>
+        <tbody id="products-tbody">
+          <tr>
+            <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+          </tr>
+        </tbody>
       </table>
     </div>
     <div id="pagination" style="text-align:center;margin-top:16px;font-size:0.85rem;color:var(--text-muted);"></div>
@@ -146,23 +415,44 @@
             <label class="form-label">Barcode</label>
             <div style="display:flex;gap:6px;">
               <input id="f-barcode" class="form-input" type="text" placeholder="EAN/UPC" style="flex:1;" />
-              <button type="button" onclick="startScanForField('f-barcode')" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:0.8rem;">📷</button>
+              <button type="button" onclick="startScanForField('f-barcode')"
+                style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:0.8rem;">📷</button>
             </div>
           </div>
           <div class="form-group" style="grid-column:1/-1;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
               <label class="form-label" style="margin-bottom:0;">Category (Indian Standard Presets)</label>
-              <button type="button" onclick="openQuickCatModal()" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;font-size:0.75rem;padding:3px 8px;border-radius:6px;cursor:pointer;">+ New Category</button>
+              <button type="button" onclick="openQuickCatModal()"
+                style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;font-size:0.75rem;padding:3px 8px;border-radius:6px;cursor:pointer;">+
+                New Category</button>
             </div>
-            <select id="f-category" class="form-select" onchange="onCategoryChange()"><option value="">— Select Category —</option></select>
-            <div id="cat-hint" style="display:none;font-size:0.75rem;color:#38bdf8;margin-top:4px;">✨ HSN & GST rate auto-suggested from category</div>
+            <select id="f-category" class="form-select" onchange="onCategoryChange()">
+              <option value="">— Select Category —</option>
+            </select>
+            <div id="cat-hint" style="display:none;font-size:0.75rem;color:#38bdf8;margin-top:4px;">✨ HSN & GST rate
+              auto-suggested from category</div>
           </div>
           <div class="form-group">
             <label class="form-label">Unit *</label>
             <select id="f-unit" class="form-select" required>
-              <option>Pcs</option><option>Box</option><option>Carton</option><option>Dozen</option><option>Pair</option><option>Set</option>
-              <option>Kg</option><option>g</option><option>Quintal</option><option>MT</option>
-              <option>L</option><option>mL</option><option>m</option><option>cm</option><option>ft</option><option>sqm</option><option>sqft</option><option>Other</option>
+              <option>Pcs</option>
+              <option>Box</option>
+              <option>Carton</option>
+              <option>Dozen</option>
+              <option>Pair</option>
+              <option>Set</option>
+              <option>Kg</option>
+              <option>g</option>
+              <option>Quintal</option>
+              <option>MT</option>
+              <option>L</option>
+              <option>mL</option>
+              <option>m</option>
+              <option>cm</option>
+              <option>ft</option>
+              <option>sqm</option>
+              <option>sqft</option>
+              <option>Other</option>
             </select>
           </div>
           <div class="form-group">
@@ -172,7 +462,11 @@
           <div class="form-group">
             <label class="form-label">GST Rate %</label>
             <select id="f-gst" class="form-select">
-              <option value="0">0% (Nil / Exempt)</option><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18% (Standard)</option><option value="28">28% (Luxury / Auto)</option>
+              <option value="0">0% (Nil / Exempt)</option>
+              <option value="5">5%</option>
+              <option value="12">12%</option>
+              <option value="18" selected>18% (Standard)</option>
+              <option value="28">28% (Luxury / Auto)</option>
             </select>
           </div>
           <div class="form-group">
@@ -214,8 +508,10 @@
         </div>
         <div id="form-error" class="form-error" style="display:none;margin-top:12px;"></div>
         <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
-          <button type="button" onclick="closeModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:9px 20px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="save-btn" class="btn-primary" style="width:auto;padding:9px 24px;">Save Product</button>
+          <button type="button" onclick="closeModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:9px 20px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="save-btn" class="btn-primary" style="width:auto;padding:9px 24px;">Save
+            Product</button>
         </div>
       </form>
     </div>
@@ -232,7 +528,9 @@
         </div>
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label">Parent Category (Optional)</label>
-          <select id="qc-parent" class="form-select"><option value="">— Top Level Category —</option></select>
+          <select id="qc-parent" class="form-select">
+            <option value="">— Top Level Category —</option>
+          </select>
         </div>
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
@@ -242,14 +540,20 @@
           <div class="form-group">
             <label class="form-label">Default GST %</label>
             <select id="qc-gst" class="form-select">
-              <option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option>
+              <option value="0">0%</option>
+              <option value="5">5%</option>
+              <option value="12">12%</option>
+              <option value="18" selected>18%</option>
+              <option value="28">28%</option>
             </select>
           </div>
         </div>
         <div id="qc-error" class="form-error" style="display:none;margin-top:8px;"></div>
         <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
-          <button type="button" onclick="closeQuickCatModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="qc-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Save Category</button>
+          <button type="button" onclick="closeQuickCatModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="qc-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Save
+            Category</button>
         </div>
       </form>
     </div>
@@ -262,7 +566,9 @@
       <form onsubmit="saveQuickStock(event)">
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label">Product *</label>
-          <select id="qs-product" class="form-select" required onchange="onQSProductChange()"><option value="">— Select Product —</option></select>
+          <select id="qs-product" class="form-select" required onchange="onQSProductChange()">
+            <option value="">— Select Product —</option>
+          </select>
         </div>
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
@@ -274,29 +580,38 @@
           </div>
           <div class="form-group">
             <label class="form-label">Warehouse *</label>
-            <select id="qs-warehouse" class="form-select" required><option value="">— Select Godown —</option></select>
+            <select id="qs-warehouse" class="form-select" required>
+              <option value="">— Select Godown —</option>
+            </select>
           </div>
         </div>
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
             <label class="form-label">Quantity *</label>
-            <input id="qs-qty" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 10" oninput="calcTotalBill()" />
+            <input id="qs-qty" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 10"
+              oninput="calcTotalBill()" />
           </div>
           <div class="form-group">
             <label class="form-label" id="qs-cost-lbl">Unit Rate (₹)</label>
-            <input id="qs-cost" class="form-input" type="number" min="0" step="0.01" placeholder="Rate in ₹" oninput="calcTotalBill()" />
+            <input id="qs-cost" class="form-input" type="number" min="0" step="0.01" placeholder="Rate in ₹"
+              oninput="calcTotalBill()" />
           </div>
         </div>
 
         <!-- Party Selection (Supplier for IN, Customer for OUT) -->
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label" id="qs-party-lbl">Supplier (Optional — for Purchase Bill & Payable)</label>
-          <select id="qs-party" class="form-select" onchange="onQSPartyChange()"><option value="">— No Party (Direct Stock Adjustment) —</option></select>
+          <select id="qs-party" class="form-select" onchange="onQSPartyChange()">
+            <option value="">— No Party (Direct Stock Adjustment) —</option>
+          </select>
         </div>
 
         <!-- Commercial / Payment Section (Shown when party is selected) -->
-        <div id="qs-pay-section" style="display:none;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">💳 Payment & Settlement</div>
+        <div id="qs-pay-section"
+          style="display:none;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div
+            style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">
+            💳 Payment & Settlement</div>
           <div class="form-row" style="margin-bottom:8px;">
             <div class="form-group">
               <label class="form-label">Total Value (₹)</label>
@@ -314,7 +629,8 @@
           <div class="form-row" id="qs-pay-details-row" style="display:none;">
             <div class="form-group">
               <label class="form-label">Paid Amount (₹)</label>
-              <input id="qs-paid-amt" class="form-input" type="number" min="0" step="0.01" placeholder="Amount paid now" />
+              <input id="qs-paid-amt" class="form-input" type="number" min="0" step="0.01"
+                placeholder="Amount paid now" />
             </div>
             <div class="form-group">
               <label class="form-label">Payment Mode</label>
@@ -340,12 +656,15 @@
         </div>
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label">Remarks / Invoice Ref</label>
-          <input id="qs-remarks" class="form-input" type="text" placeholder="e.g. Delivered by vendor, Store sales bill" />
+          <input id="qs-remarks" class="form-input" type="text"
+            placeholder="e.g. Delivered by vendor, Store sales bill" />
         </div>
         <div id="qs-error" class="form-error" style="display:none;margin-top:8px;"></div>
         <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
-          <button type="button" onclick="closeQuickStockModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="qs-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Apply & Save</button>
+          <button type="button" onclick="closeQuickStockModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="qs-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Apply &
+            Save</button>
         </div>
       </form>
     </div>
@@ -868,4 +1187,5 @@
     Promise.all([loadCategories(), loadWarehouses(), loadParties()]).then(loadProducts);
   </script>
 </body>
+
 </html>
