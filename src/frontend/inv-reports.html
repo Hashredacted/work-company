@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Reports — WorkSpace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { overflow-y: auto; display: block; padding: 0; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
+    .top-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .inv-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .inv-nav a { font-size: 0.8rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
+    .inv-nav a.active { background: var(--primary); color: #fff; }
+    .inv-nav a:not(.active) { background: var(--surface-2); color: var(--text-sub); border: 1px solid var(--border); }
+    .report-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .tab-btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-sub); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+    .tab-btn.active { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+    .report-panel { display: none; }
+    .report-panel.active { display: block; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: flex-end; }
+    .form-group-inline { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+    .form-input, .form-select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; }
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-bottom: 20px; }
+    .kpi { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .kpi-lbl { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .kpi-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    th { padding: 10px 14px; background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; border-bottom: 1px solid var(--border); text-align: left; }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-sub); }
+    tr:last-child td { border-bottom: none; }
+    .badge-low { background: rgba(248,113,113,0.12); color: #f87171; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
+    .badge-ok { background: rgba(74,222,128,0.12); color: #4ade80; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
+    .txn-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; font-family: monospace; }
+    .txn-GRN { background: rgba(74,222,128,0.12); color: #4ade80; }
+    .txn-SO_DISPATCH { background: rgba(248,113,113,0.12); color: #f87171; }
+    .txn-ADJUSTMENT { background: rgba(251,191,36,0.12); color: #fbbf24; }
+    .gst-row td:nth-child(n+3) { font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="page">
+    <header class="top-nav">
+      <div>
+        <div class="brand" style="margin-bottom:6px;"><div class="brand-logo"><svg width="26" height="26" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#rG)"/><path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/><defs><linearGradient id="rG" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg></div><span class="brand-name">WorkSpace</span><span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">📦 INVENTORY</span></div>
+        <div class="inv-nav">
+          <a href="inv-dashboard.html">📊 Dashboard</a>
+          <a href="inv-products.html">📦 Products</a>
+          <a href="inv-suppliers.html">🏭 Suppliers</a>
+          <a href="inv-customers.html">👥 Customers</a>
+          <a href="inv-reports.html" class="active">📈 Reports</a>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;"><a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">← Main</a><button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button></div>
+    </header>
+
+    <div class="report-tabs">
+      <button class="tab-btn active" onclick="switchTab('stock')">📦 Stock Summary</button>
+      <button class="tab-btn" onclick="switchTab('valuation')">💰 Valuation</button>
+      <button class="tab-btn" onclick="switchTab('expiry')">⏰ Expiry Alerts</button>
+      <button class="tab-btn" onclick="switchTab('ledger')">📋 Stock Ledger</button>
+    </div>
+
+    <!-- Stock Summary -->
+    <div id="panel-stock" class="report-panel active">
+      <div class="card">
+        <div class="filter-row">
+          <div class="form-group-inline"><div class="form-label">Warehouse</div><select id="stock-wh" class="form-select" onchange="loadStock()"><option value="">All Warehouses</option></select></div>
+          <div class="form-group-inline"><div class="form-label">Category</div><select id="stock-cat" class="form-select" onchange="loadStock()"><option value="">All Categories</option></select></div>
+          <button onclick="loadStock()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Refresh</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table id="stock-table">
+            <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>HSN</th><th>GST %</th><th>Unit</th><th>Stock</th><th>MRP ₹</th><th>Purchase ₹</th><th>Stock Value ₹</th><th>Status</th></tr></thead>
+            <tbody id="stock-tbody"><tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valuation -->
+    <div id="panel-valuation" class="report-panel">
+      <div class="card">
+        <div id="val-kpis" class="kpi-row"></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Product</th><th>SKU</th><th>Unit</th><th>Purchase Price ₹</th><th>Current Stock</th><th>Stock Value ₹</th></tr></thead>
+            <tbody id="val-tbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expiry Alerts -->
+    <div id="panel-expiry" class="report-panel">
+      <div class="card">
+        <div class="filter-row">
+          <div class="form-group-inline"><div class="form-label">Expiring within (days)</div><input id="expiry-days" class="form-input" type="number" value="30" min="1" style="width:100px;" /></div>
+          <button onclick="loadExpiry()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Fetch Alerts</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Product</th><th>Batch No</th><th>Expiry Date</th><th>Warehouse</th><th>Qty Remaining</th><th>Days Left</th></tr></thead>
+            <tbody id="expiry-tbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Click "Fetch Alerts" to load.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Ledger -->
+    <div id="panel-ledger" class="report-panel">
+      <div class="card">
+        <div class="filter-row">
+          <div class="form-group-inline"><div class="form-label">Product *</div><select id="ledger-product" class="form-select" style="min-width:200px;"><option value="">— Select Product —</option></select></div>
+          <div class="form-group-inline"><div class="form-label">From</div><input id="ledger-from" class="form-input" type="date" /></div>
+          <div class="form-group-inline"><div class="form-label">To</div><input id="ledger-to" class="form-input" type="date" /></div>
+          <button onclick="loadLedger()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Load</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Date</th><th>Movement Type</th><th>Godown</th><th>Batch</th><th>Qty</th><th>Unit Cost ₹</th><th>Remarks</th></tr></thead>
+            <tbody id="ledger-tbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to view its stock ledger.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+    const API = 'http://localhost:5000/api';
+    const token = localStorage.getItem('auth_token');
+    if (!token) window.location.href = 'index.html';
+
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const mainNav = document.getElementById('main-nav-link');
+    if (mainNav) {
+      mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
+    }
+
+    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+    function inr(n) { return '₹' + Number(n||0).toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+
+    let warehouses = [], products = [];
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['stock','valuation','expiry','ledger'][i] === name));
+      document.querySelectorAll('.report-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`panel-${name}`).classList.add('active');
+      if (name === 'stock') loadStock();
+      if (name === 'valuation') loadValuation();
+      if (name === 'expiry') loadExpiry();
+    }
+
+    async function init() {
+      try {
+        const [wr, pr, cr] = await Promise.all([
+          fetch(`${API}/inventory/warehouses`, { headers: H() }),
+          fetch(`${API}/inventory/products?limit=500`, { headers: H() }),
+          fetch(`${API}/inventory/categories`, { headers: H() }),
+        ]);
+        if (wr.ok) warehouses = (await wr.json()).data || [];
+        if (pr.ok) products   = (await pr.json()).data?.products || [];
+        const categories = cr.ok ? (await cr.json()).data || [] : [];
+
+        const whSel = document.getElementById('stock-wh');
+        warehouses.forEach(w => whSel.innerHTML += `<option value="${w._id}">${w.name} (${w.code})</option>`);
+
+        const catSel = document.getElementById('stock-cat');
+        if (catSel) {
+          catSel.innerHTML = '<option value="">All Categories</option>';
+          const rootCats = categories.filter(c => !c.parentId);
+          const subCats = categories.filter(c => c.parentId);
+          rootCats.forEach(root => {
+            const children = subCats.filter(s => (s.parentId?._id || s.parentId) === root._id);
+            const icon = root.icon || '📦';
+            if (children.length > 0) {
+              let optGroupHtml = `<optgroup label="${icon} ${root.name}">`;
+              optGroupHtml += `<option value="${root._id}">${icon} All ${root.name}</option>`;
+              children.forEach(sub => {
+                optGroupHtml += `<option value="${sub._id}">  └ ${sub.name}</option>`;
+              });
+              optGroupHtml += `</optgroup>`;
+              catSel.innerHTML += optGroupHtml;
+            } else {
+              catSel.innerHTML += `<option value="${root._id}">${icon} ${root.name}</option>`;
+            }
+          });
+        }
+
+        const ledgProd = document.getElementById('ledger-product');
+        products.forEach(p => ledgProd.innerHTML += `<option value="${p._id}">${p.name} (${p.sku})</option>`);
+
+        loadStock();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadStock() {
+      const tbody = document.getElementById('stock-tbody');
+      try {
+        const wh = document.getElementById('stock-wh').value;
+        const cat = document.getElementById('stock-cat') ? document.getElementById('stock-cat').value : '';
+        const params = new URLSearchParams({ ...(wh && { warehouseId: wh }), ...(cat && { categoryId: cat }) });
+        const r = await fetch(`${API}/inventory/reports/stock-summary?${params}`, { headers: H() });
+        if (r.status === 401) {
+          localStorage.clear();
+          window.location.href = 'index.html';
+          return;
+        }
+        if (r.status === 403) {
+          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view stock summary.</td></tr>`;
+          return;
+        }
+        const { data } = await r.json();
+        if (!data?.length) { tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">No products found in inventory.</td></tr>`; return; }
+        tbody.innerHTML = data.map(p => `
+          <tr>
+            <td style="font-weight:600;color:var(--text);">${p.name}</td>
+            <td style="font-family:monospace;font-size:0.78rem;">${p.sku}</td>
+            <td style="font-size:0.78rem;">${p.categoryId?.name || '—'}</td>
+            <td style="font-family:monospace;font-size:0.78rem;">${p.hsnCode || '—'}</td>
+            <td><span style="background:rgba(251,191,36,0.08);color:#fbbf24;font-size:0.72rem;padding:2px 6px;border-radius:5px;">${p.gstRate}%</span></td>
+            <td>${p.unit}</td>
+            <td style="font-weight:700;color:${p.isLowStock ? '#f87171' : '#4ade80'};">${p.currentStock}</td>
+            <td>${inr(p.mrp)}</td>
+            <td>${inr(p.purchasePrice)}</td>
+            <td style="font-weight:700;">${inr(p.stockValue)}</td>
+            <td>${p.isLowStock ? `<span class="badge-low">LOW</span>` : `<span class="badge-ok">OK</span>`}</td>
+          </tr>`).join('');
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">Failed to load stock summary.</td></tr>`;
+      }
+    }
+
+    async function loadValuation() {
+      const r = await fetch(`${API}/inventory/reports/valuation`, { headers: H() });
+      const { data } = await r.json();
+      document.getElementById('val-kpis').innerHTML = `
+        <div class="kpi"><div class="kpi-lbl">Total Stock Value</div><div class="kpi-val" style="color:#4ade80;">${inr(data.totalValue)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Products</div><div class="kpi-val">${data.items?.length || 0}</div></div>`;
+      const tbody = document.getElementById('val-tbody');
+      if (!data.items?.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">No data.</td></tr>`; return; }
+      tbody.innerHTML = data.items.map(i => `
+        <tr>
+          <td style="font-weight:600;color:var(--text);">${i.name}</td>
+          <td style="font-family:monospace;">${i.sku}</td>
+          <td>${i.unit}</td>
+          <td>${inr(i.avgCost)}</td>
+          <td>${i.inQty}</td>
+          <td style="font-weight:700;color:#4ade80;">${inr(i.stockValue)}</td>
+        </tr>`).join('');
+    }
+
+    async function loadGST() {
+      const type = document.getElementById('gst-type').value;
+      const from = document.getElementById('gst-from').value;
+      const to   = document.getElementById('gst-to').value;
+      const params = new URLSearchParams({ type, ...(from && { from }), ...(to && { to }) });
+      const r = await fetch(`${API}/inventory/reports/gst-summary?${params}`, { headers: H() });
+      const { data } = await r.json();
+      document.getElementById('gst-kpis').innerHTML = `
+        <div class="kpi"><div class="kpi-lbl">Taxable Amount</div><div class="kpi-val" style="font-size:1.2rem;">${inr(data.totalTaxable)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">CGST</div><div class="kpi-val" style="color:#38bdf8;font-size:1.2rem;">${inr(data.totalCgst)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">SGST</div><div class="kpi-val" style="color:#38bdf8;font-size:1.2rem;">${inr(data.totalSgst)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">IGST</div><div class="kpi-val" style="color:#a78bfa;font-size:1.2rem;">${inr(data.totalIgst)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Cess</div><div class="kpi-val" style="font-size:1.2rem;">${inr(data.totalCess)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Grand Total</div><div class="kpi-val" style="color:#4ade80;">${inr(data.grandTotal)}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Orders</div><div class="kpi-val">${data.count || 0}</div></div>`;
+    }
+
+    async function loadExpiry() {
+      const days = document.getElementById('expiry-days').value || 30;
+      const r = await fetch(`${API}/inventory/reports/expiry-alerts?days=${days}`, { headers: H() });
+      const { data } = await r.json();
+      const tbody = document.getElementById('expiry-tbody');
+      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#4ade80;">✅ No batches expiring within ${days} days.</td></tr>`; return; }
+      tbody.innerHTML = data.map(a => {
+        const expDate = new Date(a._id.expiryDate);
+        const daysLeft = Math.ceil((expDate - Date.now()) / 86400000);
+        return `<tr>
+          <td>${a._id.productId}</td>
+          <td style="font-family:monospace;">${a._id.batchNo || '—'}</td>
+          <td>${expDate.toLocaleDateString('en-IN')}</td>
+          <td>${a._id.warehouseId}</td>
+          <td style="font-weight:700;">${a.qty}</td>
+          <td style="font-weight:700;color:${daysLeft <= 7 ? '#f87171' : '#fbbf24'};">${daysLeft} days</td>
+        </tr>`; }).join('');
+    }
+
+    async function loadLedger() {
+      const productId = document.getElementById('ledger-product').value;
+      if (!productId) { alert('Please select a product'); return; }
+      const from = document.getElementById('ledger-from').value;
+      const to   = document.getElementById('ledger-to').value;
+      const params = new URLSearchParams({ ...(from && { from }), ...(to && { to }) });
+      const r = await fetch(`${API}/inventory/reports/stock-ledger/${productId}?${params}`, { headers: H() });
+      const { data } = await r.json();
+      const tbody = document.getElementById('ledger-tbody');
+      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No movements found.</td></tr>`; return; }
+      tbody.innerHTML = data.map(e => `
+        <tr>
+          <td>${new Date(e.date).toLocaleDateString('en-IN')}</td>
+          <td><span class="txn-badge txn-${e.txnType}">${e.txnType.replace('_', ' ')}</span></td>
+          <td>${e.warehouseId?.name || '—'}</td>
+          <td style="font-family:monospace;">${e.batchNo || '—'}</td>
+          <td style="font-weight:700;color:${e.qty > 0 ? '#4ade80' : '#f87171'};">${e.qty > 0 ? '+' : ''}${e.qty}</td>
+          <td>${inr(e.unitCost)}</td>
+          <td style="font-size:0.78rem;">${e.remarks || '—'}</td>
+        </tr>`).join('');
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -19,6 +19,7 @@ const roleRoutes = require('./routes/role');
 const userRoutes = require('./routes/user');
 const billingRoutes = require('./routes/billing');
 const auditRoutes = require('./routes/audit');
+const inventoryRoutes = require('./routes/inventory');
 const { errorHandler } = require('./middlewares/error');
 
 const app = express();
@@ -44,6 +45,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // ─── Root & Frontend HTML fallback ───────────────────────────────────────────
 app.get('/', (_req, res) => {

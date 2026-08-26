@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products — WorkSpace Inventory</title>
+  <meta name="description" content="Product catalog with HSN codes, GST rates, stock levels and barcode scanning." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- QuaggaJS for barcode scanning -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { overflow-y: auto; display: block; padding: 0; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
+    .top-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .inv-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .inv-nav a { font-size: 0.8rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
+    .inv-nav a.active { background: var(--primary); color: #fff; }
+    .inv-nav a:not(.active) { background: var(--surface-2); color: var(--text-sub); border: 1px solid var(--border); }
+    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .search-box { flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; color: var(--text); font-size: 0.875rem; outline: none; }
+    .search-box:focus { border-color: var(--primary); }
+    .select-filter { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; }
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { padding: 12px 16px; background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); text-align: left; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-sub); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.015); }
+    .tracking-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; font-family: monospace; }
+    .tracking-NONE   { background: rgba(148,163,184,0.12); color: #94a3b8; }
+    .tracking-BATCH  { background: rgba(56,189,248,0.12); color: #38bdf8; }
+    .tracking-SERIAL { background: rgba(167,139,250,0.12); color: #a78bfa; }
+    .gst-badge { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+    .stock-num { font-weight: 700; }
+    .stock-low { color: #f87171; }
+    .stock-ok { color: #4ade80; }
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #14162b; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; padding: 28px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+    .form-input, .form-select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.875rem; outline: none; width: 100%; }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    /* Barcode scanner */
+    #scanner-container { position: fixed; inset: 0; background: #000; z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    #scanner-container.show { display: flex; }
+    #interactive video { width: 100%; max-width: 480px; border-radius: 8px; }
+    .scan-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; height: 80px; border: 2px solid #6366f1; border-radius: 6px; box-shadow: 0 0 0 1000px rgba(0,0,0,0.5); pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+
+  <!-- Barcode Scanner -->
+  <div id="scanner-container">
+    <div style="color:#fff;font-size:0.9rem;margin-bottom:16px;">📷 Point camera at barcode</div>
+    <div id="interactive" class="viewport" style="position:relative;"></div>
+    <div class="scan-overlay"></div>
+    <button onclick="stopScan()" style="margin-top:24px;background:rgba(248,113,113,0.2);border:1px solid #f87171;color:#f87171;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.9rem;">✕ Cancel</button>
+  </div>
+
+  <div class="page">
+    <header class="top-nav">
+      <div>
+        <div class="brand" style="margin-bottom:6px;">
+          <div class="brand-logo"><svg width="26" height="26" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#pG)"/><path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/><defs><linearGradient id="pG" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg></div>
+          <span class="brand-name">WorkSpace</span>
+          <span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">📦 INVENTORY</span>
+        </div>
+        <div class="inv-nav">
+          <a href="inv-dashboard.html">📊 Dashboard</a>
+          <a href="inv-products.html" class="active">📦 Products</a>
+          <a href="inv-suppliers.html">🏭 Suppliers</a>
+          <a href="inv-customers.html">👥 Customers</a>
+          <a href="inv-reports.html">📈 Reports</a>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">← Main</a>
+        <button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <input id="search" class="search-box" type="text" placeholder="🔍 Search name, SKU, barcode…" oninput="debounceLoad()" />
+      <select id="filter-cat" class="select-filter" onchange="loadProducts()"><option value="">All Categories</option></select>
+      <select id="filter-tracking" class="select-filter" onchange="loadProducts()">
+        <option value="">All Tracking</option>
+        <option value="NONE">None</option>
+        <option value="BATCH">Batch</option>
+        <option value="SERIAL">Serial</option>
+      </select>
+      <button onclick="startScan()" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">📷 Scan</button>
+      <button onclick="openQuickStockModal()" style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">⚡ Quick Stock In / Out</button>
+      <button onclick="openModal()" style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+ Add Product</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU / Barcode</th>
+            <th>HSN</th>
+            <th>GST</th>
+            <th>MRP</th>
+            <th>Sell Price</th>
+            <th>Tracking</th>
+            <th>Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-tbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div id="pagination" style="text-align:center;margin-top:16px;font-size:0.85rem;color:var(--text-muted);"></div>
+  </div>
+
+  <!-- Add/Edit Product Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Add Product</div>
+      <form id="product-form" onsubmit="saveProduct(event)">
+        <input type="hidden" id="edit-id" />
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Product Name *</label>
+            <input id="f-name" class="form-input" type="text" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">SKU *</label>
+            <div style="display:flex;gap:6px;">
+              <input id="f-sku" class="form-input" type="text" required style="flex:1;" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Barcode</label>
+            <div style="display:flex;gap:6px;">
+              <input id="f-barcode" class="form-input" type="text" placeholder="EAN/UPC" style="flex:1;" />
+              <button type="button" onclick="startScanForField('f-barcode')" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:0.8rem;">📷</button>
+            </div>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <label class="form-label" style="margin-bottom:0;">Category (Indian Standard Presets)</label>
+              <button type="button" onclick="openQuickCatModal()" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;font-size:0.75rem;padding:3px 8px;border-radius:6px;cursor:pointer;">+ New Category</button>
+            </div>
+            <select id="f-category" class="form-select" onchange="onCategoryChange()"><option value="">— Select Category —</option></select>
+            <div id="cat-hint" style="display:none;font-size:0.75rem;color:#38bdf8;margin-top:4px;">✨ HSN & GST rate auto-suggested from category</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unit *</label>
+            <select id="f-unit" class="form-select" required>
+              <option>Pcs</option><option>Box</option><option>Carton</option><option>Dozen</option><option>Pair</option><option>Set</option>
+              <option>Kg</option><option>g</option><option>Quintal</option><option>MT</option>
+              <option>L</option><option>mL</option><option>m</option><option>cm</option><option>ft</option><option>sqm</option><option>sqft</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">HSN/SAC Code</label>
+            <input id="f-hsn" class="form-input" type="text" placeholder="4-8 digit HSN" maxlength="8" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">GST Rate %</label>
+            <select id="f-gst" class="form-select">
+              <option value="0">0% (Nil / Exempt)</option><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18% (Standard)</option><option value="28">28% (Luxury / Auto)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cess Rate %</label>
+            <input id="f-cess" class="form-input" type="number" value="0" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">MRP (₹)</label>
+            <input id="f-mrp" class="form-input" type="number" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Purchase Price (₹)</label>
+            <input id="f-purchase" class="form-input" type="number" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Selling Price (₹)</label>
+            <input id="f-selling" class="form-input" type="number" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tracking Type</label>
+            <select id="f-tracking" class="form-select">
+              <option value="NONE">None</option>
+              <option value="BATCH">Batch + Expiry</option>
+              <option value="SERIAL">Serial Numbers</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reorder Level</label>
+            <input id="f-reorder" class="form-input" type="number" min="0" value="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reorder Qty</label>
+            <input id="f-reorder-qty" class="form-input" type="number" min="0" value="0" />
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Description</label>
+            <input id="f-desc" class="form-input" type="text" />
+          </div>
+        </div>
+        <div id="form-error" class="form-error" style="display:none;margin-top:12px;"></div>
+        <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+          <button type="button" onclick="closeModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:9px 20px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="save-btn" class="btn-primary" style="width:auto;padding:9px 24px;">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quick Add Category Modal -->
+  <div class="modal-overlay" id="quick-cat-modal" style="z-index:1100;">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-title">📁 Add New Category</div>
+      <form onsubmit="saveQuickCategory(event)">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Category Name *</label>
+          <input id="qc-name" class="form-input" type="text" required placeholder="e.g. Smart Watches" />
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Parent Category (Optional)</label>
+          <select id="qc-parent" class="form-select"><option value="">— Top Level Category —</option></select>
+        </div>
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Default HSN</label>
+            <input id="qc-hsn" class="form-input" type="text" placeholder="8517" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default GST %</label>
+            <select id="qc-gst" class="form-select">
+              <option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option>
+            </select>
+          </div>
+        </div>
+        <div id="qc-error" class="form-error" style="display:none;margin-top:8px;"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+          <button type="button" onclick="closeQuickCatModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="qc-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quick Stock In / Out Modal -->
+  <div class="modal-overlay" id="quick-stock-modal" style="z-index:1100;">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-title" id="qs-modal-title">⚡ Quick Stock Movement</div>
+      <form onsubmit="saveQuickStock(event)">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Product *</label>
+          <select id="qs-product" class="form-select" required onchange="onQSProductChange()"><option value="">— Select Product —</option></select>
+        </div>
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Movement Type *</label>
+            <select id="qs-type" class="form-select" required onchange="onQSTypeChange()">
+              <option value="IN">➕ Stock In (Add Stock)</option>
+              <option value="OUT">➖ Stock Out (Remove Stock)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Warehouse *</label>
+            <select id="qs-warehouse" class="form-select" required><option value="">— Select Godown —</option></select>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Quantity *</label>
+            <input id="qs-qty" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 10" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="qs-cost-lbl">Unit Cost (₹)</label>
+            <input id="qs-cost" class="form-input" type="number" min="0" step="0.01" placeholder="Purchase price" />
+          </div>
+        </div>
+        <div class="form-row" id="qs-batch-row" style="margin-bottom:12px;display:none;">
+          <div class="form-group">
+            <label class="form-label">Batch No.</label>
+            <input id="qs-batch" class="form-input" type="text" placeholder="e.g. BATCH-2026-A" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Expiry Date</label>
+            <input id="qs-expiry" class="form-input" type="date" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Reason / Remarks</label>
+          <input id="qs-remarks" class="form-input" type="text" placeholder="e.g. Received from vendor, Customer dispatch, Audit adjustment" />
+        </div>
+        <div id="qs-error" class="form-error" style="display:none;margin-top:8px;"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+          <button type="button" onclick="closeQuickStockModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="qs-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Apply Stock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+    const API = 'http://localhost:5000/api';
+    const token = localStorage.getItem('auth_token');
+    if (!token) window.location.href = 'index.html';
+
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const mainNav = document.getElementById('main-nav-link');
+    if (mainNav) {
+      mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
+    }
+
+    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+
+    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+
+    let scanTarget = null;
+    let categories = [];
+    let warehouses = [];
+    let productsList = [];
+    let debounceTimer;
+
+    function debounceLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 300); }
+
+    // ─── Warehouses Loader ─────────────────────────────────────────────────────
+    async function loadWarehouses() {
+      try {
+        const r = await fetch(`${API}/inventory/warehouses`, { headers: H() });
+        if (!r.ok) return;
+        const { data } = await r.json();
+        warehouses = data || [];
+        const qsWh = document.getElementById('qs-warehouse');
+        if (qsWh) {
+          qsWh.innerHTML = '<option value="">— Select Godown —</option>';
+          warehouses.forEach(w => qsWh.innerHTML += `<option value="${w._id}">${w.name} (${w.code})</option>`);
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    // ─── Categories Loader & Hierarchy ─────────────────────────────────────────
+    async function loadCategories() {
+      try {
+        const r = await fetch(`${API}/inventory/categories`, { headers: H() });
+        if (!r.ok) return;
+        const { data } = await r.json();
+        categories = data || [];
+
+        const sel = document.getElementById('filter-cat');
+        const fSel = document.getElementById('f-category');
+        const qcParent = document.getElementById('qc-parent');
+
+        sel.innerHTML = '<option value="">All Categories</option>';
+        fSel.innerHTML = '<option value="">— Select Category —</option>';
+        if (qcParent) qcParent.innerHTML = '<option value="">— Top Level Category —</option>';
+
+        // Separate root categories and subcategories
+        const rootCats = categories.filter(c => !c.parentId);
+        const subCats = categories.filter(c => c.parentId);
+
+        rootCats.forEach(root => {
+          const children = subCats.filter(s => (s.parentId?._id || s.parentId) === root._id);
+          const icon = root.icon || '📦';
+
+          if (children.length > 0) {
+            let optGroupHtml = `<optgroup label="${icon} ${root.name}">`;
+            // Option for root itself
+            optGroupHtml += `<option value="${root._id}" data-hsn="${root.defaultHsn || ''}" data-gst="${root.defaultGstRate ?? 18}" data-cess="${root.defaultCessRate ?? 0}">${icon} All ${root.name}</option>`;
+            // Options for children
+            children.forEach(sub => {
+              optGroupHtml += `<option value="${sub._id}" data-hsn="${sub.defaultHsn || root.defaultHsn || ''}" data-gst="${sub.defaultGstRate ?? root.defaultGstRate ?? 18}" data-cess="${sub.defaultCessRate ?? 0}">  └ ${sub.name} (HSN: ${sub.defaultHsn || '—'} · ${sub.defaultGstRate}%)</option>`;
+            });
+            optGroupHtml += `</optgroup>`;
+
+            sel.innerHTML += optGroupHtml;
+            fSel.innerHTML += optGroupHtml;
+          } else {
+            const opt = `<option value="${root._id}" data-hsn="${root.defaultHsn || ''}" data-gst="${root.defaultGstRate ?? 18}" data-cess="${root.defaultCessRate ?? 0}">${icon} ${root.name}</option>`;
+            sel.innerHTML += opt;
+            fSel.innerHTML += opt;
+          }
+
+          if (qcParent) {
+            qcParent.innerHTML += `<option value="${root._id}">${icon} ${root.name}</option>`;
+          }
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    // Smart Auto-Fill on Category Selection
+    function onCategoryChange() {
+      const fSel = document.getElementById('f-category');
+      const selected = fSel.options[fSel.selectedIndex];
+      const hint = document.getElementById('cat-hint');
+      if (!selected || !selected.value) {
+        if (hint) hint.style.display = 'none';
+        return;
+      }
+
+      const defaultHsn = selected.getAttribute('data-hsn');
+      const defaultGst = selected.getAttribute('data-gst');
+      const defaultCess = selected.getAttribute('data-cess');
+
+      if (defaultHsn) {
+        document.getElementById('f-hsn').value = defaultHsn;
+      }
+      if (defaultGst !== null && defaultGst !== undefined && defaultGst !== '') {
+        document.getElementById('f-gst').value = defaultGst;
+      }
+      if (defaultCess !== null && defaultCess !== undefined && defaultCess !== '') {
+        document.getElementById('f-cess').value = defaultCess;
+      }
+
+      if (hint) {
+        hint.textContent = `✨ Auto-filled: HSN ${defaultHsn || '—'} · GST ${defaultGst || 18}%`;
+        hint.style.display = 'block';
+      }
+    }
+
+    // Inline Category Modal Functions
+    function openQuickCatModal() {
+      document.getElementById('qc-name').value = '';
+      document.getElementById('qc-hsn').value = '';
+      document.getElementById('qc-gst').value = '18';
+      document.getElementById('qc-error').style.display = 'none';
+      document.getElementById('quick-cat-modal').classList.add('show');
+    }
+    function closeQuickCatModal() {
+      document.getElementById('quick-cat-modal').classList.remove('show');
+    }
+
+    async function saveQuickCategory(e) {
+      e.preventDefault();
+      const btn = document.getElementById('qc-save-btn');
+      const errEl = document.getElementById('qc-error');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      errEl.style.display = 'none';
+
+      const body = {
+        name: document.getElementById('qc-name').value,
+        parentId: document.getElementById('qc-parent').value || null,
+        defaultHsn: document.getElementById('qc-hsn').value || undefined,
+        defaultGstRate: Number(document.getElementById('qc-gst').value),
+      };
+
+      try {
+        const r = await fetch(`${API}/inventory/categories`, { method: 'POST', headers: H(), body: JSON.stringify(body) });
+        const json = await r.json();
+        if (!r.ok) {
+          errEl.textContent = json.message || 'Failed to create category';
+          errEl.style.display = 'block';
+          return;
+        }
+        await loadCategories();
+        if (json.data?._id) {
+          document.getElementById('f-category').value = json.data._id;
+          onCategoryChange();
+        }
+        closeQuickCatModal();
+      } catch (err) {
+        errEl.textContent = 'Server error.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.textContent = 'Save Category';
+        btn.disabled = false;
+      }
+    }
+
+    // ─── Quick Stock In / Out Modal Functions ──────────────────────────────────
+    function openQuickStockModal(productId = null) {
+      const prodSel = document.getElementById('qs-product');
+      prodSel.innerHTML = '<option value="">— Select Product —</option>';
+      productsList.forEach(p => {
+        prodSel.innerHTML += `<option value="${p._id}" data-tracking="${p.trackingType}" data-cost="${p.purchasePrice || 0}">${p.name} (${p.sku}) · Available: ${p.currentStock} ${p.unit}</option>`;
+      });
+
+      if (productId) {
+        prodSel.value = productId;
+        onQSProductChange();
+      } else {
+        document.getElementById('qs-cost').value = '';
+        document.getElementById('qs-batch-row').style.display = 'none';
+      }
+
+      if (warehouses.length > 0 && !document.getElementById('qs-warehouse').value) {
+        document.getElementById('qs-warehouse').value = warehouses[0]._id;
+      }
+
+      document.getElementById('qs-qty').value = '';
+      document.getElementById('qs-remarks').value = '';
+      document.getElementById('qs-error').style.display = 'none';
+      document.getElementById('quick-stock-modal').classList.add('show');
+    }
+
+    function closeQuickStockModal() {
+      document.getElementById('quick-stock-modal').classList.remove('show');
+    }
+
+    function onQSProductChange() {
+      const prodSel = document.getElementById('qs-product');
+      const selected = prodSel.options[prodSel.selectedIndex];
+      if (!selected || !selected.value) return;
+
+      const tracking = selected.getAttribute('data-tracking');
+      const cost = selected.getAttribute('data-cost');
+      document.getElementById('qs-cost').value = cost || '';
+      document.getElementById('qs-batch-row').style.display = tracking === 'BATCH' ? 'grid' : 'none';
+    }
+
+    function onQSTypeChange() {
+      const type = document.getElementById('qs-type').value;
+      const btn = document.getElementById('qs-save-btn');
+      btn.textContent = type === 'IN' ? '➕ Add Stock' : '➖ Remove Stock';
+    }
+
+    async function saveQuickStock(e) {
+      e.preventDefault();
+      const btn = document.getElementById('qs-save-btn');
+      const errEl = document.getElementById('qs-error');
+      btn.textContent = 'Applying…'; btn.disabled = true;
+      errEl.style.display = 'none';
+
+      const body = {
+        productId: document.getElementById('qs-product').value,
+        warehouseId: document.getElementById('qs-warehouse').value,
+        type: document.getElementById('qs-type').value,
+        qty: Number(document.getElementById('qs-qty').value),
+        unitCost: Number(document.getElementById('qs-cost').value) || 0,
+        batchNo: document.getElementById('qs-batch').value || null,
+        expiryDate: document.getElementById('qs-expiry').value || null,
+        remarks: document.getElementById('qs-remarks').value || undefined,
+      };
+
+      try {
+        const r = await fetch(`${API}/inventory/stock-adjust`, {
+          method: 'POST',
+          headers: H(),
+          body: JSON.stringify(body),
+        });
+        const json = await r.json();
+        if (!r.ok) {
+          errEl.textContent = json.message || 'Failed to adjust stock';
+          errEl.style.display = 'block';
+          return;
+        }
+        closeQuickStockModal();
+        loadProducts();
+      } catch (err) {
+        errEl.textContent = 'Server error.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.textContent = 'Apply Stock';
+        btn.disabled = false;
+      }
+    }
+
+    // ─── Products Table ───────────────────────────────────────────────────────
+    async function loadProducts() {
+      const tbody = document.getElementById('products-tbody');
+      try {
+        const search = document.getElementById('search').value;
+        const categoryId = document.getElementById('filter-cat').value;
+        const trackingType = document.getElementById('filter-tracking').value;
+        const params = new URLSearchParams({ ...(search && { search }), ...(categoryId && { categoryId }), ...(trackingType && { trackingType }), limit: 500 });
+        const r = await fetch(`${API}/inventory/products?${params}`, { headers: H() });
+        if (r.status === 401) {
+          localStorage.clear();
+          window.location.href = 'index.html';
+          return;
+        }
+        if (r.status === 403) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view products.</td></tr>`;
+          return;
+        }
+        const { data } = await r.json();
+        productsList = data?.products || [];
+        if (!productsList.length) { tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No products found. Click "+ Add Product" to create your first item.</td></tr>`; return; }
+        tbody.innerHTML = productsList.map(p => {
+          const isLow = p.reorderLevel > 0 && p.currentStock <= p.reorderLevel;
+          const catName = p.categoryId?.name ? `${p.categoryId.icon || '🏷️'} ${p.categoryId.name}` : '';
+          return `<tr>
+            <td><div style="font-weight:600;color:var(--text);">${p.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${catName}</div></td>
+            <td><div style="font-family:monospace;font-size:0.8rem;">${p.sku}</div><div style="font-size:0.7rem;color:var(--text-muted);">${p.barcode || '—'}</div></td>
+            <td><span style="font-family:monospace;font-size:0.8rem;">${p.hsnCode || '—'}</span></td>
+            <td><span class="gst-badge">${p.gstRate}%</span></td>
+            <td>${inr(p.mrp)}</td>
+            <td>${inr(p.sellingPrice)}</td>
+            <td><span class="tracking-badge tracking-${p.trackingType}">${p.trackingType}</span></td>
+            <td><span class="stock-num ${isLow ? 'stock-low' : 'stock-ok'}">${p.currentStock} ${p.unit}</span>${isLow ? ' <span style="font-size:0.65rem;color:#f87171;">▼ LOW</span>' : ''}</td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="openQuickStockModal('${p._id}')" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem;">⚡ Stock</button>
+              <button onclick='editProduct(${JSON.stringify(p)})' style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button>
+            </td>
+          </tr>`;
+        }).join('');
+
+        // Check if URL requested stock action directly
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'stock') {
+          openQuickStockModal();
+        }
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load products.</td></tr>`;
+      }
+    }
+
+    // ─── Modal ─────────────────────────────────────────────────────────────────
+    function openModal(data = null) {
+      document.getElementById('modal-title').textContent = data ? 'Edit Product' : 'Add Product';
+      document.getElementById('edit-id').value = data?._id || '';
+      document.getElementById('f-name').value = data?.name || '';
+      document.getElementById('f-sku').value = data?.sku || '';
+      document.getElementById('f-barcode').value = data?.barcode || '';
+      document.getElementById('f-hsn').value = data?.hsnCode || '';
+      document.getElementById('f-gst').value = data?.gstRate ?? 18;
+      document.getElementById('f-cess').value = data?.cessRate ?? 0;
+      document.getElementById('f-mrp').value = data?.mrp || '';
+      document.getElementById('f-purchase').value = data?.purchasePrice || '';
+      document.getElementById('f-selling').value = data?.sellingPrice || '';
+      document.getElementById('f-tracking').value = data?.trackingType || 'NONE';
+      document.getElementById('f-reorder').value = data?.reorderLevel || 0;
+      document.getElementById('f-reorder-qty').value = data?.reorderQty || 0;
+      document.getElementById('f-desc').value = data?.description || '';
+      document.getElementById('f-unit').value = data?.unit || 'Pcs';
+      document.getElementById('f-category').value = data?.categoryId?._id || data?.categoryId || '';
+      document.getElementById('cat-hint').style.display = 'none';
+      document.getElementById('form-error').style.display = 'none';
+      document.getElementById('product-modal').classList.add('show');
+    }
+    function editProduct(p) { openModal(p); }
+    function closeModal() { document.getElementById('product-modal').classList.remove('show'); }
+
+    async function saveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const btn = document.getElementById('save-btn');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      const errEl = document.getElementById('form-error');
+      errEl.style.display = 'none';
+
+      const body = {
+        name: document.getElementById('f-name').value,
+        sku: document.getElementById('f-sku').value,
+        barcode: document.getElementById('f-barcode').value || null,
+        categoryId: document.getElementById('f-category').value || null,
+        unit: document.getElementById('f-unit').value,
+        hsnCode: document.getElementById('f-hsn').value,
+        gstRate: Number(document.getElementById('f-gst').value),
+        cessRate: Number(document.getElementById('f-cess').value),
+        mrp: Number(document.getElementById('f-mrp').value),
+        purchasePrice: Number(document.getElementById('f-purchase').value),
+        sellingPrice: Number(document.getElementById('f-selling').value),
+        trackingType: document.getElementById('f-tracking').value,
+        reorderLevel: Number(document.getElementById('f-reorder').value),
+        reorderQty: Number(document.getElementById('f-reorder-qty').value),
+        description: document.getElementById('f-desc').value,
+      };
+
+      try {
+        const url = id ? `${API}/inventory/products/${id}` : `${API}/inventory/products`;
+        const r = await fetch(url, { method: id ? 'PUT' : 'POST', headers: H(), body: JSON.stringify(body) });
+        const json = await r.json();
+        if (!r.ok) { errEl.textContent = json.message; errEl.style.display = 'block'; return; }
+        closeModal();
+        loadProducts();
+      } catch (err) { errEl.textContent = 'Server error.'; errEl.style.display = 'block'; }
+      finally { btn.textContent = 'Save Product'; btn.disabled = false; }
+    }
+
+    // ─── Barcode Scanner (QuaggaJS) ───────────────────────────────────────────
+    function startScan(targetField = null) {
+      scanTarget = targetField;
+      document.getElementById('scanner-container').classList.add('show');
+      Quagga.init({
+        inputStream: { type: 'LiveStream', target: document.querySelector('#interactive'), constraints: { facingMode: 'environment' } },
+        decoder: { readers: ['ean_reader', 'code_128_reader', 'ean_8_reader', 'code_39_reader', 'upc_reader'] },
+        locate: true,
+      }, err => { if (!err) Quagga.start(); });
+
+      Quagga.onDetected(result => {
+        const code = result.codeResult.code;
+        stopScan();
+        if (scanTarget) {
+          document.getElementById(scanTarget).value = code;
+        } else {
+          document.getElementById('search').value = code;
+          loadProducts();
+        }
+      });
+    }
+
+    function startScanForField(fieldId) { openModal(null); startScan(fieldId); }
+
+    function stopScan() {
+      Quagga.stop();
+      document.getElementById('scanner-container').classList.remove('show');
+      scanTarget = null;
+    }
+
+    // ─── Init ──────────────────────────────────────────────────────────────────
+    Promise.all([loadCategories(), loadWarehouses()]).then(loadProducts);
+  </script>
+</body>
+</html>

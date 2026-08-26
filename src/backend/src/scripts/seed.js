@@ -27,6 +27,7 @@ const SUPER_ADMIN_PERMISSIONS = [
   'billing:read', 'billing:manage',
   'subscription:read', 'subscription:manage',
   'audit:read',
+  'inventory:read', 'inventory:manage', 'inventory:orders', 'inventory:approve', 'inventory:reports', 'inventory:admin',
 ];
 
 const COMPANY_ADMIN_PERMISSIONS = [
@@ -34,12 +35,14 @@ const COMPANY_ADMIN_PERMISSIONS = [
   'user:read', 'user:create', 'user:update', 'user:delete',
   'role:read', 'role:create', 'role:update', 'role:delete',
   'billing:read', 'subscription:read',
+  'inventory:read', 'inventory:manage', 'inventory:orders', 'inventory:approve', 'inventory:reports', 'inventory:admin',
 ];
 
 const MANAGER_PERMISSIONS = [
   'company:read',
   'user:read', 'user:create', 'user:update',
   'role:read',
+  'inventory:read', 'inventory:orders',
 ];
 
 const BILLING_MANAGER_PERMISSIONS = [
@@ -58,11 +61,13 @@ const AUDITOR_PERMISSIONS = [
   'company:read',
   'user:read',
   'audit:read',
+  'inventory:read',
 ];
 
 const VIEWER_PERMISSIONS = [
   'company:read',
   'user:read',
+  'inventory:read',
 ];
 
 const STANDARD_USER_PERMISSIONS = [
@@ -255,6 +260,46 @@ async function seed() {
       isActive: true,
     });
     console.log('[Seed] Created Nexus Admin: admin@nexus.com (Password: Password@123)');
+  }
+
+  // ─── Inventory Seed Data for Acme ──────────────────────────────────────────
+  const Warehouse   = require('../models/inv/Warehouse');
+  const InvCategory = require('../models/inv/Category');
+  const InvProduct  = require('../models/inv/Product');
+
+  let acmeWH = await Warehouse.findOne({ tenantId: tenantA._id });
+  if (!acmeWH) {
+    acmeWH = await Warehouse.create({ tenantId: tenantA._id, name: 'Main Godown', code: 'WH-ACME-01', type: 'OWNED', city: 'Mumbai', state: 'Maharashtra', stateCode: '27', pincode: '400001', isDefault: true });
+    console.log('[Seed] Created Acme Warehouse: Main Godown (WH-ACME-01)');
+  }
+
+  let catElec = await InvCategory.findOne({ tenantId: tenantA._id, name: 'Electronics' });
+  if (!catElec) {
+    catElec = await InvCategory.create({ tenantId: tenantA._id, name: 'Electronics', description: 'Electronic goods & accessories' });
+    let catElecAcc = await InvCategory.create({ tenantId: tenantA._id, name: 'Accessories', parentId: catElec._id });
+    console.log('[Seed] Created Acme Categories: Electronics, Accessories');
+  }
+
+  let catFMCG = await InvCategory.findOne({ tenantId: tenantA._id, name: 'FMCG' });
+  if (!catFMCG) {
+    catFMCG = await InvCategory.create({ tenantId: tenantA._id, name: 'FMCG', description: 'Fast Moving Consumer Goods' });
+    console.log('[Seed] Created Acme Category: FMCG');
+  }
+
+  const sampleProducts = [
+    { name: 'USB-C Data Cable 2m', sku: 'ACME-USBC-2M', barcode: '8901234567890', categoryId: catElec._id, unit: 'Pcs', hsnCode: '8544', gstRate: 18, mrp: 499, purchasePrice: 120, sellingPrice: 350, trackingType: 'NONE', reorderLevel: 20, reorderQty: 100 },
+    { name: 'Wireless Bluetooth Earbuds', sku: 'ACME-BT-PODS', barcode: '8901234567891', categoryId: catElec._id, unit: 'Pcs', hsnCode: '8518', gstRate: 18, cessRate: 0, mrp: 2999, purchasePrice: 900, sellingPrice: 2200, trackingType: 'SERIAL', reorderLevel: 5, reorderQty: 20 },
+    { name: 'Hand Sanitizer 500ml', sku: 'ACME-SAN-500', barcode: '8901234567892', categoryId: catFMCG._id, unit: 'Pcs', hsnCode: '3808', gstRate: 12, mrp: 199, purchasePrice: 70, sellingPrice: 150, trackingType: 'BATCH', reorderLevel: 50, reorderQty: 200 },
+    { name: 'Premium Green Tea (25 bags)', sku: 'ACME-TEA-25', barcode: '8901234567893', categoryId: catFMCG._id, unit: 'Box', hsnCode: '0902', gstRate: 5, mrp: 249, purchasePrice: 80, sellingPrice: 190, trackingType: 'BATCH', reorderLevel: 30, reorderQty: 100 },
+    { name: 'HDMI Cable 1.5m', sku: 'ACME-HDMI-15', barcode: '8901234567894', categoryId: catElec._id, unit: 'Pcs', hsnCode: '8544', gstRate: 18, mrp: 799, purchasePrice: 180, sellingPrice: 550, trackingType: 'NONE', reorderLevel: 10, reorderQty: 50 },
+  ];
+
+  for (const pd of sampleProducts) {
+    const existing = await InvProduct.findOne({ tenantId: tenantA._id, sku: pd.sku });
+    if (!existing) {
+      await InvProduct.create({ tenantId: tenantA._id, ...pd });
+      console.log(`[Seed] Created product: ${pd.name}`);
+    }
   }
 
   await mongoose.disconnect();

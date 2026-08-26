@@ -74,30 +74,68 @@ function populateRoleSelect() {
 
 function populatePermissionGrid() {
   const container = document.getElementById('perm-checkboxes');
-  container.innerHTML = cachedPermissions.map(p => {
-    const permString = `${p.resource}:${p.action}`;
-    return `
-      <label class="perm-item">
-        <input type="checkbox" name="permissions" value="${permString}" />
-        <div>
-          <div style="font-weight: 600;">${permString}</div>
-          <div style="font-size: 0.72rem; color: var(--text-muted);">${p.description}</div>
-        </div>
-      </label>
+  if (!cachedPermissions || cachedPermissions.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;">No permissions available.</div>';
+    return;
+  }
+
+  // Group permissions by resource
+  const groups = {
+    company: { title: '🏢 Company & Profile', items: [] },
+    user: { title: '👥 Team & Users', items: [] },
+    role: { title: '🛡️ Roles & Permissions', items: [] },
+    billing: { title: '💳 Billing & Invoices', items: [] },
+    subscription: { title: '📈 Subscription Management', items: [] },
+    audit: { title: '🔍 Audit Logs', items: [] },
+    inventory: { title: '📦 Inventory & GST Orders', items: [] },
+  };
+
+  cachedPermissions.forEach(p => {
+    const key = p.resource || 'other';
+    if (!groups[key]) groups[key] = { title: `⚙️ ${key.toUpperCase()}`, items: [] };
+    groups[key].items.push(p);
+  });
+
+  let html = '';
+  for (const [, grp] of Object.entries(groups)) {
+    if (!grp.items.length) continue;
+    html += `
+      <div style="grid-column: 1 / -1; margin-top: 10px; margin-bottom: 4px; font-weight: 700; font-size: 0.8rem; color: #a5b4fc; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
+        ${grp.title}
+      </div>
     `;
-  }).join('');
+    grp.items.forEach(p => {
+      const permString = `${p.resource}:${p.action}`;
+      html += `
+        <label class="perm-item" style="display: flex; align-items: flex-start; gap: 8px; background: var(--surface-2); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer;">
+          <input type="checkbox" name="permissions" value="${permString}" style="margin-top: 3px;" />
+          <div>
+            <div style="font-weight: 600; font-size: 0.82rem; font-family: monospace; color: var(--text);">${permString}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.2; margin-top: 2px;">${p.description}</div>
+          </div>
+        </label>
+      `;
+    });
+  }
+  container.innerHTML = html;
 }
 
 // ─── Load Data ─────────────────────────────────────────────────────────────────
 async function loadUsers() {
+  const tbody = document.getElementById('users-table-body');
   try {
     const res = await fetch(`${API_BASE}/users`, { headers: authHeaders() });
-    if (!res.ok) throw new Error('Failed to load users');
+    if (!res.ok) {
+      if (res.status === 403) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">You do not have permission to view workspace users.</td></tr>';
+        return;
+      }
+      throw new Error('Failed to load users');
+    }
     const json = await res.json();
-    const users = json.data.users;
+    const users = json.data?.users || [];
 
-    const tbody = document.getElementById('users-table-body');
-    if (!users || users.length === 0) {
+    if (users.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No team members found.</td></tr>';
       return;
     }
@@ -116,32 +154,49 @@ async function loadUsers() {
     `).join('');
   } catch (err) {
     console.error(err);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--error); padding: 24px;">Unable to load team members. Please refresh.</td></tr>';
   }
 }
 
 async function loadRoles() {
+  const tbody = document.getElementById('roles-table-body');
   try {
-    const [rolesRes, permRes] = await Promise.all([
-      fetch(`${API_BASE}/roles`, { headers: authHeaders() }),
-      fetch(`${API_BASE}/roles/permissions`, { headers: authHeaders() }),
-    ]);
+    // 1. Fetch system permissions (always available)
+    try {
+      const permRes = await fetch(`${API_BASE}/roles/permissions`, { headers: authHeaders() });
+      if (permRes.ok) {
+        const permJson = await permRes.json();
+        cachedPermissions = permJson.data || [];
+      }
+    } catch (e) {
+      console.warn('Could not fetch permissions', e);
+    }
 
-    if (!rolesRes.ok || !permRes.ok) throw new Error('Failed to load roles');
+    // 2. Fetch roles
+    const rolesRes = await fetch(`${API_BASE}/roles`, { headers: authHeaders() });
+    if (!rolesRes.ok) {
+      if (rolesRes.status === 403) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">🛡️ View-only access: Only administrators can configure roles and permission policies.</td></tr>';
+        return;
+      }
+      throw new Error('Failed to load roles');
+    }
 
     const rolesJson = await rolesRes.json();
-    const permJson = await permRes.json();
+    cachedRoles = rolesJson.data || [];
 
-    cachedRoles = rolesJson.data;
-    cachedPermissions = permJson.data;
+    if (cachedRoles.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">No roles configured.</td></tr>';
+      return;
+    }
 
-    const tbody = document.getElementById('roles-table-body');
     tbody.innerHTML = cachedRoles.map(r => `
       <tr>
-        <td style="font-weight: 600; color: var(--text);">${r.name}</td>
-        <td><span style="font-size: 0.75rem; color: ${r.isSystemRole ? '#38bdf8' : '#a855f7'}; font-weight: 600;">${r.isSystemRole ? 'System Template' : 'Custom Workspace Role'}</span></td>
+        <td style="font-weight: 600; color: var(--text);">${r.name.replace(/_/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase())}</td>
+        <td><span style="font-size: 0.75rem; color: ${r.isSystemRole ? '#38bdf8' : '#a855f7'}; font-weight: 600; background: ${r.isSystemRole ? 'rgba(56,189,248,0.1)' : 'rgba(168,85,247,0.1)'}; padding: 2px 8px; border-radius: 6px;">${r.isSystemRole ? 'System Template' : 'Custom Workspace Role'}</span></td>
         <td>
-          <div style="font-size: 0.78rem; color: var(--text-sub); max-width: 450px;">
-            ${r.permissions.join(', ')}
+          <div style="font-size: 0.75rem; color: var(--text-sub); max-width: 520px; line-height: 1.5; display: flex; flex-wrap: wrap; gap: 4px;">
+            ${r.permissions.map(p => `<span style="background:rgba(255,255,255,0.05);padding:1px 6px;border-radius:4px;font-family:monospace;">${p}</span>`).join('')}
           </div>
         </td>
         <td>
@@ -151,6 +206,7 @@ async function loadRoles() {
     `).join('');
   } catch (err) {
     console.error(err);
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--error); padding: 24px;">Failed to load roles. Please try again.</td></tr>';
   }
 }
 

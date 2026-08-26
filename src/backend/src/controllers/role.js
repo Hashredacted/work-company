@@ -22,6 +22,12 @@ const AVAILABLE_PERMISSIONS = [
   { resource: 'subscription', action: 'read', description: 'View subscription status and plan info' },
   { resource: 'subscription', action: 'manage', description: 'Upgrade, downgrade, or cancel subscription' },
   { resource: 'audit', action: 'read', description: 'View audit activity and login history' },
+  { resource: 'inventory', action: 'read', description: 'View products, stock levels, and inventory catalogs' },
+  { resource: 'inventory', action: 'manage', description: 'Create and update products, categories, suppliers, customers, and warehouses' },
+  { resource: 'inventory', action: 'orders', description: 'Create and process Purchase Orders, Sales Orders, and Goods Receipts (GRN)' },
+  { resource: 'inventory', action: 'approve', description: 'Approve physical stock audits and adjustments' },
+  { resource: 'inventory', action: 'reports', description: 'Access valuation, stock ledger, GST tax summary, and expiry reports' },
+  { resource: 'inventory', action: 'admin', description: 'Full inventory management module administration' },
 ];
 
 const createRoleSchema = z.object({

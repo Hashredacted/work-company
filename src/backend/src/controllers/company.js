@@ -121,7 +121,11 @@ async function registerCompany(req, res, next) {
       lastLoginAt: new Date(),
     });
 
-    // 3. Record initial LoginHistory & AuditLog
+    // 3. Record initial LoginHistory & AuditLog & Provision default Inventory (Warehouse & Category)
+    const Warehouse = require('../models/inv/Warehouse');
+    const InvCategory = require('../models/inv/Category');
+    const codePrefix = (name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4) || 'WH').toUpperCase();
+
     await Promise.all([
       LoginHistory.create({
         userId: user._id,
@@ -140,7 +144,22 @@ async function registerCompany(req, res, next) {
         ip: req.ip,
         userAgent: req.headers['user-agent'] || null,
       }),
+      Warehouse.create({
+        tenantId: tenant._id,
+        name: 'Main Godown',
+        code: `WH-${codePrefix}-01`,
+        type: 'OWNED',
+        city: address ? address.split(',')[0].trim() : 'Mumbai',
+        state: 'Maharashtra',
+        stateCode: '27',
+        pincode: '400001',
+        isDefault: true,
+      }),
     ]);
+
+    // Seed Indian Category Presets
+    const { seedIndianPresetsForTenant } = require('./inventory/category');
+    await seedIndianPresetsForTenant(tenant._id);
 
     // 4. Sign JWT
     const token = signToken(user);
