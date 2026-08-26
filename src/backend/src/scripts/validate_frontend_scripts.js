@@ -8,6 +8,7 @@ const files = [
   'inv-products.html',
   'inv-suppliers.html',
   'inv-customers.html',
+  'inv-payments.html',
   'inv-reports.html',
   'users.html',
   'company-dashboard.html',

@@ -2,6 +2,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const dotenv = require('dotenv');
 
@@ -12,6 +13,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const { connectDB } = require('./config/db');
+const { apiLimiter, authLimiter, sanitizeInput } = require('./middlewares/security');
+
 const authRoutes = require('./routes/auth');
 const companyRoutes = require('./routes/company');
 const dashboardRoutes = require('./routes/dashboard');
@@ -24,9 +27,32 @@ const { errorHandler } = require('./middlewares/error');
 
 const app = express();
 
-// ─── Middleware ──────────────────────────────────────────────────────────────
+// ─── Security Headers (Helmet) ───────────────────────────────────────────────
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'", 'http://localhost:5000', 'http://127.0.0.1:5000'],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net'],
+        scriptSrcElem: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net'],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        styleSrcElem: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        styleSrcAttr: ["'unsafe-inline'"],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+        connectSrc: ["'self'", 'http://localhost:5000', 'http://127.0.0.1:5000', 'ws://localhost:5000', 'ws://127.0.0.1:5000', 'https://wa.me'],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
+
+// ─── Core Middleware ─────────────────────────────────────────────────────────
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(sanitizeInput); // NoSQL Injection sanitization
 
 // ─── Serve Frontend Static Files ─────────────────────────────────────────────
 const frontendPath = path.resolve(__dirname, '../../frontend');
@@ -34,11 +60,12 @@ app.use(express.static(frontendPath));
 
 // ─── Health check ────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-  res.json({ data: { status: 'ok' }, message: 'Server is running', errors: null });
+  res.json({ data: { status: 'ok', secure: true }, message: 'Server is running', errors: null });
 });
 
-// ─── API Routes ──────────────────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
+// ─── API Routes with Rate Limiting ───────────────────────────────────────────
+app.use('/api/', apiLimiter);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/roles', roleRoutes);
@@ -60,21 +87,21 @@ app.use((req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// ─── Error Handler ───────────────────────────────────────────────────────────
+// ─── Central Error Handler ────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ─── Start Server ────────────────────────────────────────────────────────────
+// ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`[Server] Running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('[Server] Failed to connect to DB:', err.message);
-    process.exit(1);
+async function start() {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`[Server] Running on http://localhost:${PORT}`);
   });
+}
+
+if (process.env.NODE_ENV !== 'test') {
+  start();
+}
 
 module.exports = app;

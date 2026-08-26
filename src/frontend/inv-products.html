@@ -38,7 +38,7 @@
     .stock-ok { color: #4ade80; }
     /* Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.show { display: flex; }
+    .modal-overlay.show { display: flex !important; }
     .modal { background: #14162b; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; padding: 28px; }
     .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -80,6 +80,7 @@
           <a href="inv-products.html" class="active">📦 Products</a>
           <a href="inv-suppliers.html">🏭 Suppliers</a>
           <a href="inv-customers.html">👥 Customers</a>
+          <a href="inv-payments.html">💳 Payments</a>
           <a href="inv-reports.html">📈 Reports</a>
         </div>
       </div>
@@ -256,8 +257,8 @@
 
   <!-- Quick Stock In / Out Modal -->
   <div class="modal-overlay" id="quick-stock-modal" style="z-index:1100;">
-    <div class="modal" style="max-width:480px;">
-      <div class="modal-title" id="qs-modal-title">⚡ Quick Stock Movement</div>
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-title" id="qs-modal-title">⚡ Quick Stock & Billing</div>
       <form onsubmit="saveQuickStock(event)">
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label">Product *</label>
@@ -267,8 +268,8 @@
           <div class="form-group">
             <label class="form-label">Movement Type *</label>
             <select id="qs-type" class="form-select" required onchange="onQSTypeChange()">
-              <option value="IN">➕ Stock In (Add Stock)</option>
-              <option value="OUT">➖ Stock Out (Remove Stock)</option>
+              <option value="IN">➕ Stock In (Purchase / Inward)</option>
+              <option value="OUT">➖ Stock Out (Sale / Outward)</option>
             </select>
           </div>
           <div class="form-group">
@@ -279,13 +280,54 @@
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
             <label class="form-label">Quantity *</label>
-            <input id="qs-qty" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 10" />
+            <input id="qs-qty" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 10" oninput="calcTotalBill()" />
           </div>
           <div class="form-group">
-            <label class="form-label" id="qs-cost-lbl">Unit Cost (₹)</label>
-            <input id="qs-cost" class="form-input" type="number" min="0" step="0.01" placeholder="Purchase price" />
+            <label class="form-label" id="qs-cost-lbl">Unit Rate (₹)</label>
+            <input id="qs-cost" class="form-input" type="number" min="0" step="0.01" placeholder="Rate in ₹" oninput="calcTotalBill()" />
           </div>
         </div>
+
+        <!-- Party Selection (Supplier for IN, Customer for OUT) -->
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" id="qs-party-lbl">Supplier (Optional — for Purchase Bill & Payable)</label>
+          <select id="qs-party" class="form-select" onchange="onQSPartyChange()"><option value="">— No Party (Direct Stock Adjustment) —</option></select>
+        </div>
+
+        <!-- Commercial / Payment Section (Shown when party is selected) -->
+        <div id="qs-pay-section" style="display:none;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">💳 Payment & Settlement</div>
+          <div class="form-row" style="margin-bottom:8px;">
+            <div class="form-group">
+              <label class="form-label">Total Value (₹)</label>
+              <input id="qs-total-val" class="form-input" type="number" readonly style="background:rgba(0,0,0,0.2);" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Status</label>
+              <select id="qs-pay-status" class="form-select" onchange="onQSPayStatusChange()">
+                <option value="UNPAID">🔴 Credit / Udhaar (Unpaid)</option>
+                <option value="PAID">🟢 Full Paid (Immediate Settlement)</option>
+                <option value="PARTIAL">🟡 Partial (Advance Paid)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" id="qs-pay-details-row" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">Paid Amount (₹)</label>
+              <input id="qs-paid-amt" class="form-input" type="number" min="0" step="0.01" placeholder="Amount paid now" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Mode</label>
+              <select id="qs-pay-mode" class="form-select">
+                <option value="UPI">📱 UPI (GPay/PhonePe)</option>
+                <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
+                <option value="CHEQUE">📝 Cheque</option>
+                <option value="CASH">💵 Cash</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="form-row" id="qs-batch-row" style="margin-bottom:12px;display:none;">
           <div class="form-group">
             <label class="form-label">Batch No.</label>
@@ -297,13 +339,13 @@
           </div>
         </div>
         <div class="form-group" style="margin-bottom:12px;">
-          <label class="form-label">Reason / Remarks</label>
-          <input id="qs-remarks" class="form-input" type="text" placeholder="e.g. Received from vendor, Customer dispatch, Audit adjustment" />
+          <label class="form-label">Remarks / Invoice Ref</label>
+          <input id="qs-remarks" class="form-input" type="text" placeholder="e.g. Delivered by vendor, Store sales bill" />
         </div>
         <div id="qs-error" class="form-error" style="display:none;margin-top:8px;"></div>
         <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
           <button type="button" onclick="closeQuickStockModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="qs-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Apply Stock</button>
+          <button type="submit" id="qs-save-btn" class="btn-primary" style="width:auto;padding:8px 20px;">Apply & Save</button>
         </div>
       </form>
     </div>
@@ -482,11 +524,74 @@
     }
 
     // ─── Quick Stock In / Out Modal Functions ──────────────────────────────────
+    let suppliersData = [];
+    let customersData = [];
+
+    async function loadParties() {
+      try {
+        const [sr, cr] = await Promise.all([
+          fetch(`${API}/inventory/suppliers`, { headers: H() }),
+          fetch(`${API}/inventory/customers`, { headers: H() }),
+        ]);
+        if (sr.ok) suppliersData = (await sr.json()).data || [];
+        if (cr.ok) customersData = (await cr.json()).data || [];
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function populateQSParties() {
+      const type = document.getElementById('qs-type').value;
+      const partySel = document.getElementById('qs-party');
+      const partyLbl = document.getElementById('qs-party-lbl');
+
+      if (type === 'IN') {
+        partyLbl.textContent = 'Supplier (Optional — for Purchase Bill & Payable)';
+        partySel.innerHTML = '<option value="">— No Supplier (Direct Inward) —</option>';
+        suppliersData.forEach(s => {
+          partySel.innerHTML += `<option value="${s._id}">${s.name} (${s.phone || 'No phone'})</option>`;
+        });
+      } else {
+        partyLbl.textContent = 'Customer (Optional — for Sales Invoice & Receivable)';
+        partySel.innerHTML = '<option value="">— No Customer (Direct Outward) —</option>';
+        customersData.forEach(c => {
+          partySel.innerHTML += `<option value="${c._id}">${c.name} (${c.phone || 'No phone'})</option>`;
+        });
+      }
+      onQSPartyChange();
+    }
+
+    function onQSPartyChange() {
+      const partyId = document.getElementById('qs-party').value;
+      const paySection = document.getElementById('qs-pay-section');
+      paySection.style.display = partyId ? 'block' : 'none';
+      calcTotalBill();
+    }
+
+    function onQSPayStatusChange() {
+      const status = document.getElementById('qs-pay-status').value;
+      const detailsRow = document.getElementById('qs-pay-details-row');
+      detailsRow.style.display = (status === 'PAID' || status === 'PARTIAL') ? 'grid' : 'none';
+      if (status === 'PAID') {
+        document.getElementById('qs-paid-amt').value = document.getElementById('qs-total-val').value || '';
+      }
+    }
+
+    function calcTotalBill() {
+      const qty = Number(document.getElementById('qs-qty').value) || 0;
+      const rate = Number(document.getElementById('qs-cost').value) || 0;
+      const total = Math.round(qty * rate);
+      document.getElementById('qs-total-val').value = total || '';
+      if (document.getElementById('qs-pay-status').value === 'PAID') {
+        document.getElementById('qs-paid-amt').value = total || '';
+      }
+    }
+
     function openQuickStockModal(productId = null) {
       const prodSel = document.getElementById('qs-product');
       prodSel.innerHTML = '<option value="">— Select Product —</option>';
       productsList.forEach(p => {
-        prodSel.innerHTML += `<option value="${p._id}" data-tracking="${p.trackingType}" data-cost="${p.purchasePrice || 0}">${p.name} (${p.sku}) · Available: ${p.currentStock} ${p.unit}</option>`;
+        prodSel.innerHTML += `<option value="${p._id}" data-tracking="${p.trackingType}" data-cost="${p.purchasePrice || 0}" data-sell="${p.sellingPrice || p.mrp || 0}">${p.name} (${p.sku}) · Available: ${p.currentStock} ${p.unit}</option>`;
       });
 
       if (productId) {
@@ -504,6 +609,7 @@
       document.getElementById('qs-qty').value = '';
       document.getElementById('qs-remarks').value = '';
       document.getElementById('qs-error').style.display = 'none';
+      populateQSParties();
       document.getElementById('quick-stock-modal').classList.add('show');
     }
 
@@ -516,16 +622,23 @@
       const selected = prodSel.options[prodSel.selectedIndex];
       if (!selected || !selected.value) return;
 
+      const type = document.getElementById('qs-type').value;
       const tracking = selected.getAttribute('data-tracking');
       const cost = selected.getAttribute('data-cost');
-      document.getElementById('qs-cost').value = cost || '';
+      const sell = selected.getAttribute('data-sell');
+
+      document.getElementById('qs-cost').value = type === 'IN' ? (cost || '') : (sell || cost || '');
       document.getElementById('qs-batch-row').style.display = tracking === 'BATCH' ? 'grid' : 'none';
+      calcTotalBill();
     }
 
     function onQSTypeChange() {
       const type = document.getElementById('qs-type').value;
       const btn = document.getElementById('qs-save-btn');
-      btn.textContent = type === 'IN' ? '➕ Add Stock' : '➖ Remove Stock';
+      btn.textContent = type === 'IN' ? '➕ Apply & Save' : '➖ Apply & Save';
+      document.getElementById('qs-cost-lbl').textContent = type === 'IN' ? 'Purchase Rate (₹)' : 'Selling Rate (₹)';
+      populateQSParties();
+      onQSProductChange();
     }
 
     async function saveQuickStock(e) {
@@ -535,15 +648,27 @@
       btn.textContent = 'Applying…'; btn.disabled = true;
       errEl.style.display = 'none';
 
+      const type = document.getElementById('qs-type').value;
+      const partyId = document.getElementById('qs-party').value;
+      const payStatus = document.getElementById('qs-pay-status').value;
+
       const body = {
         productId: document.getElementById('qs-product').value,
         warehouseId: document.getElementById('qs-warehouse').value,
-        type: document.getElementById('qs-type').value,
+        type,
         qty: Number(document.getElementById('qs-qty').value),
         unitCost: Number(document.getElementById('qs-cost').value) || 0,
         batchNo: document.getElementById('qs-batch').value || null,
         expiryDate: document.getElementById('qs-expiry').value || null,
         remarks: document.getElementById('qs-remarks').value || undefined,
+        ...(type === 'IN' && partyId && { supplierId: partyId }),
+        ...(type === 'OUT' && partyId && { customerId: partyId }),
+        ...(partyId && {
+          totalAmount: Number(document.getElementById('qs-total-val').value) || undefined,
+          paymentStatus: payStatus,
+          paidAmount: Number(document.getElementById('qs-paid-amt').value) || undefined,
+          paymentMode: document.getElementById('qs-pay-mode').value || undefined,
+        }),
       };
 
       try {
@@ -564,7 +689,7 @@
         errEl.textContent = 'Server error.';
         errEl.style.display = 'block';
       } finally {
-        btn.textContent = 'Apply Stock';
+        btn.textContent = 'Apply & Save';
         btn.disabled = false;
       }
     }
@@ -604,7 +729,7 @@
             <td><span class="stock-num ${isLow ? 'stock-low' : 'stock-ok'}">${p.currentStock} ${p.unit}</span>${isLow ? ' <span style="font-size:0.65rem;color:#f87171;">▼ LOW</span>' : ''}</td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
               <button onclick="openQuickStockModal('${p._id}')" style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem;">⚡ Stock</button>
-              <button onclick='editProduct(${JSON.stringify(p)})' style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button>
+              <button onclick="editProduct('${p._id}')" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button>
             </td>
           </tr>`;
         }).join('');
@@ -621,25 +746,25 @@
     }
 
     // ─── Modal ─────────────────────────────────────────────────────────────────
-    function openModal(data = null) {
-      document.getElementById('modal-title').textContent = data ? 'Edit Product' : 'Add Product';
-      document.getElementById('edit-id').value = data?._id || '';
-      document.getElementById('f-name').value = data?.name || '';
-      document.getElementById('f-sku').value = data?.sku || '';
-      document.getElementById('f-barcode').value = data?.barcode || '';
-      document.getElementById('f-hsn').value = data?.hsnCode || '';
-      document.getElementById('f-gst').value = data?.gstRate ?? 18;
-      document.getElementById('f-cess').value = data?.cessRate ?? 0;
-      document.getElementById('f-mrp').value = data?.mrp || '';
-      document.getElementById('f-purchase').value = data?.purchasePrice || '';
-      document.getElementById('f-selling').value = data?.sellingPrice || '';
-      document.getElementById('f-tracking').value = data?.trackingType || 'NONE';
-      document.getElementById('f-reorder').value = data?.reorderLevel || 0;
-      document.getElementById('f-reorder-qty').value = data?.reorderQty || 0;
-      document.getElementById('f-desc').value = data?.description || '';
-      document.getElementById('f-unit').value = data?.unit || 'Pcs';
-      document.getElementById('f-category').value = data?.categoryId?._id || data?.categoryId || '';
-      document.getElementById('cat-hint').style.display = 'none';
+    function openModal(d = null, e = null) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      document.getElementById('modal-title').textContent = d ? 'Edit Product' : 'Add Product';
+      document.getElementById('edit-id').value = d?._id || '';
+      document.getElementById('f-name').value = d?.name || '';
+      document.getElementById('f-sku').value = d?.sku || '';
+      document.getElementById('f-barcode').value = d?.barcode || '';
+      document.getElementById('f-hsn').value = d?.hsnCode || '';
+      document.getElementById('f-category').value = d?.categoryId?._id || d?.categoryId || '';
+      document.getElementById('f-unit').value = d?.unit || 'Pcs';
+      document.getElementById('f-gst').value = d?.gstRate ?? 18;
+      document.getElementById('f-cess').value = d?.cessRate || 0;
+      document.getElementById('f-mrp').value = d?.mrp || 0;
+      document.getElementById('f-purchase').value = d?.purchasePrice || 0;
+      document.getElementById('f-selling').value = d?.sellingPrice || 0;
+      document.getElementById('f-tracking').value = d?.trackingType || 'STANDARD';
+      document.getElementById('f-reorder').value = d?.reorderLevel || 0;
+      document.getElementById('f-reorder-qty').value = d?.reorderQty || 0;
+      document.getElementById('f-desc').value = d?.description || '';
       document.getElementById('form-error').style.display = 'none';
       document.getElementById('product-modal').classList.add('show');
     }
@@ -707,14 +832,40 @@
 
     function startScanForField(fieldId) { openModal(null); startScan(fieldId); }
 
-    function stopScan() {
-      Quagga.stop();
-      document.getElementById('scanner-container').classList.remove('show');
-      scanTarget = null;
-    }
+    // ─── Safe Backdrop & Escape Key Handlers ──────────────────────────────────
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      let isBackdropMouseDown = false;
+      overlay.addEventListener('mousedown', e => {
+        isBackdropMouseDown = (e.target === overlay);
+      });
+      overlay.addEventListener('mouseup', e => {
+        if (isBackdropMouseDown && e.target === overlay) {
+          overlay.classList.remove('show');
+        }
+        isBackdropMouseDown = false;
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    // Window bindings
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.editProduct = editProduct;
+    window.openQuickStockModal = openQuickStockModal;
+    window.closeQuickStockModal = closeQuickStockModal;
+    window.saveProduct = saveProduct;
+    window.saveQuickStock = saveQuickStock;
+    window.startScan = startScan;
+    window.stopScan = stopScan;
+    window.startScanForField = startScanForField;
 
     // ─── Init ──────────────────────────────────────────────────────────────────
-    Promise.all([loadCategories(), loadWarehouses()]).then(loadProducts);
+    Promise.all([loadCategories(), loadWarehouses(), loadParties()]).then(loadProducts);
   </script>
 </body>
 </html>

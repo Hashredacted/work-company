@@ -1,11 +1,14 @@
 'use strict';
 
-const mongoose    = require('mongoose');
-const Adjustment  = require('../../models/inv/Adjustment');
-const StockLedger = require('../../models/inv/StockLedger');
-const Product     = require('../../models/inv/Product');
-const AuditLog    = require('../../models/AuditLog');
-const { nextSeq } = require('../../utils/sequence');
+const mongoose           = require('mongoose');
+const Adjustment         = require('../../models/inv/Adjustment');
+const StockLedger        = require('../../models/inv/StockLedger');
+const Product            = require('../../models/inv/Product');
+const Supplier           = require('../../models/inv/Supplier');
+const Customer           = require('../../models/inv/Customer');
+const PaymentTransaction = require('../../models/inv/PaymentTransaction');
+const AuditLog           = require('../../models/AuditLog');
+const { nextSeq }        = require('../../utils/sequence');
 
 // GET /api/inventory/adjustments
 async function list(req, res, next) {
@@ -22,10 +25,28 @@ async function list(req, res, next) {
   }
 }
 
-// POST /api/inventory/stock-adjust (Quick direct Stock In / Out)
+// POST /api/inventory/stock-adjust (Quick direct Stock In / Out + Payment & Outstanding Integration)
 async function quickStock(req, res, next) {
   try {
-    const { productId, warehouseId, type, qty, unitCost, batchNo, expiryDate, remarks } = req.body;
+    const {
+      productId,
+      warehouseId,
+      type, // 'IN' | 'OUT'
+      qty,
+      unitCost,
+      batchNo,
+      expiryDate,
+      remarks,
+      // Optional Indian Commercial / Payment Fields
+      supplierId,
+      customerId,
+      totalAmount,
+      paymentStatus, // 'UNPAID' | 'PAID' | 'PARTIAL'
+      paidAmount,
+      paymentMode,
+      referenceNo,
+    } = req.body;
+
     if (!productId || !warehouseId || !type || !qty) {
       return res.status(400).json({ data: null, message: 'productId, warehouseId, type (IN/OUT), and qty are required', errors: null });
     }
@@ -57,7 +78,7 @@ async function quickStock(req, res, next) {
     }
 
     const actualQty = type === 'IN' ? numericQty : -numericQty;
-    const cost = unitCost !== undefined ? Number(unitCost) : product.purchasePrice || 0;
+    const cost = unitCost !== undefined ? Number(unitCost) : (product.purchasePrice || 0);
 
     const ledgerEntry = await StockLedger.create({
       tenantId: req.tenantId,
@@ -76,6 +97,108 @@ async function quickStock(req, res, next) {
       createdBy: req.user._id,
     });
 
+    // Handle Payment / Outstanding Transaction if Supplier or Customer is attached
+    let createdBillOrInvoice = null;
+    let createdPayment = null;
+
+    if (type === 'IN' && supplierId) {
+      const supplier = await Supplier.findOne({ _id: supplierId, tenantId: req.tenantId, deletedAt: null });
+      if (supplier) {
+        const billVal = totalAmount ? Number(totalAmount) : Math.round(numericQty * cost);
+        const billVoucherNo = await nextSeq(req.tenantId, 'BILL');
+        const creditDays = supplier.paymentTerms || 30;
+        const dueDate = new Date(Date.now() + creditDays * 86400000);
+
+        createdBillOrInvoice = await PaymentTransaction.create({
+          tenantId: req.tenantId,
+          voucherNo: billVoucherNo,
+          partyType: 'SUPPLIER',
+          partyId: supplier._id,
+          partyModel: 'InvSupplier',
+          txnType: 'BILL',
+          amount: billVal,
+          paymentMode: 'CREDIT',
+          paymentDate: new Date(),
+          dueDate,
+          referenceNo: referenceNo || null,
+          notes: remarks || `Stock In of ${numericQty} ${product.unit} (${product.name})`,
+          stockLedgerId: ledgerEntry._id,
+          createdBy: req.user._id,
+        });
+
+        if (paymentStatus === 'PAID' || paymentStatus === 'PARTIAL') {
+          const settledAmt = paymentStatus === 'PAID' ? billVal : Number(paidAmount || 0);
+          if (settledAmt > 0) {
+            const payVoucherNo = await nextSeq(req.tenantId, 'PAY');
+            createdPayment = await PaymentTransaction.create({
+              tenantId: req.tenantId,
+              voucherNo: payVoucherNo,
+              partyType: 'SUPPLIER',
+              partyId: supplier._id,
+              partyModel: 'InvSupplier',
+              txnType: 'PAYMENT_OUT',
+              amount: settledAmt,
+              paymentMode: paymentMode || 'UPI',
+              paymentDate: new Date(),
+              referenceNo: referenceNo || null,
+              notes: `Payment for Bill ${billVoucherNo}`,
+              stockLedgerId: ledgerEntry._id,
+              createdBy: req.user._id,
+            });
+          }
+        }
+      }
+    } else if (type === 'OUT' && customerId) {
+      const customer = await Customer.findOne({ _id: customerId, tenantId: req.tenantId, deletedAt: null });
+      if (customer) {
+        const gstMultiplier = 1 + (product.gstRate || 0) / 100;
+        const defaultSellVal = Math.round(numericQty * (product.sellingPrice || product.mrp || cost) * gstMultiplier);
+        const invVal = totalAmount ? Number(totalAmount) : defaultSellVal;
+        const invVoucherNo = await nextSeq(req.tenantId, 'INV');
+        const creditDays = customer.paymentTerms || 15;
+        const dueDate = new Date(Date.now() + creditDays * 86400000);
+
+        createdBillOrInvoice = await PaymentTransaction.create({
+          tenantId: req.tenantId,
+          voucherNo: invVoucherNo,
+          partyType: 'CUSTOMER',
+          partyId: customer._id,
+          partyModel: 'InvCustomer',
+          txnType: 'INVOICE',
+          amount: invVal,
+          paymentMode: 'CREDIT',
+          paymentDate: new Date(),
+          dueDate,
+          referenceNo: referenceNo || null,
+          notes: remarks || `Stock Out of ${numericQty} ${product.unit} (${product.name})`,
+          stockLedgerId: ledgerEntry._id,
+          createdBy: req.user._id,
+        });
+
+        if (paymentStatus === 'PAID' || paymentStatus === 'PARTIAL') {
+          const settledAmt = paymentStatus === 'PAID' ? invVal : Number(paidAmount || 0);
+          if (settledAmt > 0) {
+            const recVoucherNo = await nextSeq(req.tenantId, 'REC');
+            createdPayment = await PaymentTransaction.create({
+              tenantId: req.tenantId,
+              voucherNo: recVoucherNo,
+              partyType: 'CUSTOMER',
+              partyId: customer._id,
+              partyModel: 'InvCustomer',
+              txnType: 'PAYMENT_IN',
+              amount: settledAmt,
+              paymentMode: paymentMode || 'UPI',
+              paymentDate: new Date(),
+              referenceNo: referenceNo || null,
+              notes: `Payment for Invoice ${invVoucherNo}`,
+              stockLedgerId: ledgerEntry._id,
+              createdBy: req.user._id,
+            });
+          }
+        }
+      }
+    }
+
     // Calculate new total stock
     const newStockAgg = await StockLedger.aggregate([
       { $match: { tenantId: req.tenantId, productId: product._id } },
@@ -89,12 +212,24 @@ async function quickStock(req, res, next) {
       action: type === 'IN' ? 'STOCK_IN' : 'STOCK_OUT',
       resource: 'inventory',
       resourceId: product._id.toString(),
-      details: { productName: product.name, sku: product.sku, qty: actualQty, newTotalStock, remarks },
+      details: {
+        productName: product.name,
+        sku: product.sku,
+        qty: actualQty,
+        newTotalStock,
+        billOrInvoice: createdBillOrInvoice?.voucherNo,
+        paymentVoucher: createdPayment?.voucherNo,
+      },
       ip: req.ip,
     });
 
     res.status(201).json({
-      data: { ledgerEntry, currentStock: newTotalStock },
+      data: {
+        ledgerEntry,
+        currentStock: newTotalStock,
+        billOrInvoice: createdBillOrInvoice,
+        paymentVoucher: createdPayment,
+      },
       message: `Stock successfully ${type === 'IN' ? 'added (+)' : 'reduced (-)'}. New total: ${newTotalStock} ${product.unit}`,
       errors: null,
     });
@@ -139,7 +274,7 @@ async function create(req, res, next) {
       items: adjItems,
       notes,
       createdBy: req.user._id,
-      status: 'APPROVED', // Auto-apply in simple mode
+      status: 'APPROVED',
     });
 
     // Directly apply differences to ledger

@@ -24,8 +24,8 @@
     tr:last-child td { border-bottom: none; }
     .gstin-tag { font-family: monospace; font-size: 0.78rem; background: rgba(251,191,36,0.08); color: #fbbf24; padding: 2px 7px; border-radius: 5px; }
     .state-tag { font-size: 0.72rem; background: rgba(56,189,248,0.08); color: #38bdf8; padding: 2px 7px; border-radius: 5px; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
-    .modal-overlay.show { display: flex; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+    .modal-overlay.show { display: flex !important; }
     .modal { background: #14162b; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 720px; padding: 28px; margin: auto; max-height: 90vh; overflow-y: auto; }
     .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -50,6 +50,7 @@
           <a href="inv-products.html">📦 Products</a>
           <a href="inv-suppliers.html" class="active">🏭 Suppliers</a>
           <a href="inv-customers.html">👥 Customers</a>
+          <a href="inv-payments.html">💳 Payments</a>
           <a href="inv-reports.html">📈 Reports</a>
         </div>
       </div>
@@ -123,6 +124,7 @@
     let debounceTimer;
     function debounce() { clearTimeout(debounceTimer); debounceTimer = setTimeout(load, 300); }
 
+    let rawSuppliersList = [];
     async function load() {
       const tbody = document.getElementById('sup-tbody');
       try {
@@ -139,8 +141,9 @@
           return;
         }
         const { data } = await r.json();
-        if (!data?.items?.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found. Click "+ Add Supplier" to add one.</td></tr>`; return; }
-        tbody.innerHTML = data.items.map(s => `
+        rawSuppliersList = data?.items || [];
+        if (!rawSuppliersList.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found. Click "+ Add Supplier" to add one.</td></tr>`; return; }
+        tbody.innerHTML = rawSuppliersList.map(s => `
           <tr>
             <td><div style="font-weight:600;color:var(--text);">${s.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${s.city || ''}${s.city && s.email ? ' · ' : ''}${s.email || ''}</div></td>
             <td>${s.gstin ? `<span class="gstin-tag">${s.gstin}</span>` : '—'}</td>
@@ -148,7 +151,7 @@
             <td>${s.contactName || '—'}</td>
             <td>${s.phone || '—'}</td>
             <td>${s.paymentTerms ? s.paymentTerms + ' days' : 'Cash'}</td>
-            <td><button onclick='editSupplier(${JSON.stringify(s)})' style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button></td>
+            <td><button onclick="editSupplier('${s._id}')" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button></td>
           </tr>`).join('');
       } catch (err) {
         console.error(err);
@@ -156,7 +159,8 @@
       }
     }
 
-    function openModal(d = null) {
+    function openModal(d = null, e = null) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
       document.getElementById('modal-title').textContent = d ? 'Edit Supplier' : 'Add Supplier';
       document.getElementById('edit-id').value = d?._id || '';
       ['name','gstin','pan','contact','phone','email','state','state-code','city','pin','addr','terms','credit','bank','accno','ifsc'].forEach(id => {
@@ -168,8 +172,35 @@
       document.getElementById('sup-error').style.display = 'none';
       document.getElementById('sup-modal').classList.add('show');
     }
-    function editSupplier(s) { openModal(s); }
+    function editSupplier(id, e = null) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const s = rawSuppliersList.find(x => x._id === id);
+      openModal(s);
+    }
     function closeModal() { document.getElementById('sup-modal').classList.remove('show'); }
+
+    // Safe backdrop click handling
+    const supModalOverlay = document.getElementById('sup-modal');
+    let isSupBackdropDown = false;
+    supModalOverlay.addEventListener('mousedown', e => {
+      isSupBackdropDown = (e.target === supModalOverlay);
+    });
+    supModalOverlay.addEventListener('mouseup', e => {
+      if (isSupBackdropDown && e.target === supModalOverlay) {
+        closeModal();
+      }
+      isSupBackdropDown = false;
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Window bindings
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.editSupplier = editSupplier;
+    window.saveSupplier = saveSupplier;
 
     async function saveSupplier(e) {
       e.preventDefault();
@@ -189,18 +220,25 @@
         city: document.getElementById('f-city').value,
         pincode: document.getElementById('f-pin').value,
         address: document.getElementById('f-addr').value,
-        paymentTerms: Number(document.getElementById('f-terms').value),
-        creditLimit: Number(document.getElementById('f-credit').value),
+        paymentTerms: Number(document.getElementById('f-terms').value) || 0,
+        creditLimit: Number(document.getElementById('f-credit').value) || 0,
         bankDetails: { bankName: document.getElementById('f-bank').value, accountNo: document.getElementById('f-accno').value, ifsc: document.getElementById('f-ifsc').value.toUpperCase() },
       };
       try {
         const url = id ? `${API}/inventory/suppliers/${id}` : `${API}/inventory/suppliers`;
-        const r = await fetch(url, { method: id ? 'PUT' : 'POST', headers: H(), body: JSON.stringify(body) });
+        const method = id ? 'PUT' : 'POST';
+        const r = await fetch(url, { method, headers: H(), body: JSON.stringify(body) });
         const json = await r.json();
-        if (!r.ok) { errEl.textContent = json.message; errEl.style.display = 'block'; return; }
-        closeModal(); load();
-      } catch { errEl.textContent = 'Server error'; errEl.style.display = 'block'; }
-      finally { btn.textContent = 'Save Supplier'; btn.disabled = false; }
+        if (!r.ok) { errEl.textContent = json.message || 'Failed to save'; errEl.style.display = 'block'; return; }
+        closeModal();
+        load();
+      } catch {
+        errEl.textContent = 'Server error.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.textContent = 'Save Supplier';
+        btn.disabled = false;
+      }
     }
 
     load();

@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payments & Khata Bahi — WorkSpace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { overflow-y: auto; display: block; padding: 0; background-color: var(--bg); }
+    .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
+    
+    .top-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .inv-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .inv-nav a { font-size: 0.8rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
+    .inv-nav a.active { background: var(--primary); color: #fff; }
+    .inv-nav a:not(.active) { background: var(--surface-2); color: var(--text-sub); border: 1px solid var(--border); }
+    
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, #6366f1); }
+    .kpi-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-val { font-size: 1.65rem; font-weight: 800; margin-top: 6px; letter-spacing: -0.5px; }
+    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+    .pay-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-sub); padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+    .tab-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .tab-btn.active { background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.5); color: #a5b4fc; }
+    .pay-panel { display: none; }
+    .pay-panel.active { display: block; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .filter-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; justify-content: space-between; }
+    .form-group-inline { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+    .form-input, .form-select { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; transition: border-color 0.2s; width: 100%; box-sizing: border-box; }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+
+    /* Modal System */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex !important; }
+    .modal { background: #121218; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.85); box-sizing: border-box; position: relative; }
+    .modal-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-pill { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .filter-pill:hover { color: var(--text); border-color: var(--border-light); }
+    .filter-pill.active { background: rgba(99,102,241,0.2); border-color: #6366f1; color: #a5b4fc; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    th { padding: 11px 14px; background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); text-align: left; }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text-sub); }
+    tr:hover td { background: rgba(255,255,255,0.015); }
+    tfoot td { background: var(--surface-2); font-weight: 700; color: var(--text); border-top: 2px solid var(--border); }
+    
+    .status-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-CLEARED { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+    .status-CURRENT { background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); }
+    .status-DUE_SOON { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+    .status-OVERDUE { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+    .status-CRITICAL { background: rgba(239,68,68,0.25); color: #ef4444; border: 1px solid rgba(239,68,68,0.6); }
+
+    .mode-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; font-family: monospace; }
+    .mode-UPI { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .mode-NEFT_RTGS { background: rgba(56,189,248,0.15); color: #38bdf8; }
+    .mode-CHEQUE { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .mode-CASH { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .mode-NET_BANKING { background: rgba(167,139,250,0.15); color: #a78bfa; }
+
+    .btn-action { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc; padding: 5px 11px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s; }
+    .btn-action:hover { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.4); }
+    .btn-wa { background: rgba(37,211,102,0.12); border: 1px solid rgba(37,211,102,0.3); color: #25d366; }
+    .btn-wa:hover { background: rgba(37,211,102,0.25); }
+    .btn-pay { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
+    .btn-pay:hover { background: rgba(74,222,128,0.25); }
+
+    /* Statement Modal Specifics */
+    .stmt-header { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+    .stmt-party-name { font-size: 1.15rem; font-weight: 800; color: var(--text); }
+    .stmt-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+    .stmt-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stmt-metric-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; text-align: center; }
+    .stmt-metric-lbl { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .stmt-metric-val { font-size: 1.15rem; font-weight: 800; margin-top: 4px; }
+
+    /* Print Styles */
+    @media print {
+      body * { visibility: hidden; }
+      #statement-modal, #statement-modal * { visibility: visible; }
+      #statement-modal { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; color: #000 !important; }
+      .modal { max-width: 100% !important; border: none !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+      .modal-overlay { background: transparent !important; display: block !important; }
+      button, .modal-title, .print-hide { display: none !important; }
+      table { border: 1px solid #ccc; width: 100%; color: #000 !important; }
+      th { background: #f0f0f0 !important; color: #000 !important; border-bottom: 1px solid #000 !important; }
+      td { border-bottom: 1px solid #eee !important; color: #000 !important; }
+      .stmt-metric-box { border: 1px solid #ccc !important; background: #fafafa !important; color: #000 !important; }
+      .stmt-metric-val, .stmt-party-name { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+
+  <div class="page">
+    <header class="top-nav">
+      <div>
+        <div class="brand" style="margin-bottom:6px;">
+          <div class="brand-logo">
+            <svg width="26" height="26" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#pG)"/><path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/><defs><linearGradient id="pG" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>
+          </div>
+          <span class="brand-name">WorkSpace</span>
+          <span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">💳 PAYMENTS & OUTSTANDINGS</span>
+        </div>
+        <div class="inv-nav">
+          <a href="inv-dashboard.html">📊 Dashboard</a>
+          <a href="inv-products.html">📦 Products</a>
+          <a href="inv-suppliers.html">🏭 Suppliers</a>
+          <a href="inv-customers.html">👥 Customers</a>
+          <a href="inv-payments.html" class="active">💳 Payments</a>
+          <a href="inv-reports.html">📈 Reports</a>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button id="btn-open-record-modal" onclick="openPaymentModal()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;">
+          <span>+ Record Payment Voucher</span>
+        </button>
+        <a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">← Main</a>
+        <button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- KPI Summary Row -->
+    <div class="kpi-row">
+      <div class="kpi" style="--accent:#4ade80;">
+        <div class="kpi-lbl">Total Receivables (लेना है)</div>
+        <div class="kpi-val" id="kpi-receivables" style="color:#4ade80;">—</div>
+        <div class="kpi-sub">👥 Customer Credit Dues</div>
+      </div>
+      <div class="kpi" style="--accent:#f87171;">
+        <div class="kpi-lbl">Total Payables (देना है)</div>
+        <div class="kpi-val" id="kpi-payables" style="color:#f87171;">—</div>
+        <div class="kpi-sub">🏭 Supplier Credit Purchases</div>
+      </div>
+      <div class="kpi" style="--accent:#fbbf24;">
+        <div class="kpi-lbl">Overdue Receivables</div>
+        <div class="kpi-val" id="kpi-overdue-rec" style="color:#fbbf24;">—</div>
+        <div class="kpi-sub">⏰ Past Payment Terms</div>
+      </div>
+      <div class="kpi" style="--accent:#38bdf8;">
+        <div class="kpi-lbl">Net Working Capital</div>
+        <div class="kpi-val" id="kpi-working-cap" style="color:#38bdf8;">—</div>
+        <div class="kpi-sub">💼 Receivables - Payables</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="pay-tabs">
+      <button class="tab-btn active" id="tab-btn-customers" onclick="switchTab('customers')">👥 Customer Receivables (लेनदार)</button>
+      <button class="tab-btn" id="tab-btn-suppliers" onclick="switchTab('suppliers')">🏭 Supplier Payables (देनदार)</button>
+      <button class="tab-btn" id="tab-btn-vouchers" onclick="switchTab('vouchers')">📋 Payment History / Vouchers</button>
+    </div>
+
+    <!-- Customer Receivables Panel -->
+    <div id="panel-customers" class="pay-panel active">
+      <div class="card">
+        <div class="filter-row">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input id="search-cust" class="form-input" style="min-width:260px;" type="text" placeholder="🔍 Search customer name, GSTIN, phone…" oninput="debounceCust()" />
+            <div class="pill-group">
+              <button class="filter-pill active" onclick="setCustFilter('ALL', this)">All</button>
+              <button class="filter-pill" onclick="setCustFilter('DUE', this)">Pending (> ₹0)</button>
+              <button class="filter-pill" onclick="setCustFilter('OVERDUE', this)">Overdue / Critical</button>
+              <button class="filter-pill" onclick="setCustFilter('CLEARED', this)">Cleared</button>
+            </div>
+          </div>
+          <button onclick="loadCustomerOutstandings()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 Refresh</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone / GSTIN</th>
+                <th style="text-align:right;">Total Invoiced</th>
+                <th style="text-align:right;">Total Collected</th>
+                <th style="text-align:right;">Outstanding (₹)</th>
+                <th>Credit Days</th>
+                <th>Aging Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cust-tbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…</td></tr></tbody>
+            <tfoot id="cust-tfoot" style="display:none;">
+              <tr>
+                <td colspan="2">Total Summary</td>
+                <td style="text-align:right;" id="cust-foot-inv">—</td>
+                <td style="text-align:right;" id="cust-foot-coll" style="color:#4ade80;">—</td>
+                <td style="text-align:right;" id="cust-foot-out" style="color:#f87171;">—</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supplier Payables Panel -->
+    <div id="panel-suppliers" class="pay-panel">
+      <div class="card">
+        <div class="filter-row">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input id="search-supp" class="form-input" style="min-width:260px;" type="text" placeholder="🔍 Search supplier name, GSTIN, phone…" oninput="debounceSupp()" />
+            <div class="pill-group">
+              <button class="filter-pill active" onclick="setSuppFilter('ALL', this)">All</button>
+              <button class="filter-pill" onclick="setSuppFilter('DUE', this)">Pending (> ₹0)</button>
+              <button class="filter-pill" onclick="setSuppFilter('OVERDUE', this)">Overdue / Critical</button>
+              <button class="filter-pill" onclick="setSuppFilter('CLEARED', this)">Cleared</button>
+            </div>
+          </div>
+          <button onclick="loadSupplierOutstandings()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 Refresh</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Supplier</th>
+                <th>Phone / GSTIN</th>
+                <th style="text-align:right;">Total Purchased</th>
+                <th style="text-align:right;">Total Paid</th>
+                <th style="text-align:right;">Outstanding (₹)</th>
+                <th>Payment Terms</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="supp-tbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…</td></tr></tbody>
+            <tfoot id="supp-tfoot" style="display:none;">
+              <tr>
+                <td colspan="2">Total Summary</td>
+                <td style="text-align:right;" id="supp-foot-pur">—</td>
+                <td style="text-align:right;" id="supp-foot-paid" style="color:#4ade80;">—</td>
+                <td style="text-align:right;" id="supp-foot-out" style="color:#f87171;">—</td>
+                <td colspan="3"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Vouchers History Panel -->
+    <div id="panel-vouchers" class="pay-panel">
+      <div class="card">
+        <div class="filter-row">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select id="voucher-party-type" class="form-select" onchange="loadVouchers()" style="width:auto;">
+              <option value="">All Parties</option>
+              <option value="CUSTOMER">Customer Receipts (Payment In)</option>
+              <option value="SUPPLIER">Supplier Payments (Payment Out)</option>
+            </select>
+            <select id="voucher-mode" class="form-select" onchange="loadVouchers()" style="width:auto;">
+              <option value="">All Payment Modes</option>
+              <option value="UPI">📱 UPI</option>
+              <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
+              <option value="CHEQUE">📝 Cheque</option>
+              <option value="CASH">💵 Cash</option>
+            </select>
+            <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Notes…" oninput="loadVouchers()" style="min-width:220px;width:auto;" />
+          </div>
+          <button onclick="loadVouchers()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄 Refresh</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Voucher #</th>
+                <th>Party Name</th>
+                <th>Voucher Type</th>
+                <th>Mode</th>
+                <th>Reference / UTR</th>
+                <th style="text-align:right;">Amount (₹)</th>
+                <th>Notes / Particulars</th>
+                <th>Statement</th>
+              </tr>
+            </thead>
+            <tbody id="vouchers-tbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Payment Modal -->
+  <div class="modal-overlay" id="payment-modal">
+    <div class="modal" style="max-width:520px;">
+      <div class="modal-title" id="pm-title">💵 Record Payment Voucher</div>
+      <form onsubmit="submitPayment(event)">
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Party Type *</label>
+            <select id="pm-party-type" class="form-select" required onchange="onPartyTypeSelect()">
+              <option value="CUSTOMER">👥 Customer (Payment Receipt)</option>
+              <option value="SUPPLIER">🏭 Supplier (Payment Made)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select Party *</label>
+            <select id="pm-party-id" class="form-select" required onchange="onPartySelected()"><option value="">— Select Party —</option></select>
+          </div>
+        </div>
+
+        <!-- Dynamic Outstanding Info Box -->
+        <div id="pm-due-info" style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current Outstanding</div>
+            <div id="pm-due-val" style="font-size:1.1rem;font-weight:800;color:#f87171;">₹0</div>
+          </div>
+          <button type="button" onclick="fillFullOutstanding()" style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡ Settle Full</button>
+        </div>
+
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label">Amount (₹) *</label>
+            <input id="pm-amount" class="form-input" type="number" min="0.01" step="any" required placeholder="e.g. 5000" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Mode *</label>
+            <select id="pm-mode" class="form-select" required onchange="onPaymentModeChange()">
+              <option value="UPI">📱 UPI (GPay / PhonePe / Paytm)</option>
+              <option value="NEFT_RTGS">🏦 NEFT / RTGS / IMPS</option>
+              <option value="CHEQUE">📝 Cheque</option>
+              <option value="CASH">💵 Cash</option>
+              <option value="NET_BANKING">🌐 Net Banking</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="form-group">
+            <label class="form-label" id="pm-ref-lbl">Reference / UTR Number</label>
+            <input id="pm-ref" class="form-input" type="text" placeholder="12-digit UTR / RRN" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Date *</label>
+            <input id="pm-date" class="form-input" type="date" required />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Notes / Remarks</label>
+          <input id="pm-notes" class="form-input" type="text" placeholder="e.g. Settled against Sales Invoice / Part payment" />
+        </div>
+
+        <div id="pm-hint" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;"></div>
+        <div id="pm-error" class="form-error" style="display:none;margin-top:8px;"></div>
+
+        <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+          <button type="button" onclick="closePaymentModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="pm-save-btn" class="btn-primary" style="width:auto;padding:8px 22px;">Save & Update Khata</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Party Statement / Khata Bahi Modal -->
+  <div class="modal-overlay" id="statement-modal">
+    <div class="modal" style="max-width:900px;">
+      <div class="print-hide" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <div class="modal-title" style="margin-bottom:0;">📜 Party Statement (खाता बही)</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="window.print()" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">🖨️ Print Statement</button>
+          <button type="button" onclick="closeStatementModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">✕ Close</button>
+        </div>
+      </div>
+      
+      <div id="stmt-content">
+        <div style="text-align:center;padding:30px;color:var(--text-muted);">Generating statement…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Payment Reminder Modal -->
+  <div class="modal-overlay" id="wa-modal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-title">📲 Send WhatsApp Payment Reminder</div>
+      
+      <div style="margin-bottom:12px;">
+        <label class="form-label">Message Template</label>
+        <select id="wa-template" class="form-select" style="margin-top:4px;" onchange="applyWaTemplate()">
+          <option value="FRIENDLY">1. 🤝 Friendly Payment Reminder</option>
+          <option value="DUE_DATE">2. ⏰ Due Date Reminder</option>
+          <option value="URGENT">3. 🚨 Urgent Overdue Notice</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label class="form-label">Recipient WhatsApp Number</label>
+        <input id="wa-phone" class="form-input" type="text" placeholder="e.g. 9876543210" style="margin-top:4px;" />
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label class="form-label">Message Preview</label>
+        <textarea id="wa-msg" class="form-input" style="height:140px;resize:vertical;margin-top:4px;font-family:inherit;font-size:0.85rem;line-height:1.45;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button type="button" onclick="closeWaModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+        <button type="button" onclick="launchWhatsApp()" class="btn-primary" style="background:#25d366;border-color:#25d366;color:#fff;width:auto;padding:8px 20px;font-weight:700;">Launch WhatsApp ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+    const API = 'http://localhost:5000/api';
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      window.location.href = 'index.html';
+    }
+
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const mainNav = document.getElementById('main-nav-link');
+    if (mainNav) {
+      mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
+    }
+
+    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+    function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+    }
+
+    let rawCustomers = [];
+    let rawSuppliers = [];
+    let custFilterMode = 'ALL';
+    let suppFilterMode = 'ALL';
+    let custDebounceTimer, suppDebounceTimer;
+
+    let activeWaData = { name: '', phone: '', amount: 0, days: 0 };
+    let selectedPartyDueAmount = 0;
+
+    function debounceCust() { clearTimeout(custDebounceTimer); custDebounceTimer = setTimeout(renderCustomerTable, 250); }
+    function debounceSupp() { clearTimeout(suppDebounceTimer); suppDebounceTimer = setTimeout(renderSupplierTable, 250); }
+
+    function switchTab(name) {
+      ['customers', 'suppliers', 'vouchers'].forEach(tab => {
+        const btn = document.getElementById(`tab-btn-${tab}`);
+        const panel = document.getElementById(`panel-${tab}`);
+        if (btn) btn.classList.toggle('active', tab === name);
+        if (panel) panel.classList.toggle('active', tab === name);
+      });
+
+      if (name === 'customers') loadCustomerOutstandings();
+      if (name === 'suppliers') loadSupplierOutstandings();
+      if (name === 'vouchers') loadVouchers();
+    }
+
+    // ─── Load KPI Overview ─────────────────────────────────────────────────────
+    async function loadKpis() {
+      try {
+        const r = await fetch(`${API}/inventory/payments/kpis`, { headers: H() });
+        if (!r.ok) return;
+        const json = await r.json();
+        const data = json.data || {};
+
+        const recEl = document.getElementById('kpi-receivables');
+        const payEl = document.getElementById('kpi-payables');
+        const odEl  = document.getElementById('kpi-overdue-rec');
+        const wcEl  = document.getElementById('kpi-working-cap');
+
+        if (recEl) recEl.textContent = inr(data.totalReceivables);
+        if (payEl) payEl.textContent = inr(data.totalPayables);
+        if (odEl)  odEl.textContent  = inr(data.overdueReceivables);
+        
+        if (wcEl) {
+          const workingCap = (data.totalReceivables || 0) - (data.totalPayables || 0);
+          wcEl.textContent = (workingCap >= 0 ? '+' : '') + inr(workingCap);
+          wcEl.style.color = workingCap >= 0 ? '#38bdf8' : '#f87171';
+        }
+      } catch (err) {
+        console.error('Error loading KPIs:', err);
+      }
+    }
+
+    // ─── Customer Outstandings ─────────────────────────────────────────────────
+    async function loadCustomerOutstandings() {
+      const tbody = document.getElementById('cust-tbody');
+      try {
+        const r = await fetch(`${API}/inventory/payments/outstandings?type=CUSTOMER`, { headers: H() });
+        if (!r.ok) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load customers.</td></tr>';
+          return;
+        }
+        const json = await r.json();
+        rawCustomers = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        renderCustomerTable();
+      } catch (err) {
+        console.error('Error loading customers:', err);
+      }
+    }
+
+    function setCustFilter(mode, btn) {
+      custFilterMode = mode;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      renderCustomerTable();
+    }
+
+    function renderCustomerTable() {
+      const tbody = document.getElementById('cust-tbody');
+      const tfoot = document.getElementById('cust-tfoot');
+      if (!tbody) return;
+
+      const searchInput = document.getElementById('search-cust');
+      const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+      let list = rawCustomers.filter(c => {
+        if (search) {
+          const match = (c.name || '').toLowerCase().includes(search) || (c.phone || '').includes(search) || (c.gstin || '').toLowerCase().includes(search);
+          if (!match) return false;
+        }
+        if (custFilterMode === 'DUE') return c.outstanding > 0;
+        if (custFilterMode === 'OVERDUE') return c.status === 'OVERDUE' || c.status === 'CRITICAL';
+        if (custFilterMode === 'CLEARED') return c.outstanding <= 0;
+        return true;
+      });
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No customers found.</td></tr>';
+        if (tfoot) tfoot.style.display = 'none';
+        return;
+      }
+
+      let totInv = 0, totColl = 0, totOut = 0;
+
+      tbody.innerHTML = list.map(c => {
+        totInv += c.totalAmount || 0;
+        totColl += c.totalSettled || 0;
+        totOut += c.outstanding || 0;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;color:var(--text);">${escHtml(c.name)}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${c.contactName ? 'Attn: ' + escHtml(c.contactName) : ''}</div>
+            </td>
+            <td>
+              <div>${escHtml(c.phone || '—')}</div>
+              <div style="font-size:0.7rem;font-family:monospace;color:var(--text-muted);">${escHtml(c.gstin || 'No GSTIN')}</div>
+            </td>
+            <td style="text-align:right;">${inr(c.totalAmount)}</td>
+            <td style="text-align:right;color:#4ade80;">${inr(c.totalSettled)}</td>
+            <td style="text-align:right;font-weight:800;font-size:0.95rem;color:${c.outstanding > 0 ? '#f87171' : '#4ade80'};">${inr(c.outstanding)}</td>
+            <td>${c.paymentTerms} Days</td>
+            <td><span class="status-badge status-${c.status}">${escHtml(c.status.replace('_', ' '))}</span></td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="openRecordPaymentForParty('CUSTOMER', '${c._id}')" class="btn-action btn-pay">💵 Receive</button>
+              <button onclick="openStatement('CUSTOMER', '${c._id}')" class="btn-action">📜 Statement</button>
+              ${c.outstanding > 0 ? `<button onclick="openWhatsAppModal('CUSTOMER', '${c._id}')" class="btn-action btn-wa">📲 WhatsApp</button>` : ''}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const footInv = document.getElementById('cust-foot-inv');
+      const footColl = document.getElementById('cust-foot-coll');
+      const footOut = document.getElementById('cust-foot-out');
+
+      if (footInv) footInv.textContent = inr(totInv);
+      if (footColl) footColl.textContent = inr(totColl);
+      if (footOut) footOut.textContent = inr(totOut);
+      if (tfoot) tfoot.style.display = 'table-footer-group';
+    }
+
+    // ─── Supplier Payables ─────────────────────────────────────────────────────
+    async function loadSupplierOutstandings() {
+      const tbody = document.getElementById('supp-tbody');
+      try {
+        const r = await fetch(`${API}/inventory/payments/outstandings?type=SUPPLIER`, { headers: H() });
+        if (!r.ok) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load suppliers.</td></tr>';
+          return;
+        }
+        const json = await r.json();
+        rawSuppliers = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        renderSupplierTable();
+      } catch (err) {
+        console.error('Error loading suppliers:', err);
+      }
+    }
+
+    function setSuppFilter(mode, btn) {
+      suppFilterMode = mode;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      renderSupplierTable();
+    }
+
+    function renderSupplierTable() {
+      const tbody = document.getElementById('supp-tbody');
+      const tfoot = document.getElementById('supp-tfoot');
+      if (!tbody) return;
+
+      const searchInput = document.getElementById('search-supp');
+      const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+      let list = rawSuppliers.filter(s => {
+        if (search) {
+          const match = (s.name || '').toLowerCase().includes(search) || (s.phone || '').includes(search) || (s.gstin || '').toLowerCase().includes(search);
+          if (!match) return false;
+        }
+        if (suppFilterMode === 'DUE') return s.outstanding > 0;
+        if (suppFilterMode === 'OVERDUE') return s.status === 'OVERDUE' || s.status === 'CRITICAL';
+        if (suppFilterMode === 'CLEARED') return s.outstanding <= 0;
+        return true;
+      });
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found.</td></tr>';
+        if (tfoot) tfoot.style.display = 'none';
+        return;
+      }
+
+      let totPur = 0, totPaid = 0, totOut = 0;
+
+      tbody.innerHTML = list.map(s => {
+        totPur += s.totalAmount || 0;
+        totPaid += s.totalSettled || 0;
+        totOut += s.outstanding || 0;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;color:var(--text);">${escHtml(s.name)}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${s.contactName ? 'Attn: ' + escHtml(s.contactName) : ''}</div>
+            </td>
+            <td>
+              <div>${escHtml(s.phone || '—')}</div>
+              <div style="font-size:0.7rem;font-family:monospace;color:var(--text-muted);">${escHtml(s.gstin || 'No GSTIN')}</div>
+            </td>
+            <td style="text-align:right;">${inr(s.totalAmount)}</td>
+            <td style="text-align:right;color:#4ade80;">${inr(s.totalSettled)}</td>
+            <td style="text-align:right;font-weight:800;font-size:0.95rem;color:${s.outstanding > 0 ? '#f87171' : '#4ade80'};">${inr(s.outstanding)}</td>
+            <td>${s.paymentTerms} Days</td>
+            <td><span class="status-badge status-${s.status}">${escHtml(s.status.replace('_', ' '))}</span></td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="openRecordPaymentForParty('SUPPLIER', '${s._id}')" class="btn-action btn-pay">💸 Pay</button>
+              <button onclick="openStatement('SUPPLIER', '${s._id}')" class="btn-action">📜 Statement</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const footPur = document.getElementById('supp-foot-pur');
+      const footPaid = document.getElementById('supp-foot-paid');
+      const footOut = document.getElementById('supp-foot-out');
+
+      if (footPur) footPur.textContent = inr(totPur);
+      if (footPaid) footPaid.textContent = inr(totPaid);
+      if (footOut) footOut.textContent = inr(totOut);
+      if (tfoot) tfoot.style.display = 'table-footer-group';
+    }
+
+    // ─── Payment Vouchers History ──────────────────────────────────────────────
+    async function loadVouchers() {
+      const tbody = document.getElementById('vouchers-tbody');
+      if (!tbody) return;
+
+      try {
+        const partyTypeEl = document.getElementById('voucher-party-type');
+        const paymentModeEl = document.getElementById('voucher-mode');
+        const searchEl = document.getElementById('search-vouchers');
+
+        const partyType = partyTypeEl ? partyTypeEl.value : '';
+        const paymentMode = paymentModeEl ? paymentModeEl.value : '';
+        const search = searchEl ? searchEl.value : '';
+
+        const params = new URLSearchParams({
+          ...(partyType && { partyType }),
+          ...(paymentMode && { paymentMode }),
+          ...(search && { search }),
+          limit: 100,
+        });
+
+        const r = await fetch(`${API}/inventory/payments?${params}`, { headers: H() });
+        if (!r.ok) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load vouchers.</td></tr>'; return; }
+        const json = await r.json();
+        const payments = json.data?.payments || [];
+
+        if (!payments.length) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No payment vouchers found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = payments.map(p => `
+          <tr>
+            <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(p.paymentDate)}</td>
+            <td style="font-weight:700;font-family:monospace;color:var(--text);">${escHtml(p.voucherNo)}</td>
+            <td>
+              <div style="font-weight:600;">${escHtml(p.partyId?.name || '—')}</div>
+              <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(p.partyType)}</div>
+            </td>
+            <td><span class="status-badge ${p.txnType === 'PAYMENT_IN' ? 'status-CLEARED' : 'status-OVERDUE'}">${p.txnType === 'PAYMENT_IN' ? '➕ RECEIPT' : '➖ PAYMENT'}</span></td>
+            <td><span class="mode-badge mode-${p.paymentMode}">${escHtml(p.paymentMode)}</span></td>
+            <td style="font-family:monospace;font-size:0.78rem;">${escHtml(p.referenceNo || '—')}</td>
+            <td style="text-align:right;font-weight:800;font-size:0.9rem;color:${p.txnType === 'PAYMENT_IN' ? '#4ade80' : '#f87171'};">${inr(p.amount)}</td>
+            <td style="font-size:0.78rem;color:var(--text-muted);">${escHtml(p.notes || '—')}</td>
+            <td>
+              ${p.partyId?._id ? `<button onclick="openStatement('${p.partyType}', '${p.partyId._id}')" class="btn-action">📜 Statement</button>` : '—'}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading vouchers:', err);
+      }
+    }
+
+    // ─── Record Payment Modal ──────────────────────────────────────────────────
+    function openPaymentModal(e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const dateEl = document.getElementById('pm-date');
+      const amtEl = document.getElementById('pm-amount');
+      const refEl = document.getElementById('pm-ref');
+      const notesEl = document.getElementById('pm-notes');
+      const errEl = document.getElementById('pm-error');
+      const dueInfoEl = document.getElementById('pm-due-info');
+      const modal = document.getElementById('payment-modal');
+
+      if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+      if (amtEl) amtEl.value = '';
+      if (refEl) refEl.value = '';
+      if (notesEl) notesEl.value = '';
+      if (errEl) errEl.style.display = 'none';
+      if (dueInfoEl) dueInfoEl.style.display = 'none';
+
+      onPaymentModeChange();
+      if (modal) modal.classList.add('show');
+      onPartyTypeSelect();
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('payment-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function onPartyTypeSelect() {
+      const typeEl = document.getElementById('pm-party-type');
+      const pSel = document.getElementById('pm-party-id');
+      const title = document.getElementById('pm-title');
+
+      const pType = typeEl ? typeEl.value : 'CUSTOMER';
+      if (title) {
+        title.textContent = pType === 'CUSTOMER' ? '💵 Record Payment Receipt (From Customer)' : '💸 Record Payment Voucher (To Supplier)';
+      }
+      if (!pSel) return;
+
+      pSel.innerHTML = '<option value="">Loading parties…</option>';
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/outstandings?type=${pType}`, { headers: H() });
+        const json = await r.json();
+        const list = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        
+        // Cache party list
+        if (pType === 'CUSTOMER') rawCustomers = list;
+        else rawSuppliers = list;
+
+        pSel.innerHTML = `<option value="">— Select ${pType === 'CUSTOMER' ? 'Customer' : 'Supplier'} —</option>`;
+        list.forEach(p => {
+          pSel.innerHTML += `<option value="${p._id}">${escHtml(p.name)} (${escHtml(p.phone || 'No phone')})</option>`;
+        });
+      } catch (e) {
+        console.error('Error loading parties:', e);
+        pSel.innerHTML = '<option value="">Error loading</option>';
+      }
+    }
+
+    function onPartySelected() {
+      const typeEl = document.getElementById('pm-party-type');
+      const pSel = document.getElementById('pm-party-id');
+      const dueInfo = document.getElementById('pm-due-info');
+      const dueVal = document.getElementById('pm-due-val');
+      const amtInput = document.getElementById('pm-amount');
+
+      const pType = typeEl ? typeEl.value : 'CUSTOMER';
+      const partyId = pSel ? pSel.value : '';
+
+      if (!partyId) {
+        if (dueInfo) dueInfo.style.display = 'none';
+        return;
+      }
+
+      const list = pType === 'CUSTOMER' ? rawCustomers : rawSuppliers;
+      const found = list.find(p => p._id === partyId);
+      if (found) {
+        selectedPartyDueAmount = found.outstanding || 0;
+        if (dueVal) dueVal.textContent = inr(selectedPartyDueAmount);
+        if (dueInfo) dueInfo.style.display = 'flex';
+        if (amtInput && selectedPartyDueAmount > 0) {
+          amtInput.value = selectedPartyDueAmount;
+        }
+      }
+    }
+
+    function fillFullOutstanding() {
+      const amtInput = document.getElementById('pm-amount');
+      if (amtInput && selectedPartyDueAmount > 0) {
+        amtInput.value = selectedPartyDueAmount;
+      }
+    }
+
+    function onPaymentModeChange() {
+      const modeEl = document.getElementById('pm-mode');
+      const refLbl = document.getElementById('pm-ref-lbl');
+      const refInput = document.getElementById('pm-ref');
+      const hint = document.getElementById('pm-hint');
+
+      const mode = modeEl ? modeEl.value : 'UPI';
+
+      if (mode === 'UPI') {
+        if (refLbl) refLbl.textContent = 'UPI Reference / UTR / RRN (12 Digits)';
+        if (refInput) refInput.placeholder = 'e.g. 423612345678';
+        if (hint) hint.textContent = '💡 Enter 12-digit UTR/RRN from Google Pay, PhonePe, Paytm, or BHIM.';
+      } else if (mode === 'NEFT_RTGS') {
+        if (refLbl) refLbl.textContent = 'Bank UTR / Transaction Reference';
+        if (refInput) refInput.placeholder = 'e.g. HDFCN2608269999';
+        if (hint) hint.textContent = '💡 Enter Bank UTR number received from net banking transfer.';
+      } else if (mode === 'CHEQUE') {
+        if (refLbl) refLbl.textContent = 'Cheque No. & Bank Name';
+        if (refInput) refInput.placeholder = 'e.g. 000124 (HDFC Bank)';
+        if (hint) hint.textContent = '💡 Enter 6-digit cheque number and issuing bank.';
+      } else if (mode === 'CASH') {
+        if (refLbl) refLbl.textContent = 'Cash Receipt No. / Cashier Ref (Optional)';
+        if (refInput) refInput.placeholder = 'e.g. CR-104';
+        if (hint) hint.textContent = '⚠️ Statutory notice: Single cash transaction limit is ₹2,00,000 (Section 269ST).';
+      } else {
+        if (refLbl) refLbl.textContent = 'Reference Number';
+        if (refInput) refInput.placeholder = 'e.g. TXN-12345';
+        if (hint) hint.textContent = '';
+      }
+    }
+
+    async function openRecordPaymentForParty(type, partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      openPaymentModal();
+      const typeEl = document.getElementById('pm-party-type');
+      if (typeEl) typeEl.value = type;
+
+      await onPartyTypeSelect();
+      const pSel = document.getElementById('pm-party-id');
+      if (pSel) pSel.value = partyId;
+      onPartySelected();
+    }
+
+    async function submitPayment(e) {
+      e.preventDefault();
+      const btn = document.getElementById('pm-save-btn');
+      const errEl = document.getElementById('pm-error');
+      if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+      if (errEl) errEl.style.display = 'none';
+
+      const partyType = document.getElementById('pm-party-type').value;
+      const partyId = document.getElementById('pm-party-id').value;
+      const amount = Number(document.getElementById('pm-amount').value);
+      const paymentMode = document.getElementById('pm-mode').value;
+      const referenceNo = document.getElementById('pm-ref').value;
+      const paymentDate = document.getElementById('pm-date').value;
+      const notes = document.getElementById('pm-notes').value;
+
+      const body = {
+        partyType,
+        partyId,
+        amount,
+        paymentMode,
+        referenceNo: referenceNo || undefined,
+        paymentDate: paymentDate || undefined,
+        notes: notes || undefined,
+      };
+
+      try {
+        const r = await fetch(`${API}/inventory/payments`, {
+          method: 'POST',
+          headers: H(),
+          body: JSON.stringify(body),
+        });
+        const json = await r.json();
+        if (!r.ok) {
+          if (errEl) {
+            errEl.textContent = json.message || 'Failed to save voucher';
+            errEl.style.display = 'block';
+          }
+          return;
+        }
+        closePaymentModal();
+        loadKpis();
+        loadCustomerOutstandings();
+        loadSupplierOutstandings();
+        loadVouchers();
+      } catch (err) {
+        if (errEl) {
+          errEl.textContent = 'Server error.';
+          errEl.style.display = 'block';
+        }
+      } finally {
+        if (btn) {
+          btn.textContent = 'Save & Update Khata';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // ─── Statement / Khata Bahi Modal ──────────────────────────────────────────
+    async function openStatement(partyType, partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const modal = document.getElementById('statement-modal');
+      const container = document.getElementById('stmt-content');
+      if (container) container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">Generating statement…</div>';
+      if (modal) modal.classList.add('show');
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/statement/${partyType}/${partyId}`, { headers: H() });
+        if (!r.ok) {
+          if (container) container.innerHTML = '<div style="color:var(--error);padding:20px;">Failed to load statement.</div>';
+          return;
+        }
+        const json = await r.json();
+        const { company, party, statement, summary } = json.data || {};
+
+        if (!party || !container) return;
+
+        container.innerHTML = `
+          <div class="stmt-header">
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:4px;">ISSUED BY</div>
+              <div class="stmt-party-name">${escHtml(company?.name || 'WorkSpace Business')}</div>
+              <div class="stmt-sub">GSTIN: <strong>${escHtml(company?.gstin || '—')}</strong> · Phone: ${escHtml(company?.phone || '—')}</div>
+              <div class="stmt-sub">${escHtml(company?.address || '')}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">PARTY ACCOUNT (खाता)</div>
+              <div class="stmt-party-name">${escHtml(party.name)}</div>
+              <div class="stmt-sub">GSTIN: <strong>${escHtml(party.gstin || 'Unregistered')}</strong> · Phone: ${escHtml(party.phone || '—')}</div>
+              <div class="stmt-sub">${escHtml(party.billingAddress || '')}</div>
+            </div>
+          </div>
+
+          <div class="stmt-metrics">
+            <div class="stmt-metric-box">
+              <div class="stmt-metric-lbl">Total Debits (Billed / Paid)</div>
+              <div class="stmt-metric-val" style="color:#f87171;">${inr(summary?.totalDebit)}</div>
+            </div>
+            <div class="stmt-metric-box">
+              <div class="stmt-metric-lbl">Total Credits (Receipts / Settled)</div>
+              <div class="stmt-metric-val" style="color:#4ade80;">${inr(summary?.totalCredit)}</div>
+            </div>
+            <div class="stmt-metric-box" style="background:rgba(99,102,241,0.1);border-color:#6366f1;">
+              <div class="stmt-metric-lbl">Net Closing Outstanding</div>
+              <div class="stmt-metric-val" style="color:#a5b4fc;">${inr(summary?.netOutstanding)} <span style="font-size:0.75rem;">${escHtml(summary?.balanceType)}</span></div>
+            </div>
+          </div>
+
+          <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Voucher #</th>
+                  <th>Particulars / Notes</th>
+                  <th>Ref / UTR</th>
+                  <th style="text-align:right;">Debit (₹)</th>
+                  <th style="text-align:right;">Credit (₹)</th>
+                  <th style="text-align:right;">Balance (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(statement && statement.length) ? statement.map(row => `
+                  <tr>
+                    <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+                    <td style="font-weight:700;font-family:monospace;font-size:0.78rem;">${escHtml(row.voucherNo)}</td>
+                    <td>${escHtml(row.notes || row.txnType)}</td>
+                    <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+                    <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};">${row.debit ? inr(row.debit) : '—'}</td>
+                    <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};">${row.credit ? inr(row.credit) : '—'}</td>
+                    <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+                  </tr>
+                `).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:14px;border-top:1px dashed var(--border);font-size:0.75rem;color:var(--text-muted);">
+            <div>Generated by WorkSpace Inventory ERP · Verified Double-Entry Khata Statement</div>
+            <div>Authorized Signatory ___________________</div>
+          </div>
+        `;
+      } catch (err) {
+        if (container) container.innerHTML = '<div style="color:var(--error);padding:20px;">Server error generating statement.</div>';
+      }
+    }
+
+    function closeStatementModal() {
+      const modal = document.getElementById('statement-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    // ─── WhatsApp Reminder Modal ───────────────────────────────────────────────
+    function openWhatsAppModal(type, partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const list = type === 'CUSTOMER' ? rawCustomers : rawSuppliers;
+      const party = list.find(p => p._id === partyId);
+      if (!party) return;
+
+      activeWaData = {
+        name: party.name,
+        phone: (party.phone || '').replace(/[^0-9]/g, ''),
+        amount: party.outstanding || 0,
+        days: party.daysOverdue || 0,
+      };
+
+      const phoneEl = document.getElementById('wa-phone');
+      const tempEl = document.getElementById('wa-template');
+      const modal = document.getElementById('wa-modal');
+
+      if (phoneEl) phoneEl.value = activeWaData.phone;
+      if (tempEl) tempEl.value = (party.daysOverdue || 0) > 15 ? 'URGENT' : ((party.daysOverdue || 0) > 0 ? 'DUE_DATE' : 'FRIENDLY');
+
+      applyWaTemplate();
+      if (modal) modal.classList.add('show');
+    }
+
+    function applyWaTemplate() {
+      const templateEl = document.getElementById('wa-template');
+      const msgEl = document.getElementById('wa-msg');
+      const template = templateEl ? templateEl.value : 'FRIENDLY';
+
+      const { name, amount, days } = activeWaData;
+      const amtStr = inr(amount);
+      const companyName = user.companyName || 'Our Business';
+
+      let msg = '';
+      if (template === 'FRIENDLY') {
+        msg = `Namaste ${name} ji,\n\nThis is a gentle payment reminder from *${companyName}*.\n\nAn outstanding amount of *${amtStr}* is due on your account.\n\nKindly arrange for the settlement at your earliest convenience via UPI or Bank Transfer.\n\nThank you for your business!`;
+      } else if (template === 'DUE_DATE') {
+        msg = `Dear ${name},\n\nGreetings from *${companyName}*.\n\nYour account balance of *${amtStr}* has reached its payment due date.\n\nPlease process the payment today to maintain an uninterrupted supply of goods.\n\nFor payment details or ledger statement, feel free to reply to this message.\n\nRegards,\n*${companyName}*`;
+      } else {
+        msg = `⚠️ *URGENT PAYMENT OVERDUE NOTICE*\n\nDear ${name},\n\nYour account with *${companyName}* has an overdue balance of *${amtStr}* (overdue by ${days || 15} days).\n\nKindly clear this outstanding amount immediately via UPI or Bank Transfer to avoid service disruption.\n\nThank you,\n*${companyName} Accounts Dept*`;
+      }
+
+      if (msgEl) msgEl.value = msg;
+    }
+
+    function closeWaModal() {
+      const modal = document.getElementById('wa-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    function launchWhatsApp() {
+      const phoneInput = document.getElementById('wa-phone');
+      const msgInput = document.getElementById('wa-msg');
+
+      let phone = (phoneInput ? phoneInput.value : '').replace(/[^0-9]/g, '');
+      const msg = msgInput ? msgInput.value : '';
+
+      if (!phone) {
+        alert('Please enter a valid phone number.');
+        return;
+      }
+      if (phone.length === 10) phone = '91' + phone;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+      closeWaModal();
+    }
+
+    // ─── Safe Backdrop & Escape Key Handlers ──────────────────────────────────
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      let isBackdropMouseDown = false;
+      overlay.addEventListener('mousedown', e => {
+        isBackdropMouseDown = (e.target === overlay);
+      });
+      overlay.addEventListener('mouseup', e => {
+        if (isBackdropMouseDown && e.target === overlay) {
+          overlay.classList.remove('show');
+        }
+        isBackdropMouseDown = false;
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    // Explicitly bind all methods to window scope for inline onclick handlers
+    window.openPaymentModal = openPaymentModal;
+    window.closePaymentModal = closePaymentModal;
+    window.openRecordPaymentForParty = openRecordPaymentForParty;
+    window.openStatement = openStatement;
+    window.closeStatementModal = closeStatementModal;
+    window.openWhatsAppModal = openWhatsAppModal;
+    window.closeWaModal = closeWaModal;
+    window.launchWhatsApp = launchWhatsApp;
+    window.switchTab = switchTab;
+    window.setCustFilter = setCustFilter;
+    window.setSuppFilter = setSuppFilter;
+    window.fillFullOutstanding = fillFullOutstanding;
+    window.onPartyTypeSelect = onPartyTypeSelect;
+    window.onPartySelected = onPartySelected;
+    window.onPaymentModeChange = onPaymentModeChange;
+    window.applyWaTemplate = applyWaTemplate;
+    window.submitPayment = submitPayment;
+
+    // ─── Init ──────────────────────────────────────────────────────────────────
+    Promise.all([loadKpis(), loadCustomerOutstandings()]);
+  </script>
+</body>
+</html>
