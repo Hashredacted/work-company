@@ -29,7 +29,7 @@ async function nextSeq(tenantId, docType, padLen = 4) {
   const seq = await Sequence.findOneAndUpdate(
     { tenantId, key },
     { $inc: { value: 1 } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
   return `${key}-${String(seq.value).padStart(padLen, '0')}`;
 }

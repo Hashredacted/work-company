@@ -35,7 +35,7 @@ const crud = (Model) => ({
     try {
       const doc = await Model.findOneAndUpdate(
         { _id: req.params.id, tenantId: req.tenantId },
-        { $set: req.body }, { new: true }
+        { $set: req.body }, { returnDocument: 'after' }
       );
       if (!doc) return res.status(404).json({ data: null, message: 'Not found', errors: null });
       res.json({ data: doc, message: 'Updated', errors: null });

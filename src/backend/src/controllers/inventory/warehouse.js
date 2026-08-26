@@ -25,7 +25,7 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const wh = await Warehouse.findOneAndUpdate({ _id: req.params.id, tenantId: req.tenantId }, { $set: req.body }, { new: true });
+    const wh = await Warehouse.findOneAndUpdate({ _id: req.params.id, tenantId: req.tenantId }, { $set: req.body }, { returnDocument: 'after' });
     if (!wh) return res.status(404).json({ data: null, message: 'Not found', errors: null });
     res.json({ data: wh, message: 'Updated', errors: null });
   } catch (e) { next(e); }

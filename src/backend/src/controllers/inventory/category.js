@@ -124,7 +124,7 @@ async function update(req, res, next) {
     const cat = await Category.findOneAndUpdate(
       { _id: req.params.id, tenantId: req.tenantId, deletedAt: null },
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!cat) return res.status(404).json({ data: null, message: 'Category not found', errors: null });
     res.json({ data: cat, message: 'Category updated', errors: null });

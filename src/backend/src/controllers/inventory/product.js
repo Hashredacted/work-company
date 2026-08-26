@@ -92,7 +92,7 @@ async function update(req, res, next) {
     const p = await Product.findOneAndUpdate(
       { _id: req.params.id, tenantId: req.tenantId, deletedAt: null },
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!p) return res.status(404).json({ data: null, message: 'Product not found', errors: null });
     res.json({ data: p, message: 'Updated', errors: null });
