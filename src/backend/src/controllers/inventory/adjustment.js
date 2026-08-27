@@ -105,6 +105,15 @@ async function quickStock(req, res, next) {
       const supplier = await Supplier.findOne({ _id: supplierId, tenantId: req.tenantId, deletedAt: null });
       if (supplier) {
         const billVal = totalAmount ? Number(totalAmount) : Math.round(numericQty * cost);
+
+        if (paymentStatus === 'PARTIAL' && paidAmount && Number(paidAmount) > billVal) {
+          return res.status(400).json({
+            data: null,
+            message: `Paid amount (₹${Number(paidAmount).toLocaleString('en-IN')}) cannot exceed total bill amount (₹${billVal.toLocaleString('en-IN')}).`,
+            errors: null,
+          });
+        }
+
         const billVoucherNo = await nextSeq(req.tenantId, 'BILL');
         const creditDays = supplier.paymentTerms || 30;
         const dueDate = new Date(Date.now() + creditDays * 86400000);
@@ -142,9 +151,23 @@ async function quickStock(req, res, next) {
               paymentDate: new Date(),
               referenceNo: referenceNo || null,
               notes: `Payment for Bill ${billVoucherNo}`,
+              allocatedBills: [{
+                billId: createdBillOrInvoice._id,
+                voucherNo: billVoucherNo,
+                allocatedAmount: settledAmt,
+                remainingBillBalance: Math.max(0, billVal - settledAmt),
+              }],
               stockLedgerId: ledgerEntry._id,
               createdBy: req.user._id,
             });
+            // Sync settledAmount and paymentStatus on the bill itself
+            const newBillStatus = settledAmt >= billVal ? 'PAID' : 'PARTIALLY_PAID';
+            await PaymentTransaction.updateOne(
+              { _id: createdBillOrInvoice._id },
+              { $set: { settledAmount: settledAmt, paymentStatus: newBillStatus } }
+            );
+            createdBillOrInvoice.settledAmount = settledAmt;
+            createdBillOrInvoice.paymentStatus = newBillStatus;
           }
         }
       }
@@ -154,6 +177,15 @@ async function quickStock(req, res, next) {
         const gstMultiplier = 1 + (product.gstRate || 0) / 100;
         const defaultSellVal = Math.round(numericQty * (product.sellingPrice || product.mrp || cost) * gstMultiplier);
         const invVal = totalAmount ? Number(totalAmount) : defaultSellVal;
+
+        if (paymentStatus === 'PARTIAL' && paidAmount && Number(paidAmount) > invVal) {
+          return res.status(400).json({
+            data: null,
+            message: `Paid amount (₹${Number(paidAmount).toLocaleString('en-IN')}) cannot exceed total invoice amount (₹${invVal.toLocaleString('en-IN')}).`,
+            errors: null,
+          });
+        }
+
         const invVoucherNo = await nextSeq(req.tenantId, 'INV');
         const creditDays = customer.paymentTerms || 15;
         const dueDate = new Date(Date.now() + creditDays * 86400000);
@@ -191,9 +223,23 @@ async function quickStock(req, res, next) {
               paymentDate: new Date(),
               referenceNo: referenceNo || null,
               notes: `Payment for Invoice ${invVoucherNo}`,
+              allocatedBills: [{
+                billId: createdBillOrInvoice._id,
+                voucherNo: invVoucherNo,
+                allocatedAmount: settledAmt,
+                remainingBillBalance: Math.max(0, invVal - settledAmt),
+              }],
               stockLedgerId: ledgerEntry._id,
               createdBy: req.user._id,
             });
+            // Sync settledAmount and paymentStatus on the invoice itself
+            const newInvStatus = settledAmt >= invVal ? 'PAID' : 'PARTIALLY_PAID';
+            await PaymentTransaction.updateOne(
+              { _id: createdBillOrInvoice._id },
+              { $set: { settledAmount: settledAmt, paymentStatus: newInvStatus } }
+            );
+            createdBillOrInvoice.settledAmount = settledAmt;
+            createdBillOrInvoice.paymentStatus = newInvStatus;
           }
         }
       }

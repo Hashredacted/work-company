@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outstandings & Aging — WorkSpace Inventory ERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --surface-2: #1e293b;
+      --surface-3: #273549;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #6366f1;
+      --text: #f8fafc;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #0ea5e9;
+      --receivable: #38bdf8;
+      --payable: #f43f5e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .blob-1 {
+      width: 500px;
+      height: 500px;
+      background: #6366f1;
+      top: -150px;
+      left: -150px;
+    }
+
+    .blob-2 {
+      width: 400px;
+      height: 400px;
+      background: #38bdf8;
+      bottom: -100px;
+      right: -100px;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px 28px 60px;
+      width: 100%;
+    }
+
+    /* Top Nav Header */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .inv-nav {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+
+    .inv-nav a {
+      color: var(--text-sub);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .inv-nav a:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .inv-nav a.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Company Selection & Context Header */
+    .company-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .company-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .company-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    .company-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .company-meta {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .company-selector-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .company-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      min-width: 220px;
+      cursor: pointer;
+    }
+
+    .company-select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Executive KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .kpi-lbl {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text);
+      font-family: monospace;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* Party Type Segmented Control & Filter Bar */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .party-toggle {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 3px;
+      border-radius: 10px;
+    }
+
+    .party-btn {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .party-btn.active.receivables {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .party-btn.active.payables {
+      background: rgba(244, 63, 94, 0.15);
+      color: #f43f5e;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      min-width: 240px;
+    }
+
+    .search-box:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-action {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-action:hover {
+      background: var(--surface-3);
+    }
+
+    /* Aging Bucket Quick Filter Pills */
+    .aging-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+
+    .aging-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .aging-pill:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .aging-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Outstandings Table */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      max-height: 560px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    thead th {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Badges & Status */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .status-CURRENT {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .status-DUE_SOON {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .status-OVERDUE {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .status-CRITICAL {
+      background: rgba(244, 63, 94, 0.18);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      animation: pulseCritical 2s infinite;
+    }
+
+    .status-CLEARED {
+      background: rgba(100, 116, 139, 0.12);
+      color: #94a3b8;
+      border: 1px solid rgba(100, 116, 139, 0.25);
+    }
+
+    @keyframes pulseCritical {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+
+    .bill-pill {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .bill-pill:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #6366f1;
+    }
+
+    /* Modal Overlay & Containers */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+    }
+
+    .modal-lg {
+      max-width: 960px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    /* Action Icon Buttons */
+    .action-btn-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-table-action {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.12s;
+    }
+
+    .btn-table-action:hover {
+      background: var(--surface-3);
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-table-action.pay {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .btn-table-action.pay:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-table-action.wa {
+      background: rgba(37, 211, 102, 0.1);
+      border-color: rgba(37, 211, 102, 0.3);
+      color: #25d366;
+    }
+
+    /* Print Formatting */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .bg-grid, .blob, .top-nav, .controls-bar, .aging-pills, .btn-action, .action-btn-group, .modal-close {
+        display: none !important;
+      }
+      .table-card {
+        border: none !important;
+        background: transparent !important;
+      }
+      thead th {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-bottom: 2px solid #000 !important;
+      }
+      tbody td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+
+  <div class="page">
+    <!-- Top Navigation -->
+    <header class="top-nav">
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <a href="inv-dashboard.html" class="brand">
+          <div class="brand-logo">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="8" fill="url(#cG)" />
+              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
+              <defs>
+                <linearGradient id="cG" x1="0" y1="0" x2="28" y2="28">
+                  <stop offset="0%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="brand-name">WorkSpace</span>
+          <span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;">📦 INVENTORY</span>
+        </a>
+
+        <nav class="inv-nav">
+          <a href="inv-dashboard.html">📊 Dashboard</a>
+          <a href="inv-products.html">📦 Products</a>
+          <a href="inv-suppliers.html">🏭 Suppliers</a>
+          <a href="inv-customers.html">👥 Customers</a>
+          <a href="inv-payments.html">💳 Payments</a>
+          <a href="inv-outstandings.html" class="active">💰 Outstandings</a>
+          <a href="inv-reports.html">📈 Reports</a>
+        </nav>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:6px;">← Main App</a>
+        <button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- Company Filter & Context Banner -->
+    <div class="company-banner">
+      <div class="company-info">
+        <div class="company-avatar" id="company-avatar">🏢</div>
+        <div>
+          <div class="company-title" id="company-display-name">Active Company Outstandings</div>
+          <div class="company-meta" id="company-meta-text">Loading company information…</div>
+        </div>
+      </div>
+      <div class="company-selector-box">
+        <label for="company-filter" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter By Company:</label>
+        <select id="company-filter" class="company-select" onchange="onCompanyFilterChange()">
+          <option value="">Loading companies…</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Financial KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card" style="border-top:3px solid var(--receivable);">
+        <div class="kpi-lbl">
+          <span>Customer Receivables (लेना)</span>
+          <span>👥</span>
+        </div>
+        <div class="kpi-val" id="kpi-receivables" style="color:var(--receivable);">₹0</div>
+        <div class="kpi-sub" id="kpi-debtors-count">0 active debtor accounts</div>
+      </div>
+
+      <div class="kpi-card" style="border-top:3px solid var(--payable);">
+        <div class="kpi-lbl">
+          <span>Supplier Payables (देना)</span>
+          <span>🏭</span>
+        </div>
+        <div class="kpi-val" id="kpi-payables" style="color:var(--payable);">₹0</div>
+        <div class="kpi-sub" id="kpi-creditors-count">0 active creditor accounts</div>
+      </div>
+
+      <div class="kpi-card" style="border-top:3px solid #6366f1;">
+        <div class="kpi-lbl">
+          <span>Net Position</span>
+          <span>⚖️</span>
+        </div>
+        <div class="kpi-val" id="kpi-net-working" style="color:#4ade80;">₹0</div>
+        <div class="kpi-sub">Receivables minus Payables</div>
+      </div>
+
+      <div class="kpi-card" style="border-top:3px solid var(--warning);">
+        <div class="kpi-lbl">
+          <span>Overdue Balance</span>
+          <span>⏳</span>
+        </div>
+        <div class="kpi-val" id="kpi-overdue" style="color:#fbbf24;">₹0</div>
+        <div class="kpi-sub">Due date passed on invoices</div>
+      </div>
+
+      <div class="kpi-card" style="border-top:3px solid var(--error);">
+        <div class="kpi-lbl">
+          <span>Critical Risk (> 30 Days)</span>
+          <span>🚨</span>
+        </div>
+        <div class="kpi-val" id="kpi-critical" style="color:#f87171;">₹0</div>
+        <div class="kpi-sub">High priority debt recovery</div>
+      </div>
+    </div>
+
+    <!-- Controls Toolbar (Customer vs Supplier Toggle & Search) -->
+    <div class="controls-bar">
+      <div class="party-toggle">
+        <button id="btn-tab-customer" class="party-btn active receivables" onclick="switchPartyType('CUSTOMER')">
+          <span>👥 Customer Receivables (Lena)</span>
+          <span id="tab-cust-badge" style="background:rgba(56,189,248,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
+        </button>
+        <button id="btn-tab-supplier" class="party-btn payables" onclick="switchPartyType('SUPPLIER')">
+          <span>🏭 Supplier Payables (Dena)</span>
+          <span id="tab-sup-badge" style="background:rgba(244,63,94,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
+        </button>
+      </div>
+
+      <div class="filter-actions">
+        <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…" oninput="debounceSearch()" />
+        <button class="btn-action" onclick="exportToCsv()">📥 Export CSV</button>
+        <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
+      </div>
+    </div>
+
+    <!-- Aging Bucket Filter Pills -->
+    <div class="aging-pills">
+      <button class="aging-pill active" onclick="filterByAging('ACTIVE', this)">⭐ Active Pending Dues (<span id="count-active">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('CURRENT_0_15', this)">🟢 0-15 Days Current (<span id="count-current">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('DUE_16_30', this)">🟡 16-30 Days Due Soon (<span id="count-soon">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('OVERDUE_31_60', this)">🟠 31-60 Days Overdue (<span id="count-overdue">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('CRITICAL_60_PLUS', this)">🔴 > 60 Days Critical (<span id="count-critical">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('CLEARED', this)">⚪ Cleared Accounts (<span id="count-cleared">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('ALL', this)">📋 All Accounts (<span id="count-all">0</span>)</button>
+    </div>
+
+    <!-- Outstandings Table -->
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Party Name & Contact</th>
+              <th>GSTIN / State</th>
+              <th>Credit Terms</th>
+              <th style="text-align:right;">Total Billed (₹)</th>
+              <th style="text-align:right;">Total Settled (₹)</th>
+              <th style="text-align:right;">Outstanding Due (₹)</th>
+              <th>Aging Status</th>
+              <th>Open Invoices / Bills</th>
+              <th style="text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="outstandings-tbody">
+            <tr>
+              <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings data…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Open Bills Drilldown Modal -->
+  <div class="modal-overlay" id="open-bills-modal">
+    <div class="modal modal-lg">
+      <div class="modal-title">
+        <div>
+          <span id="ob-party-name">Party Open Invoices / Bills</span>
+          <div id="ob-party-meta" style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-top:2px;"></div>
+        </div>
+        <button class="modal-close" onclick="closeOpenBillsModal()">✕</button>
+      </div>
+
+      <div id="ob-content" style="max-height:480px;overflow-y:auto;">
+        <!-- Injected via JS -->
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+        <div id="ob-total-pending" style="font-weight:800;font-size:0.95rem;color:var(--receivable);">Total Pending: ₹0</div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn-action" onclick="closeOpenBillsModal()">Close</button>
+          <button type="button" id="ob-pay-btn" class="btn-action" style="background:var(--primary);color:#fff;border-color:var(--primary);">💳 Settle Bills</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Tax Invoice / Voucher View Modal -->
+  <div class="modal-overlay" id="voucher-modal" style="z-index:1200;">
+    <div class="modal modal-lg">
+      <div class="modal-title">
+        <span>Tax Invoice / Voucher Document</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action" onclick="window.print()" style="padding:4px 10px;font-size:0.75rem;">🖨️ Print</button>
+          <button class="modal-close" onclick="closeVoucherModal()">✕</button>
+        </div>
+      </div>
+      <div id="vm-content">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Party Khata Statement Modal -->
+  <div class="modal-overlay" id="statement-modal" style="z-index:1100;">
+    <div class="modal modal-lg">
+      <div class="modal-title">
+        <span>📖 Verified Khata Bahi Statement</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action" onclick="window.print()" style="padding:4px 10px;font-size:0.75rem;">🖨️ Print</button>
+          <button class="modal-close" onclick="closeStatementModal()">✕</button>
+        </div>
+      </div>
+      <div id="stmt-content">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Reminder Modal -->
+  <div class="modal-overlay" id="wa-modal" style="z-index:1100;">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-title">
+        <span>💬 Send WhatsApp Payment Reminder</span>
+        <button class="modal-close" onclick="closeWaModal()">✕</button>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text-sub);margin-bottom:14px;">Send a customized payment reminder directly to the party's WhatsApp number.</div>
+      
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Phone Number (with Country Code):</label>
+        <input type="text" id="wa-phone" class="search-box" style="width:100%;" placeholder="e.g. 919876543210" />
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Reminder Tone / Template:</label>
+        <select id="wa-template" class="company-select" style="width:100%;" onchange="applyWaTemplate()">
+          <option value="FRIENDLY">🟢 Friendly Reminder (Normal)</option>
+          <option value="DUE_DATE">🟡 Due Date Approaching</option>
+          <option value="URGENT">🔴 Urgent / Overdue Notice</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Message Preview:</label>
+        <textarea id="wa-msg" rows="5" class="search-box" style="width:100%;font-family:monospace;font-size:0.8rem;resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn-action" onclick="closeWaModal()">Cancel</button>
+        <button type="button" onclick="sendWhatsApp()" style="background:#25d366;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Send via WhatsApp →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    const API = 'http://localhost:5000/api';
+    const token = localStorage.getItem('auth_token');
+    if (!token) window.location.href = 'index.html';
+
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const mainNav = document.getElementById('main-nav-link');
+    if (mainNav) {
+      mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
+    }
+
+    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+    function fmtDate(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return isNaN(dt) ? '—' : dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function escHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    });
+
+    // State
+    let activeCompanyId = null;
+    let accessibleCompanies = [];
+    let activePartyType = 'CUSTOMER'; // CUSTOMER (Receivables) or SUPPLIER (Payables)
+    let rawOutstandings = [];
+    let activeAgingFilter = 'ACTIVE';
+    let searchDebounceTimer;
+    let activeWaData = null;
+
+    // ─── Initializer ──────────────────────────────────────────────────────────
+    async function init() {
+      await loadCompanies();
+      await loadKpisAndData();
+    }
+
+    // ─── Company Selector Loader ──────────────────────────────────────────────
+    async function loadCompanies() {
+      try {
+        const r = await fetch(`${API}/inventory/companies`, { headers: H() });
+        if (!r.ok) return;
+        const json = await r.json();
+        accessibleCompanies = json.data || [];
+
+        const sel = document.getElementById('company-filter');
+        if (!sel) return;
+
+        if (accessibleCompanies.length === 0) {
+          sel.innerHTML = '<option value="">No companies registered</option>';
+          return;
+        }
+
+        sel.innerHTML = accessibleCompanies.map(c => {
+          return `<option value="${c._id}">${escHtml(c.name)} ${c.gst ? '(' + escHtml(c.gst) + ')' : ''}</option>`;
+        }).join('');
+
+        // Default to first company
+        activeCompanyId = accessibleCompanies[0]._id;
+        sel.value = activeCompanyId;
+        updateCompanyBanner(accessibleCompanies[0]);
+      } catch (err) {
+        console.error('Error loading companies:', err);
+      }
+    }
+
+    function updateCompanyBanner(company) {
+      if (!company) return;
+      document.getElementById('company-display-name').textContent = company.name || 'Company Outstandings';
+      document.getElementById('company-meta-text').textContent = `GSTIN: ${company.gst || 'Unregistered'} · Phone: ${company.phone || '—'} · Address: ${company.address || '—'}`;
+      document.getElementById('company-avatar').textContent = (company.name || 'C').substring(0, 1).toUpperCase();
+    }
+
+    function onCompanyFilterChange() {
+      const sel = document.getElementById('company-filter');
+      activeCompanyId = sel.value;
+      const comp = accessibleCompanies.find(c => c._id === activeCompanyId);
+      if (comp) updateCompanyBanner(comp);
+      loadKpisAndData();
+    }
+
+    // ─── KPI & Outstandings Loader ────────────────────────────────────────────
+    async function loadKpisAndData() {
+      const tbody = document.getElementById('outstandings-tbody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings…</td></tr>';
+
+      const tenantParam = activeCompanyId ? `?tenantId=${activeCompanyId}` : '';
+
+      try {
+        // Load KPIs
+        const kpiPromise = fetch(`${API}/inventory/payments/kpis${tenantParam}`, { headers: H() });
+        const dataPromise = fetch(`${API}/inventory/payments/outstandings${tenantParam ? tenantParam + '&' : '?'}type=${activePartyType}`, { headers: H() });
+
+        const [kpiRes, dataRes] = await Promise.all([kpiPromise, dataPromise]);
+
+        if (kpiRes.ok) {
+          const kJson = await kpiRes.json();
+          renderKpis(kJson.data);
+        }
+
+        if (dataRes.ok) {
+          const dJson = await dataRes.json();
+          rawOutstandings = dJson.data || [];
+          updateAgingCounts();
+          renderOutstandingsTable();
+        } else {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load outstandings.</td></tr>';
+        }
+      } catch (err) {
+        console.error('Error fetching outstandings:', err);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Server connection error.</td></tr>';
+      }
+    }
+
+    function renderKpis(kpis) {
+      if (!kpis) return;
+      document.getElementById('kpi-receivables').textContent = inr(kpis.totalReceivables);
+      document.getElementById('kpi-payables').textContent = inr(kpis.totalPayables);
+      document.getElementById('kpi-net-working').textContent = inr(kpis.netWorkingCapital);
+      document.getElementById('kpi-net-working').style.color = kpis.netWorkingCapital >= 0 ? '#4ade80' : '#f87171';
+
+      const isCust = activePartyType === 'CUSTOMER';
+      document.getElementById('kpi-overdue').textContent = inr(isCust ? kpis.overdueReceivables : kpis.overduePayables);
+      document.getElementById('kpi-critical').textContent = inr(isCust ? kpis.criticalReceivables : kpis.criticalPayables);
+
+      document.getElementById('kpi-debtors-count').textContent = `${kpis.activeDebtorsCount || 0} active debtor accounts`;
+      document.getElementById('kpi-creditors-count').textContent = `${kpis.activeCreditorsCount || 0} active creditor accounts`;
+    }
+
+    function updateAgingCounts() {
+      const counts = {
+        ACTIVE: 0,
+        ALL: rawOutstandings.length,
+        CURRENT_0_15: 0,
+        DUE_16_30: 0,
+        OVERDUE_31_60: 0,
+        CRITICAL_60_PLUS: 0,
+        CLEARED: 0,
+      };
+
+      rawOutstandings.forEach(p => {
+        if (p.outstanding > 0) {
+          counts.ACTIVE++;
+          if (counts[p.agingBucket] !== undefined) {
+            counts[p.agingBucket]++;
+          }
+        } else {
+          counts.CLEARED++;
+        }
+      });
+
+      const activeEl = document.getElementById('count-active');
+      if (activeEl) activeEl.textContent = counts.ACTIVE;
+      document.getElementById('count-current').textContent = counts.CURRENT_0_15;
+      document.getElementById('count-soon').textContent = counts.DUE_16_30;
+      document.getElementById('count-overdue').textContent = counts.OVERDUE_31_60;
+      document.getElementById('count-critical').textContent = counts.CRITICAL_60_PLUS;
+      document.getElementById('count-cleared').textContent = counts.CLEARED;
+      const allEl = document.getElementById('count-all');
+      if (allEl) allEl.textContent = counts.ALL;
+
+      // Update Tab badge to show count of active debtors/creditors with pending dues
+      const badge = activePartyType === 'CUSTOMER' ? document.getElementById('tab-cust-badge') : document.getElementById('tab-sup-badge');
+      if (badge) badge.textContent = counts.ACTIVE;
+    }
+
+    // ─── Table Rendering ──────────────────────────────────────────────────────
+    function renderOutstandingsTable() {
+      const tbody = document.getElementById('outstandings-tbody');
+      if (!tbody) return;
+
+      const q = (document.getElementById('party-search').value || '').toLowerCase().trim();
+
+      const filtered = rawOutstandings.filter(p => {
+        let matchesAging = true;
+        if (activeAgingFilter === 'ACTIVE') {
+          matchesAging = (p.outstanding > 0);
+        } else if (activeAgingFilter === 'CLEARED') {
+          matchesAging = (p.outstanding <= 0 || p.agingBucket === 'CLEARED');
+        } else if (activeAgingFilter === 'ALL') {
+          matchesAging = true;
+        } else {
+          matchesAging = (p.agingBucket === activeAgingFilter && p.outstanding > 0);
+        }
+
+        const matchesSearch = !q || (p.name && p.name.toLowerCase().includes(q))
+          || (p.phone && p.phone.includes(q))
+          || (p.gstin && p.gstin.toLowerCase().includes(q))
+          || (p.contactName && p.contactName.toLowerCase().includes(q));
+        return matchesAging && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} with active pending balance found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(p => {
+        const isReceivable = activePartyType === 'CUSTOMER';
+        const color = isReceivable ? 'var(--receivable)' : 'var(--payable)';
+
+        const badgeClass = `status-${p.status || 'CLEARED'}`;
+        const statusLabel = p.status === 'CRITICAL' ? `🚨 CRITICAL (${p.daysOverdue}d)`
+          : p.status === 'OVERDUE' ? `🟠 OVERDUE (${p.daysOverdue}d)`
+          : p.status === 'DUE_SOON' ? `🟡 DUE SOON`
+          : p.status === 'CURRENT' ? `🟢 CURRENT`
+          : `⚪ CLEARED`;
+
+        const openBills = (p.openBills || []).filter(b => b.pendingAmount > 0);
+        const openBillsCount = openBills.length;
+        const openBillsHtml = openBillsCount > 0
+          ? `<span class="bill-pill" onclick="openBillsModal('${p._id}', event)" title="Click to view ${openBillsCount} unpaid bills">📑 ${openBillsCount} Open Bill${openBillsCount > 1 ? 's' : ''}</span>`
+          : `<span style="font-size:0.75rem;color:var(--text-muted);">0 Open</span>`;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;color:var(--text);font-size:0.9rem;">${escHtml(p.name)}</div>
+              <div style="font-size:0.74rem;color:var(--text-muted);margin-top:2px;">
+                ${p.contactName ? escHtml(p.contactName) + ' · ' : ''}
+                ${p.phone ? `📞 <a href="tel:${escHtml(p.phone)}" style="color:var(--text-sub);text-decoration:none;">${escHtml(p.phone)}</a>` : 'No phone'}
+              </div>
+            </td>
+            <td>
+              <div style="font-family:monospace;font-size:0.78rem;">${escHtml(p.gstin || 'Unregistered')}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(p.state || '—')}</div>
+            </td>
+            <td style="font-size:0.78rem;">
+              <div>${p.paymentTerms || 15} Days Net</div>
+              ${p.creditLimit ? `<div style="font-size:0.7rem;color:var(--text-muted);">Limit: ${inr(p.creditLimit)}</div>` : ''}
+            </td>
+            <td style="text-align:right;font-family:monospace;">${inr(p.totalAmount)}</td>
+            <td style="text-align:right;font-family:monospace;color:#4ade80;">${inr(p.totalSettled)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:800;font-size:0.95rem;color:${p.outstanding > 0 ? color : 'var(--text-muted)'};">
+              ${inr(p.outstanding)}
+            </td>
+            <td>
+              <span class="status-badge ${badgeClass}">${statusLabel}</span>
+            </td>
+            <td>${openBillsHtml}</td>
+            <td>
+              <div class="action-btn-group" style="justify-content:center;">
+                <button class="btn-table-action" onclick="openBillsModal('${p._id}', event)" title="View all unpaid invoices/bills">📑 Bills</button>
+                <button class="btn-table-action pay" onclick="openRecordPayment('${p._id}', '${p.name}', ${p.outstanding})" title="Record Payment">💳 Settle</button>
+                <button class="btn-table-action" onclick="openStatement('${activePartyType}', '${p._id}', event)" title="View Khata Bahi Statement">📖 Khata</button>
+                <button class="btn-table-action wa" onclick="openWhatsAppModal('${p._id}', event)" title="WhatsApp Reminder">💬</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ─── Party Type Tab Switcher ──────────────────────────────────────────────
+    function switchPartyType(type) {
+      activePartyType = type;
+      document.getElementById('btn-tab-customer').classList.toggle('active', type === 'CUSTOMER');
+      document.getElementById('btn-tab-supplier').classList.toggle('active', type === 'SUPPLIER');
+      activeAgingFilter = 'ACTIVE';
+      
+      document.querySelectorAll('.aging-pill').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === 0);
+      });
+
+      loadKpisAndData();
+    }
+
+    function filterByAging(bucket, btn) {
+      activeAgingFilter = bucket;
+      document.querySelectorAll('.aging-pill').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderOutstandingsTable();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(renderOutstandingsTable, 200);
+    }
+
+    // ─── Open Bills Drilldown Modal ───────────────────────────────────────────
+    function openBillsModal(partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const party = rawOutstandings.find(p => p._id === partyId);
+      if (!party) return;
+
+      document.getElementById('ob-party-name').textContent = `${party.name} · Open Invoices & Bills`;
+      document.getElementById('ob-party-meta').textContent = `GSTIN: ${party.gstin || 'Unregistered'} · Phone: ${party.phone || '—'} · Credit Terms: ${party.paymentTerms || 15} Days`;
+      document.getElementById('ob-total-pending').textContent = `Total Outstanding: ${inr(party.outstanding)}`;
+
+      const payBtn = document.getElementById('ob-pay-btn');
+      if (payBtn) {
+        payBtn.onclick = () => {
+          closeOpenBillsModal();
+          openRecordPayment(party._id, party.name, party.outstanding);
+        };
+      }
+
+      const bills = (party.openBills || []).filter(b => (b.pendingAmount > 0));
+      const container = document.getElementById('ob-content');
+
+      if (bills.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);">No open unpaid bills recorded for this party. Outstanding balance is ₹0.</div>`;
+      } else {
+        container.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Voucher / Invoice #</th>
+                <th>Date</th>
+                <th>Due Date</th>
+                <th style="text-align:right;">Bill Amount (₹)</th>
+                <th style="text-align:right;">Settled (₹)</th>
+                <th style="text-align:right;">Balance Due (₹)</th>
+                <th>Status</th>
+                <th style="text-align:center;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bills.map(b => `
+                <tr>
+                  <td>
+                    <span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view full invoice">🔍 ${escHtml(b.voucherNo)}</span>
+                  </td>
+                  <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(b.date)}</td>
+                  <td style="font-family:monospace;font-size:0.78rem;color:${b.isOverdue ? '#f87171' : 'var(--text)'};">
+                    ${fmtDate(b.dueDate)}
+                    ${b.isOverdue ? `<span style="font-size:0.68rem;color:#f87171;"> (${b.overdueDays}d late)</span>` : ''}
+                  </td>
+                  <td style="text-align:right;font-family:monospace;">${inr(b.totalAmount)}</td>
+                  <td style="text-align:right;font-family:monospace;color:#4ade80;">${inr(b.settledAmount)}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:800;color:#f87171;">${inr(b.pendingAmount)}</td>
+                  <td>
+                    <span class="status-badge ${b.isOverdue ? 'status-OVERDUE' : 'status-CURRENT'}">${b.isOverdue ? 'OVERDUE' : 'UNPAID'}</span>
+                  </td>
+                  <td style="text-align:center;">
+                    <button class="btn-table-action" onclick="openVoucherModal('${b.voucherNo}', event)">🧾 View Doc</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      document.getElementById('open-bills-modal').classList.add('show');
+    }
+
+    function closeOpenBillsModal() {
+      document.getElementById('open-bills-modal').classList.remove('show');
+    }
+
+    // ─── Invoice & Voucher View Modal ─────────────────────────────────────────
+    async function openVoucherModal(voucherNoOrId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const modal = document.getElementById('voucher-modal');
+      const container = document.getElementById('vm-content');
+      if (container) container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Loading document details…</div>';
+      if (modal) modal.classList.add('show');
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/voucher/${encodeURIComponent(voucherNoOrId)}`, { headers: H() });
+        if (!r.ok) {
+          if (container) container.innerHTML = '<div style="color:var(--error);padding:24px;text-align:center;">Voucher / Invoice not found.</div>';
+          return;
+        }
+        const json = await r.json();
+        const { txn, party, company, settlements } = json.data || {};
+        if (!txn || !container) return;
+
+        const isInvoice = txn.txnType === 'INVOICE';
+        const isBill = txn.txnType === 'BILL';
+        const isReceipt = txn.txnType === 'PAYMENT_IN';
+        const isPayment = txn.txnType === 'PAYMENT_OUT';
+
+        const docTitle = isInvoice ? 'TAX INVOICE'
+          : isBill ? 'PURCHASE BILL'
+          : isReceipt ? 'PAYMENT RECEIPT'
+          : isPayment ? 'PAYMENT VOUCHER'
+          : 'COMMERCIAL VOUCHER';
+
+        const docIcon = isInvoice ? '🧾' : isBill ? '📦' : isReceipt ? '💵' : '💸';
+
+        const statusBadge = (isInvoice || isBill)
+          ? `<span class="status-badge status-${txn.paymentStatus || 'UNPAID'}">${txn.paymentStatus || 'UNPAID'}</span>`
+          : `<span class="status-badge status-CLEARED">EXECUTED</span>`;
+
+        const ledger = txn.stockLedgerId;
+        const product = ledger?.productId;
+        const warehouse = ledger?.warehouseId;
+
+        let itemRowHtml = '';
+        if (product) {
+          const qty = Math.abs(ledger.qty || 0);
+          const rate = ledger.unitCost || (isInvoice ? (product.sellingPrice || 0) : (product.purchasePrice || 0));
+          const gstRate = product.gstRate || 0;
+          const lineTotal = txn.amount || (qty * rate);
+
+          itemRowHtml = `
+            <div style="margin-top:16px;margin-bottom:16px;">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Line Items / Goods Description</div>
+              <table style="font-size:0.8rem;">
+                <thead>
+                  <tr>
+                    <th>Item Description</th>
+                    <th>SKU / HSN</th>
+                    <th>Godown</th>
+                    <th style="text-align:right;">Qty</th>
+                    <th style="text-align:right;">Rate (₹)</th>
+                    <th style="text-align:right;">GST %</th>
+                    <th style="text-align:right;">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div style="font-weight:700;color:var(--text);">${escHtml(product.name)}</div>
+                      ${ledger.batchNo ? `<div style="font-size:0.7rem;color:var(--text-muted);">Batch: ${escHtml(ledger.batchNo)} ${ledger.expiryDate ? '· Exp: ' + fmtDate(ledger.expiryDate) : ''}</div>` : ''}
+                    </td>
+                    <td style="font-family:monospace;font-size:0.75rem;">${escHtml(product.sku || '—')} ${product.hsnCode ? '/ ' + escHtml(product.hsnCode) : ''}</td>
+                    <td>${escHtml(warehouse?.name || 'Main Godown')}</td>
+                    <td style="text-align:right;font-weight:700;">${qty} ${escHtml(product.unit || 'Pcs')}</td>
+                    <td style="text-align:right;">${inr(rate)}</td>
+                    <td style="text-align:right;">${gstRate ? gstRate + '%' : 'Exempt'}</td>
+                    <td style="text-align:right;font-weight:800;color:var(--text);">${inr(lineTotal)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        let settlementsHtml = '';
+        if ((isInvoice || isBill) && settlements && settlements.length > 0) {
+          settlementsHtml = `
+            <div style="margin-top:16px;margin-bottom:16px;background:rgba(56,189,248,0.04);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:12px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#38bdf8;text-transform:uppercase;margin-bottom:8px;">🔗 Linked Settlement Payments (${settlements.length})</div>
+              <table style="font-size:0.78rem;background:transparent;">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Voucher #</th>
+                    <th>Mode & Reference</th>
+                    <th style="text-align:right;">Settled (₹)</th>
+                    <th style="text-align:right;">Remaining (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${settlements.map(s => `
+                    <tr>
+                      <td style="font-family:monospace;">${fmtDate(s.date)}</td>
+                      <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${s.voucherNo}', event)">${escHtml(s.voucherNo)}</td>
+                      <td>${escHtml(s.paymentMode || '—')} ${s.referenceNo ? `· Ref: <code>${escHtml(s.referenceNo)}</code>` : ''}</td>
+                      <td style="text-align:right;font-weight:700;color:#4ade80;">${inr(s.allocatedAmount)}</td>
+                      <td style="text-align:right;font-weight:700;color:${s.remainingBillBalance === 0 ? '#4ade80' : '#f87171'};">${inr(s.remainingBillBalance)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        const remainingPending = Math.max(0, txn.amount - (txn.settledAmount || 0));
+
+        container.innerHTML = `
+          <div style="border:1px solid var(--border);border-radius:10px;padding:20px;background:var(--surface);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-size:1.15rem;font-weight:800;color:var(--text);letter-spacing:-0.3px;">${escHtml(company?.name || 'WorkSpace Enterprise')}</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(company?.gstin || '—')}</strong> · Phone: ${escHtml(company?.phone || '—')}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</div>
+                <div style="font-family:monospace;font-weight:800;font-size:0.95rem;color:var(--text);margin-top:2px;">${escHtml(txn.voucherNo)}</div>
+                <div style="margin-top:4px;">${statusBadge}</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;font-size:0.8rem;">
+              <div>
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">
+                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO)' : '🏭 SUPPLIER (VENDOR)'}
+                </div>
+                <div style="font-weight:800;font-size:0.92rem;color:var(--text);">${escHtml(party?.name || '—')}</div>
+                <div style="color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(party?.gstin || 'Unregistered')}</strong></div>
+                <div style="color:var(--text-muted);">Phone: ${escHtml(party?.phone || '—')} · ${escHtml(party?.email || '')}</div>
+                <div style="color:var(--text-muted);font-size:0.75rem;margin-top:2px;">${escHtml(party?.billingAddress || party?.address || '')}</div>
+              </div>
+              <div style="border-left:1px solid var(--border);padding-left:16px;">
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">📅 VOUCHER DETAILS</div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:0.78rem;">
+                  <span style="color:var(--text-muted);">Date:</span> <strong style="font-family:monospace;">${fmtDate(txn.paymentDate)}</strong>
+                  ${txn.dueDate ? `<span style="color:var(--text-muted);">Due Date:</span> <strong style="font-family:monospace;color:${new Date(txn.dueDate) < new Date() ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}
+                  <span style="color:var(--text-muted);">Payment Mode:</span> <strong>${escHtml(txn.paymentMode || 'CREDIT')}</strong>
+                  ${txn.referenceNo ? `<span style="color:var(--text-muted);">Ref / UTR:</span> <strong style="font-family:monospace;">${escHtml(txn.referenceNo)}</strong>` : ''}
+                  ${txn.notes ? `<span style="color:var(--text-muted);">Remarks:</span> <span style="color:var(--text);">${escHtml(txn.notes)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            ${itemRowHtml}
+            ${settlementsHtml}
+
+            <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+              <div style="min-width:280px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
+                <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);">
+                  <span>Total Amount:</span>
+                  <strong style="color:var(--text);font-size:0.95rem;">${inr(txn.amount)}</strong>
+                </div>
+                ${(isInvoice || isBill) ? `
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;">
+                    <span>Settled / Paid:</span>
+                    <strong>${inr(txn.settledAmount || 0)}</strong>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : '#f87171'};font-weight:800;">
+                    <span>Balance Pending:</span>
+                    <span>${inr(remainingPending)}</span>
+                  </div>
+                ` : `
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;font-weight:700;">
+                    <span>Status:</span>
+                    <span>COMPLETED</span>
+                  </div>
+                `}
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;padding-top:16px;border-top:1px dashed var(--border);font-size:0.75rem;color:var(--text-muted);">
+              <div>
+                <div>Thank you for doing business with us!</div>
+                <div style="font-size:0.7rem;margin-top:2px;">This is a computer-generated tax invoice/voucher issued via WorkSpace ERP.</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="margin-bottom:30px;">For <strong>${escHtml(company?.name || 'WorkSpace Business')}</strong></div>
+                <div>Authorized Signatory ___________________</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        if (container) container.innerHTML = '<div style="color:var(--error);padding:24px;text-align:center;">Server error loading voucher details.</div>';
+      }
+    }
+
+    function closeVoucherModal() {
+      document.getElementById('voucher-modal').classList.remove('show');
+    }
+
+    // ─── Khata Statement Modal ────────────────────────────────────────────────
+    async function openStatement(partyType, partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const modal = document.getElementById('statement-modal');
+      const container = document.getElementById('stmt-content');
+      if (container) container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">Generating statement…</div>';
+      if (modal) modal.classList.add('show');
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/statement/${partyType}/${partyId}`, { headers: H() });
+        if (!r.ok) {
+          if (container) container.innerHTML = '<div style="color:var(--error);padding:20px;">Failed to load statement.</div>';
+          return;
+        }
+        const json = await r.json();
+        const { company, party, statement, summary } = json.data || {};
+        if (!party || !container) return;
+
+        container.innerHTML = `
+          <div style="display:flex;justify-content:space-between;border-bottom:2px solid var(--border);padding-bottom:14px;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:4px;">ISSUED BY</div>
+              <div style="font-size:1.1rem;font-weight:800;color:var(--text);">${escHtml(company?.name || 'WorkSpace Business')}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">GSTIN: <strong>${escHtml(company?.gstin || '—')}</strong> · Phone: ${escHtml(company?.phone || '—')}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">PARTY ACCOUNT (खाता)</div>
+              <div style="font-size:1.1rem;font-weight:800;color:var(--text);">${escHtml(party.name)}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">GSTIN: <strong>${escHtml(party.gstin || 'Unregistered')}</strong> · Phone: ${escHtml(party.phone || '—')}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(party.billingAddress || '')}</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:16px;">
+            <div style="background:var(--surface-2);border-radius:8px;padding:12px;">
+              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Total Debits (Billed / Paid)</div>
+              <div style="font-size:1.2rem;font-weight:800;color:#f87171;font-family:monospace;margin-top:4px;">${inr(summary?.totalDebit)}</div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:8px;padding:12px;">
+              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Total Credits (Receipts / Settled)</div>
+              <div style="font-size:1.2rem;font-weight:800;color:#4ade80;font-family:monospace;margin-top:4px;">${inr(summary?.totalCredit)}</div>
+            </div>
+            <div style="background:rgba(99,102,241,0.1);border:1px solid #6366f1;border-radius:8px;padding:12px;">
+              <div style="font-size:0.7rem;color:#a5b4fc;text-transform:uppercase;font-weight:700;">Net Closing Outstanding</div>
+              <div style="font-size:1.2rem;font-weight:800;color:#a5b4fc;font-family:monospace;margin-top:4px;">${inr(summary?.netOutstanding)} <span style="font-size:0.75rem;">${escHtml(summary?.balanceType)}</span></div>
+            </div>
+          </div>
+
+          <div style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Voucher #</th>
+                  <th>Particulars & Knockoff</th>
+                  <th>Ref / UTR</th>
+                  <th style="text-align:right;">Debit (₹)</th>
+                  <th style="text-align:right;">Credit (₹)</th>
+                  <th style="text-align:right;">Running Due (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(statement && statement.length) ? statement.map(row => {
+                  const billLinks = (row.allocatedBills && row.allocatedBills.length)
+                    ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+                    : '';
+
+                  return `
+                    <tr>
+                      <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+                      <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)">🔍 ${escHtml(row.voucherNo)}</td>
+                      <td>
+                        <div>${escHtml(row.notes || row.txnType)}</div>
+                        ${billLinks}
+                      </td>
+                      <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+                      <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};">${row.debit ? inr(row.debit) : '—'}</td>
+                      <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};">${row.credit ? inr(row.credit) : '—'}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+                    </tr>
+                  `;
+                }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:14px;border-top:1px dashed var(--border);font-size:0.75rem;color:var(--text-muted);">
+            <div>Generated by WorkSpace Inventory ERP · Verified Double-Entry Khata Statement</div>
+            <div>Authorized Signatory ___________________</div>
+          </div>
+        `;
+      } catch (err) {
+        if (container) container.innerHTML = '<div style="color:var(--error);padding:20px;">Server error generating statement.</div>';
+      }
+    }
+
+    function closeStatementModal() {
+      document.getElementById('statement-modal').classList.remove('show');
+    }
+
+    // ─── Shortcut to Record Payment ───────────────────────────────────────────
+    function openRecordPayment(partyId, partyName, outstanding) {
+      window.location.href = `inv-payments.html?partyType=${activePartyType}&partyId=${partyId}`;
+    }
+
+    // ─── WhatsApp Reminder Modal ───────────────────────────────────────────────
+    function openWhatsAppModal(partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const party = rawOutstandings.find(p => p._id === partyId);
+      if (!party) return;
+
+      activeWaData = {
+        name: party.name,
+        phone: (party.phone || '').replace(/[^0-9]/g, ''),
+        amount: party.outstanding || 0,
+        days: party.daysOverdue || 0,
+      };
+
+      document.getElementById('wa-phone').value = activeWaData.phone;
+      document.getElementById('wa-template').value = (party.daysOverdue || 0) > 30 ? 'URGENT' : ((party.daysOverdue || 0) > 0 ? 'DUE_DATE' : 'FRIENDLY');
+      applyWaTemplate();
+      document.getElementById('wa-modal').classList.add('show');
+    }
+
+    function applyWaTemplate() {
+      const template = document.getElementById('wa-template').value;
+      const compName = document.getElementById('company-display-name').textContent || 'WorkSpace Business';
+      let msg = '';
+
+      if (template === 'FRIENDLY') {
+        msg = `Dear ${activeWaData.name},\n\nThis is a gentle payment reminder from ${compName}. Your outstanding balance is ${inr(activeWaData.amount)}.\n\nPlease process the payment at your earliest convenience. Thank you!`;
+      } else if (template === 'DUE_DATE') {
+        msg = `Dear ${activeWaData.name},\n\nYour payment of ${inr(activeWaData.amount)} to ${compName} is due. Kindly clear the pending invoices to maintain continuous supply and smooth credit terms.\n\nThank you!`;
+      } else {
+        msg = `URGENT NOTICE: Dear ${activeWaData.name},\n\nYour account has an overdue balance of ${inr(activeWaData.amount)} pending for ${activeWaData.days} days with ${compName}.\n\nPlease arrange immediate payment today to avoid account hold or penalty.`;
+      }
+
+      document.getElementById('wa-msg').value = msg;
+    }
+
+    function sendWhatsApp() {
+      const phone = document.getElementById('wa-phone').value.replace(/[^0-9]/g, '');
+      const msg = encodeURIComponent(document.getElementById('wa-msg').value);
+      if (!phone) {
+        alert('Please enter a valid phone number with country code (e.g. 919820199881).');
+        return;
+      }
+      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+      closeWaModal();
+    }
+
+    function closeWaModal() {
+      document.getElementById('wa-modal').classList.remove('show');
+    }
+
+    // ─── Export to CSV ────────────────────────────────────────────────────────
+    function exportToCsv() {
+      if (!rawOutstandings || rawOutstandings.length === 0) {
+        alert('No outstandings data available to export.');
+        return;
+      }
+
+      const headers = ['Party Name', 'Contact Name', 'Phone', 'GSTIN', 'State', 'Credit Terms (Days)', 'Total Billed (INR)', 'Total Settled (INR)', 'Outstanding Due (INR)', 'Aging Status', 'Days Overdue', 'Open Bills Count'];
+      const rows = rawOutstandings.map(p => [
+        `"${(p.name || '').replace(/"/g, '""')}"`,
+        `"${(p.contactName || '').replace(/"/g, '""')}"`,
+        `"${p.phone || ''}"`,
+        `"${p.gstin || ''}"`,
+        `"${p.state || ''}"`,
+        p.paymentTerms || 15,
+        p.totalAmount || 0,
+        p.totalSettled || 0,
+        p.outstanding || 0,
+        p.status || 'CLEARED',
+        p.daysOverdue || 0,
+        p.openBillsCount || 0,
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `${activePartyType.toLowerCase()}_outstandings_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ─── Safe Backdrop & Escape Key Handlers ──────────────────────────────────
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      let isBackdropMouseDown = false;
+      overlay.addEventListener('mousedown', e => {
+        isBackdropMouseDown = (e.target === overlay);
+      });
+      overlay.addEventListener('mouseup', e => {
+        if (isBackdropMouseDown && e.target === overlay) {
+          overlay.classList.remove('show');
+        }
+        isBackdropMouseDown = false;
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    // Window bindings
+    window.switchPartyType = switchPartyType;
+    window.filterByAging = filterByAging;
+    window.debounceSearch = debounceSearch;
+    window.openBillsModal = openBillsModal;
+    window.closeOpenBillsModal = closeOpenBillsModal;
+    window.openVoucherModal = openVoucherModal;
+    window.closeVoucherModal = closeVoucherModal;
+    window.openStatement = openStatement;
+    window.closeStatementModal = closeStatementModal;
+    window.openRecordPayment = openRecordPayment;
+    window.openWhatsAppModal = openWhatsAppModal;
+    window.applyWaTemplate = applyWaTemplate;
+    window.sendWhatsApp = sendWhatsApp;
+    window.closeWaModal = closeWaModal;
+    window.exportToCsv = exportToCsv;
+    window.onCompanyFilterChange = onCompanyFilterChange;
+
+    init();
+  </script>
+</body>
+
+</html>

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payments & Khata Bahi — WorkSpace</title>
+  <title>Payments & Khata Bahi — WorkSpace Inventory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
@@ -14,7 +14,6 @@
       overflow-y: auto;
       display: block;
       padding: 0;
-      background-color: var(--bg);
     }
 
     .page {
@@ -48,6 +47,7 @@
       text-decoration: none;
       padding: 6px 12px;
       border-radius: 6px;
+      transition: all 0.2s;
     }
 
     .inv-nav a.active {
@@ -61,6 +61,7 @@
       border: 1px solid var(--border);
     }
 
+    /* KPI Summary Row */
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -71,11 +72,11 @@
     .kpi {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
+      border-radius: var(--radius);
+      padding: 16px 18px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 
     .kpi::before {
@@ -85,61 +86,65 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: var(--accent, #6366f1);
+      background: var(--accent, var(--primary));
     }
 
     .kpi-lbl {
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-size: 0.75rem;
+      font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.05em;
     }
 
     .kpi-val {
-      font-size: 1.65rem;
+      font-size: 1.5rem;
       font-weight: 800;
-      margin-top: 6px;
-      letter-spacing: -0.5px;
+      margin: 4px 0 2px;
+      letter-spacing: -0.02em;
     }
 
     .kpi-sub {
       font-size: 0.72rem;
       color: var(--text-muted);
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
+    /* Tabs system */
     .pay-tabs {
       display: flex;
-      gap: 8px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
       margin-bottom: 20px;
-      flex-wrap: wrap;
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
     .tab-btn {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text-sub);
-      padding: 9px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
       font-weight: 600;
+      font-size: 0.85rem;
+      padding: 10px 18px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
     }
 
     .tab-btn:hover {
-      background: rgba(255, 255, 255, 0.06);
       color: var(--text);
+      background: var(--surface-2);
     }
 
     .tab-btn.active {
-      background: rgba(99, 102, 241, 0.18);
-      border-color: rgba(99, 102, 241, 0.5);
-      color: #a5b4fc;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      background: rgba(99, 102, 241, 0.08);
     }
 
     .pay-panel {
@@ -221,10 +226,10 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 620px;
+      max-width: 680px;
       max-height: 90vh;
       overflow-y: auto;
-      padding: 28px;
+      padding: 26px;
       box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
       box-sizing: border-box;
       position: relative;
@@ -234,7 +239,7 @@
       font-size: 1.15rem;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -267,7 +272,7 @@
     .filter-pill {
       background: var(--surface-2);
       border: 1px solid var(--border);
-      color: var(--text-muted);
+      color: var(--text-sub);
       padding: 5px 12px;
       border-radius: 20px;
       font-size: 0.75rem;
@@ -276,25 +281,20 @@
       transition: all 0.2s;
     }
 
-    .filter-pill:hover {
-      color: var(--text);
-      border-color: var(--border-light);
-    }
-
     .filter-pill.active {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: #6366f1;
-      color: #a5b4fc;
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.83rem;
+      font-size: 0.84rem;
     }
 
     th {
-      padding: 11px 14px;
+      padding: 10px 14px;
       background: var(--surface-2);
       color: var(--text-muted);
       font-weight: 600;
@@ -309,6 +309,7 @@
       padding: 11px 14px;
       border-bottom: 1px solid var(--border);
       color: var(--text-sub);
+      vertical-align: middle;
     }
 
     tr:hover td {
@@ -331,19 +332,22 @@
       letter-spacing: 0.3px;
     }
 
-    .status-CLEARED {
+    .status-CLEARED,
+    .status-PAID {
       background: rgba(74, 222, 128, 0.12);
       color: #4ade80;
       border: 1px solid rgba(74, 222, 128, 0.25);
     }
 
-    .status-CURRENT {
+    .status-CURRENT,
+    .status-PARTIALLY_PAID {
       background: rgba(56, 189, 248, 0.12);
       color: #38bdf8;
       border: 1px solid rgba(56, 189, 248, 0.25);
     }
 
-    .status-DUE_SOON {
+    .status-DUE_SOON,
+    .status-UNPAID {
       background: rgba(251, 191, 36, 0.12);
       color: #fbbf24;
       border: 1px solid rgba(251, 191, 36, 0.25);
@@ -435,6 +439,27 @@
       background: rgba(74, 222, 128, 0.25);
     }
 
+    /* Bill Allocation Box in Modal */
+    .bill-alloc-box {
+      background: #181926;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .bill-tag {
+      font-size: 0.7rem;
+      font-family: monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      display: inline-block;
+      margin: 1px;
+    }
+
     /* Statement Modal Specifics */
     .stmt-header {
       display: grid;
@@ -449,19 +474,19 @@
       font-size: 1.15rem;
       font-weight: 800;
       color: var(--text);
+      margin-bottom: 4px;
     }
 
     .stmt-sub {
       font-size: 0.78rem;
       color: var(--text-muted);
-      margin-top: 3px;
       line-height: 1.4;
     }
 
     .stmt-metrics {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 16px;
     }
 
@@ -481,12 +506,11 @@
     }
 
     .stmt-metric-val {
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       font-weight: 800;
       margin-top: 4px;
     }
 
-    /* Print Styles */
     @media print {
       body * {
         visibility: hidden;
@@ -588,11 +612,12 @@
           <a href="inv-suppliers.html">🏭 Suppliers</a>
           <a href="inv-customers.html">👥 Customers</a>
           <a href="inv-payments.html" class="active">💳 Payments</a>
+          <a href="inv-outstandings.html">💰 Outstandings</a>
           <a href="inv-reports.html">📈 Reports</a>
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
-        <button id="btn-open-record-modal" onclick="openPaymentModal()"
+        <button id="btn-open-record-modal" onclick="openPaymentModal(event)"
           style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;">
           <span>+ Record Payment Voucher</span>
         </button>
@@ -635,6 +660,8 @@
         (लेनदार)</button>
       <button class="tab-btn" id="tab-btn-suppliers" onclick="switchTab('suppliers')">🏭 Supplier Payables
         (देनदार)</button>
+      <button class="tab-btn" id="tab-btn-daily" onclick="switchTab('daily')">📅 Daily Collections (दैनिक
+        सारांश)</button>
       <button class="tab-btn" id="tab-btn-vouchers" onclick="switchTab('vouchers')">📋 Payment History /
         Vouchers</button>
     </div>
@@ -647,10 +674,10 @@
             <input id="search-cust" class="form-input" style="min-width:260px;" type="text"
               placeholder="🔍 Search customer name, GSTIN, phone…" oninput="debounceCust()" />
             <div class="pill-group">
-              <button class="filter-pill active" onclick="setCustFilter('ALL', this)">All</button>
-              <button class="filter-pill" onclick="setCustFilter('DUE', this)">Pending (> ₹0)</button>
+              <button class="filter-pill active" onclick="setCustFilter('DUE', this)">Pending (> ₹0)</button>
               <button class="filter-pill" onclick="setCustFilter('OVERDUE', this)">Overdue / Critical</button>
               <button class="filter-pill" onclick="setCustFilter('CLEARED', this)">Cleared</button>
+              <button class="filter-pill" onclick="setCustFilter('ALL', this)">All</button>
             </div>
           </div>
           <button onclick="loadCustomerOutstandings()"
@@ -698,10 +725,10 @@
             <input id="search-supp" class="form-input" style="min-width:260px;" type="text"
               placeholder="🔍 Search supplier name, GSTIN, phone…" oninput="debounceSupp()" />
             <div class="pill-group">
-              <button class="filter-pill active" onclick="setSuppFilter('ALL', this)">All</button>
-              <button class="filter-pill" onclick="setSuppFilter('DUE', this)">Pending (> ₹0)</button>
+              <button class="filter-pill active" onclick="setSuppFilter('DUE', this)">Pending (> ₹0)</button>
               <button class="filter-pill" onclick="setSuppFilter('OVERDUE', this)">Overdue / Critical</button>
               <button class="filter-pill" onclick="setSuppFilter('CLEARED', this)">Cleared</button>
+              <button class="filter-pill" onclick="setSuppFilter('ALL', this)">All</button>
             </div>
           </div>
           <button onclick="loadSupplierOutstandings()"
@@ -736,6 +763,68 @@
                 <td colspan="3"></td>
               </tr>
             </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Payment Collections / Outflow Panel [NEW] -->
+    <div id="panel-daily" class="pay-panel">
+      <div class="card">
+        <!-- Today's Collection Highlights -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:20px;">
+          <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:14px;">
+            <div style="font-size:0.75rem;font-weight:700;color:#4ade80;text-transform:uppercase;">Today Inflow (Customer Receipts)</div>
+            <div id="daily-today-inflow" style="font-size:1.4rem;font-weight:800;color:#4ade80;margin:4px 0;">₹0</div>
+            <div id="daily-today-inflow-count" style="font-size:0.72rem;color:var(--text-muted);">0 receipts recorded today</div>
+          </div>
+          <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:14px;">
+            <div style="font-size:0.75rem;font-weight:700;color:#f87171;text-transform:uppercase;">Today Outflow (Supplier Payments)</div>
+            <div id="daily-today-outflow" style="font-size:1.4rem;font-weight:800;color:#f87171;margin:4px 0;">₹0</div>
+            <div id="daily-today-outflow-count" style="font-size:0.72rem;color:var(--text-muted);">0 payments recorded today</div>
+          </div>
+          <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:14px;">
+            <div style="font-size:0.75rem;font-weight:700;color:#38bdf8;text-transform:uppercase;">Today Net Cashflow</div>
+            <div id="daily-today-net" style="font-size:1.4rem;font-weight:800;color:#38bdf8;margin:4px 0;">₹0</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">Daily Inflow minus Outflow</div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div style="font-weight:700;font-size:0.95rem;color:var(--text);display:flex;align-items:center;gap:6px;">
+            <span>📅 Per-Day Collections & Disbursements Breakdown</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="daily-range-select" class="form-select" style="width:auto;" onchange="loadDailySummary()">
+              <option value="7">Last 7 Days</option>
+              <option value="15">Last 15 Days</option>
+              <option value="30" selected>Last 30 Days</option>
+              <option value="60">Last 60 Days</option>
+            </select>
+            <button onclick="loadDailySummary()"
+              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+              Refresh</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th style="text-align:right;">Inflow Received (₹)</th>
+                <th style="text-align:right;">Outflow Paid (₹)</th>
+                <th style="text-align:right;">Net Cashflow (₹)</th>
+                <th>Payment Modes Breakdown</th>
+                <th style="text-align:center;">Vouchers Count</th>
+              </tr>
+            </thead>
+            <tbody id="daily-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading daily summary…</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -776,13 +865,14 @@
                 <th>Mode</th>
                 <th>Reference / UTR</th>
                 <th style="text-align:right;">Amount (₹)</th>
+                <th>Settled Bills (Knockoff)</th>
                 <th>Notes / Particulars</th>
                 <th>Statement</th>
               </tr>
             </thead>
             <tbody id="vouchers-tbody">
               <tr>
-                <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…</td>
+                <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…</td>
               </tr>
             </tbody>
           </table>
@@ -791,9 +881,9 @@
     </div>
   </div>
 
-  <!-- Record Payment Modal -->
+  <!-- Record Payment Modal (Bill-Wise & Remaining Balance Enabled) -->
   <div class="modal-overlay" id="payment-modal">
-    <div class="modal" style="max-width:520px;">
+    <div class="modal">
       <div class="modal-title" id="pm-title">💵 Record Payment Voucher</div>
       <form onsubmit="submitPayment(event)">
         <div class="form-row" style="margin-bottom:12px;">
@@ -812,24 +902,29 @@
           </div>
         </div>
 
-        <!-- Dynamic Outstanding Info Box -->
+        <!-- Dynamic Outstanding & Live Remaining Balance Info Box -->
         <div id="pm-due-info"
-          style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;justify-content:space-between;align-items:center;">
+          style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:12px 14px;margin-bottom:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div>
-            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current
-              Outstanding</div>
-            <div id="pm-due-val" style="font-size:1.1rem;font-weight:800;color:#f87171;">₹0</div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current Total Outstanding</div>
+            <div id="pm-due-val" style="font-size:1.15rem;font-weight:800;color:#f87171;">₹0</div>
           </div>
-          <button type="button" onclick="fillFullOutstanding()"
-            style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡
-            Settle Full</button>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">✨ Remaining Due After Payment</div>
+            <div id="pm-rem-val" style="font-size:1.15rem;font-weight:800;color:#38bdf8;">₹0</div>
+          </div>
+          <div style="width:100%;display:flex;justify-content:flex-end;border-top:1px dashed rgba(255,255,255,0.1);padding-top:6px;margin-top:4px;">
+            <button type="button" onclick="fillFullOutstanding()"
+              style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡
+              Settle Full Outstanding</button>
+          </div>
         </div>
 
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
-            <label class="form-label">Amount (₹) *</label>
+            <label class="form-label">Total Payment Amount (₹) *</label>
             <input id="pm-amount" class="form-input" type="number" min="0.01" step="any" required
-              placeholder="e.g. 5000" />
+              placeholder="e.g. 5000" oninput="updateAllocationTotals()" />
           </div>
           <div class="form-group">
             <label class="form-label">Payment Mode *</label>
@@ -840,6 +935,47 @@
               <option value="CASH">💵 Cash</option>
               <option value="NET_BANKING">🌐 Net Banking</option>
             </select>
+          </div>
+        </div>
+
+        <!-- 📑 Bill-Wise Knockoff Allocation Section -->
+        <div id="pm-bills-container" class="bill-alloc-box" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-weight:700;font-size:0.82rem;color:var(--text);">📑 Bill-Wise Knockoff Allocation</span>
+              <span id="pm-bills-count" style="font-size:0.7rem;color:var(--text-muted);margin-left:4px;"></span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button type="button" onclick="autoKnockoffFifo()"
+                style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem;font-weight:600;">⚡
+                Auto-Knockoff (FIFO)</button>
+              <button type="button" onclick="clearAllocations()"
+                style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-muted);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.72rem;">🔄
+                Reset</button>
+            </div>
+          </div>
+
+          <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;">
+            <table style="font-size:0.78rem;">
+              <thead>
+                <tr>
+                  <th>Voucher #</th>
+                  <th>Date & Due</th>
+                  <th style="text-align:right;">Total (₹)</th>
+                  <th style="text-align:right;">Pending (₹)</th>
+                  <th style="text-align:right;width:120px;">Allocate (₹)</th>
+                  <th style="text-align:right;">Remaining (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="pm-bills-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="pm-alloc-summary" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:6px 8px;background:var(--surface-2);border-radius:6px;color:var(--text-muted);">
+            <div>Allocated: <strong id="pm-alloc-total" style="color:#4ade80;">₹0</strong></div>
+            <div>Unallocated / Advance: <strong id="pm-alloc-unalloc" style="color:#a5b4fc;">₹0</strong></div>
           </div>
         </div>
 
@@ -875,7 +1011,7 @@
 
   <!-- Party Statement / Khata Bahi Modal -->
   <div class="modal-overlay" id="statement-modal">
-    <div class="modal" style="max-width:900px;">
+    <div class="modal" style="max-width:920px;">
       <div class="print-hide"
         style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <div class="modal-title" style="margin-bottom:0;">📜 Party Statement (खाता बही)</div>
@@ -891,6 +1027,30 @@
 
       <div id="stmt-content">
         <div style="text-align:center;padding:30px;color:var(--text-muted);">Generating statement…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧾 Tax Invoice / Voucher Detail Modal -->
+  <div class="modal-overlay" id="voucher-modal">
+    <div class="modal" style="max-width:860px;padding:24px;">
+      <div class="print-hide"
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="modal-title" id="vm-modal-title" style="margin-bottom:0;display:flex;align-items:center;gap:8px;">
+          <span>🧾 Commercial Voucher</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="window.print()"
+            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">🖨️
+            Print Invoice</button>
+          <button type="button" onclick="closeVoucherModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">✕
+            Close</button>
+        </div>
+      </div>
+
+      <div id="vm-content">
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">Loading document details…</div>
       </div>
     </div>
   </div>
@@ -960,18 +1120,19 @@
 
     let rawCustomers = [];
     let rawSuppliers = [];
-    let custFilterMode = 'ALL';
-    let suppFilterMode = 'ALL';
+    let custFilterMode = 'DUE';
+    let suppFilterMode = 'DUE';
     let custDebounceTimer, suppDebounceTimer;
 
     let activeWaData = { name: '', phone: '', amount: 0, days: 0 };
     let selectedPartyDueAmount = 0;
+    let cachedPendingBills = [];
 
     function debounceCust() { clearTimeout(custDebounceTimer); custDebounceTimer = setTimeout(renderCustomerTable, 250); }
     function debounceSupp() { clearTimeout(suppDebounceTimer); suppDebounceTimer = setTimeout(renderSupplierTable, 250); }
 
     function switchTab(name) {
-      ['customers', 'suppliers', 'vouchers'].forEach(tab => {
+      ['customers', 'suppliers', 'daily', 'vouchers'].forEach(tab => {
         const btn = document.getElementById(`tab-btn-${tab}`);
         const panel = document.getElementById(`panel-${tab}`);
         if (btn) btn.classList.toggle('active', tab === name);
@@ -980,6 +1141,7 @@
 
       if (name === 'customers') loadCustomerOutstandings();
       if (name === 'suppliers') loadSupplierOutstandings();
+      if (name === 'daily') loadDailySummary();
       if (name === 'vouchers') loadVouchers();
     }
 
@@ -1084,9 +1246,9 @@
             <td>${c.paymentTerms} Days</td>
             <td><span class="status-badge status-${c.status}">${escHtml(c.status.replace('_', ' '))}</span></td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button onclick="openRecordPaymentForParty('CUSTOMER', '${c._id}')" class="btn-action btn-pay">💵 Receive</button>
-              <button onclick="openStatement('CUSTOMER', '${c._id}')" class="btn-action">📜 Statement</button>
-              ${c.outstanding > 0 ? `<button onclick="openWhatsAppModal('CUSTOMER', '${c._id}')" class="btn-action btn-wa">📲 WhatsApp</button>` : ''}
+              <button onclick="openRecordPaymentForParty('CUSTOMER', '${c._id}', event)" class="btn-action btn-pay">💵 Receive</button>
+              <button onclick="openStatement('CUSTOMER', '${c._id}', event)" class="btn-action">📜 Statement</button>
+              ${c.outstanding > 0 ? `<button onclick="openWhatsAppModal('CUSTOMER', '${c._id}', event)" class="btn-action btn-wa">📲 WhatsApp</button>` : ''}
             </td>
           </tr>
         `;
@@ -1176,8 +1338,8 @@
             <td>${s.paymentTerms} Days</td>
             <td><span class="status-badge status-${s.status}">${escHtml(s.status.replace('_', ' '))}</span></td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button onclick="openRecordPaymentForParty('SUPPLIER', '${s._id}')" class="btn-action btn-pay">💸 Pay</button>
-              <button onclick="openStatement('SUPPLIER', '${s._id}')" class="btn-action">📜 Statement</button>
+              <button onclick="openRecordPaymentForParty('SUPPLIER', '${s._id}', event)" class="btn-action btn-pay">💸 Pay</button>
+              <button onclick="openStatement('SUPPLIER', '${s._id}', event)" class="btn-action">📜 Statement</button>
             </td>
           </tr>
         `;
@@ -1191,6 +1353,67 @@
       if (footPaid) footPaid.textContent = inr(totPaid);
       if (footOut) footOut.textContent = inr(totOut);
       if (tfoot) tfoot.style.display = 'table-footer-group';
+    }
+
+    // ─── Daily Collections & Disbursements Summary [NEW] ───────────────────────
+    async function loadDailySummary() {
+      const tbody = document.getElementById('daily-tbody');
+      const rangeEl = document.getElementById('daily-range-select');
+      const days = rangeEl ? rangeEl.value : 30;
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/daily-summary?days=${days}`, { headers: H() });
+        if (!r.ok) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--error);">Failed to load daily payment summary.</td></tr>';
+          return;
+        }
+        const json = await r.json();
+        const { daily = [], today = {} } = json.data || {};
+
+        // Update Today KPI cards
+        const todayInflowEl = document.getElementById('daily-today-inflow');
+        const todayInflowCnt = document.getElementById('daily-today-inflow-count');
+        const todayOutflowEl = document.getElementById('daily-today-outflow');
+        const todayOutflowCnt = document.getElementById('daily-today-outflow-count');
+        const todayNetEl = document.getElementById('daily-today-net');
+
+        if (todayInflowEl) todayInflowEl.textContent = inr(today.totalInflow || 0);
+        if (todayInflowCnt) todayInflowCnt.textContent = `${today.inflowCount || 0} receipt(s) recorded today`;
+        if (todayOutflowEl) todayOutflowEl.textContent = inr(today.totalOutflow || 0);
+        if (todayOutflowCnt) todayOutflowCnt.textContent = `${today.outflowCount || 0} payment(s) made today`;
+        if (todayNetEl) {
+          const net = (today.totalInflow || 0) - (today.totalOutflow || 0);
+          todayNetEl.textContent = (net >= 0 ? '+' : '') + inr(net);
+          todayNetEl.style.color = net >= 0 ? '#38bdf8' : '#f87171';
+        }
+
+        if (!daily.length) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No payment activity in selected timeframe.</td></tr>';
+          return;
+        }
+
+        if (tbody) {
+          tbody.innerHTML = daily.map(d => {
+            const dateObj = new Date(d.date + 'T00:00:00');
+            const dayName = dateObj.toLocaleDateString('en-IN', { weekday: 'short' });
+            const modesArr = Object.entries(d.modes || {}).map(([m, amt]) => `<span class="mode-badge mode-${m}">${m}: ${inr(amt)}</span>`).join(' ');
+
+            return `
+              <tr>
+                <td style="font-family:monospace;font-weight:700;color:var(--text);">${fmtDate(dateObj)}</td>
+                <td style="color:var(--text-muted);font-weight:600;">${dayName}</td>
+                <td style="text-align:right;font-weight:700;color:#4ade80;">${d.totalInflow ? inr(d.totalInflow) : '—'}</td>
+                <td style="text-align:right;font-weight:700;color:#f87171;">${d.totalOutflow ? inr(d.totalOutflow) : '—'}</td>
+                <td style="text-align:right;font-weight:800;color:${d.netCashflow >= 0 ? '#38bdf8' : '#f87171'};">${(d.netCashflow >= 0 ? '+' : '') + inr(d.netCashflow)}</td>
+                <td>${modesArr || '—'}</td>
+                <td style="text-align:center;font-weight:700;color:var(--text);">${(d.inflowCount || 0) + (d.outflowCount || 0)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading daily summary:', err);
+      }
     }
 
     // ─── Payment Vouchers History ──────────────────────────────────────────────
@@ -1215,39 +1438,49 @@
         });
 
         const r = await fetch(`${API}/inventory/payments?${params}`, { headers: H() });
-        if (!r.ok) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load vouchers.</td></tr>'; return; }
+        if (!r.ok) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--error);">Failed to load vouchers.</td></tr>'; return; }
         const json = await r.json();
         const payments = json.data?.payments || [];
 
         if (!payments.length) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No payment vouchers found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">No payment vouchers found.</td></tr>';
           return;
         }
 
-        tbody.innerHTML = payments.map(p => `
-          <tr>
-            <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(p.paymentDate)}</td>
-            <td style="font-weight:700;font-family:monospace;color:var(--text);">${escHtml(p.voucherNo)}</td>
-            <td>
-              <div style="font-weight:600;">${escHtml(p.partyId?.name || '—')}</div>
-              <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(p.partyType)}</div>
-            </td>
-            <td><span class="status-badge ${p.txnType === 'PAYMENT_IN' ? 'status-CLEARED' : 'status-OVERDUE'}">${p.txnType === 'PAYMENT_IN' ? '➕ RECEIPT' : '➖ PAYMENT'}</span></td>
-            <td><span class="mode-badge mode-${p.paymentMode}">${escHtml(p.paymentMode)}</span></td>
-            <td style="font-family:monospace;font-size:0.78rem;">${escHtml(p.referenceNo || '—')}</td>
-            <td style="text-align:right;font-weight:800;font-size:0.9rem;color:${p.txnType === 'PAYMENT_IN' ? '#4ade80' : '#f87171'};">${inr(p.amount)}</td>
-            <td style="font-size:0.78rem;color:var(--text-muted);">${escHtml(p.notes || '—')}</td>
-            <td>
-              ${p.partyId?._id ? `<button onclick="openStatement('${p.partyType}', '${p.partyId._id}')" class="btn-action">📜 Statement</button>` : '—'}
-            </td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = payments.map(p => {
+          const settledTags = (p.allocatedBills && p.allocatedBills.length)
+            ? p.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ')
+            : '<span style="color:var(--text-muted);font-size:0.75rem;">On-Account / Direct</span>';
+
+          return `
+            <tr>
+              <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(p.paymentDate)}</td>
+              <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${p.voucherNo}', event)" title="Click to view voucher / invoice details">🔍 ${escHtml(p.voucherNo)}</td>
+              <td>
+                <div style="font-weight:600;">${escHtml(p.partyId?.name || '—')}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(p.partyType)}</div>
+              </td>
+              <td><span class="status-badge ${p.txnType === 'PAYMENT_IN' ? 'status-CLEARED' : 'status-OVERDUE'}">${p.txnType === 'PAYMENT_IN' ? '➕ RECEIPT' : '➖ PAYMENT'}</span></td>
+              <td><span class="mode-badge mode-${p.paymentMode}">${escHtml(p.paymentMode)}</span></td>
+              <td style="font-family:monospace;font-size:0.78rem;">${escHtml(p.referenceNo || '—')}</td>
+              <td style="text-align:right;font-weight:800;font-size:0.9rem;color:${p.txnType === 'PAYMENT_IN' ? '#4ade80' : '#f87171'};">${inr(p.amount)}</td>
+              <td>${settledTags}</td>
+              <td style="font-size:0.78rem;color:var(--text-muted);max-width:200px;">${escHtml(p.notes || '—')}</td>
+              <td>
+                <div style="display:flex;gap:4px;">
+                  <button onclick="openVoucherModal('${p.voucherNo}', event)" class="btn-action" style="padding:4px 8px;font-size:0.72rem;">🧾 View</button>
+                  ${p.partyId?._id ? `<button onclick="openStatement('${p.partyType}', '${p.partyId._id}', event)" class="btn-action" style="padding:4px 8px;font-size:0.72rem;">📜 Statement</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
       } catch (err) {
         console.error('Error loading vouchers:', err);
       }
     }
 
-    // ─── Record Payment Modal ──────────────────────────────────────────────────
+    // ─── Record Payment Modal & Bill-Wise Knockoff System ──────────────────────
     function openPaymentModal(e) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
       const dateEl = document.getElementById('pm-date');
@@ -1256,6 +1489,7 @@
       const notesEl = document.getElementById('pm-notes');
       const errEl = document.getElementById('pm-error');
       const dueInfoEl = document.getElementById('pm-due-info');
+      const billsContainer = document.getElementById('pm-bills-container');
       const modal = document.getElementById('payment-modal');
 
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
@@ -1264,7 +1498,9 @@
       if (notesEl) notesEl.value = '';
       if (errEl) errEl.style.display = 'none';
       if (dueInfoEl) dueInfoEl.style.display = 'none';
+      if (billsContainer) billsContainer.style.display = 'none';
 
+      cachedPendingBills = [];
       onPaymentModeChange();
       if (modal) modal.classList.add('show');
       onPartyTypeSelect();
@@ -1279,11 +1515,13 @@
       const typeEl = document.getElementById('pm-party-type');
       const pSel = document.getElementById('pm-party-id');
       const title = document.getElementById('pm-title');
+      const billsContainer = document.getElementById('pm-bills-container');
 
       const pType = typeEl ? typeEl.value : 'CUSTOMER';
       if (title) {
         title.textContent = pType === 'CUSTOMER' ? '💵 Record Payment Receipt (From Customer)' : '💸 Record Payment Voucher (To Supplier)';
       }
+      if (billsContainer) billsContainer.style.display = 'none';
       if (!pSel) return;
 
       pSel.innerHTML = '<option value="">Loading parties…</option>';
@@ -1292,7 +1530,7 @@
         const r = await fetch(`${API}/inventory/payments/outstandings?type=${pType}`, { headers: H() });
         const json = await r.json();
         const list = Array.isArray(json.data) ? json.data : (json.data?.items || []);
-
+        
         // Cache party list
         if (pType === 'CUSTOMER') rawCustomers = list;
         else rawSuppliers = list;
@@ -1307,7 +1545,7 @@
       }
     }
 
-    function onPartySelected() {
+    async function onPartySelected() {
       const typeEl = document.getElementById('pm-party-type');
       const pSel = document.getElementById('pm-party-id');
       const dueInfo = document.getElementById('pm-due-info');
@@ -1319,6 +1557,7 @@
 
       if (!partyId) {
         if (dueInfo) dueInfo.style.display = 'none';
+        document.getElementById('pm-bills-container').style.display = 'none';
         return;
       }
 
@@ -1328,16 +1567,197 @@
         selectedPartyDueAmount = found.outstanding || 0;
         if (dueVal) dueVal.textContent = inr(selectedPartyDueAmount);
         if (dueInfo) dueInfo.style.display = 'flex';
-        if (amtInput && selectedPartyDueAmount > 0) {
+        // Bug Fix: Only pre-fill amount if the user hasn't already typed a value
+        if (amtInput && selectedPartyDueAmount > 0 && !amtInput.value) {
           amtInput.value = selectedPartyDueAmount;
         }
       }
+
+      // Load Pending Bills for this party
+      await loadPendingBillsForModal(pType, partyId);
+      onAmountOrAllocationChange();
+    }
+
+    async function loadPendingBillsForModal(partyType, partyId) {
+      const container = document.getElementById('pm-bills-container');
+      const countEl = document.getElementById('pm-bills-count');
+      const tbody = document.getElementById('pm-bills-tbody');
+      if (!container || !tbody) return;
+
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…</td></tr>';
+      container.style.display = 'block';
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/pending-bills?partyType=${partyType}&partyId=${partyId}`, { headers: H() });
+        const json = await r.json();
+        cachedPendingBills = json.data?.bills || [];
+
+        if (!cachedPendingBills.length) {
+          countEl.textContent = '(0 open bills — On-Account payment)';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--text-muted);">No open unpaid bills found. Payment will be credited on-account.</td></tr>';
+          return;
+        }
+
+        countEl.textContent = `(${cachedPendingBills.length} open bills · Total Due: ${inr(json.data.totalPending)})`;
+        renderBillsTbody();
+        // Bug Fix: Don't auto-trigger FIFO on party load — let user click the ⚡ button explicitly.
+        // Only update totals (remaining due preview) based on whatever amount is already typed.
+        updateAllocationTotals();
+      } catch (err) {
+        console.error('Error loading pending bills:', err);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--error);">Failed to load bills.</td></tr>';
+      }
+    }
+
+    function renderBillsTbody() {
+      const tbody = document.getElementById('pm-bills-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = cachedPendingBills.map(b => {
+        return `
+          <tr id="bill-row-${b._id}">
+            <td>
+              <span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view invoice details">📑 ${escHtml(b.voucherNo)}</span>
+            </td>
+            <td>
+              <div>${fmtDate(b.date)}</div>
+              <div style="font-size:0.68rem;color:${b.status === 'OVERDUE' ? '#f87171' : 'var(--text-muted)'};">${b.dueDate ? 'Due: ' + fmtDate(b.dueDate) : 'No term'}</div>
+            </td>
+            <td style="text-align:right;">${inr(b.totalAmount)}</td>
+            <td style="text-align:right;font-weight:700;color:#f87171;">${inr(b.pendingAmount)}</td>
+            <td style="text-align:right;">
+              <input type="number" id="alloc-input-${b._id}" class="form-input" min="0" max="${b.pendingAmount}" step="any"
+                placeholder="0" style="padding:4px 6px;text-align:right;font-size:0.78rem;"
+                oninput="onAllocationInput('${b._id}')" />
+            </td>
+            <td style="text-align:right;font-weight:700;" id="bill-rem-${b._id}">${inr(b.pendingAmount)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function onAllocationInput(billId) {
+      const b = cachedPendingBills.find(x => x._id === billId);
+      if (!b) return;
+
+      const input = document.getElementById(`alloc-input-${billId}`);
+      const remEl = document.getElementById(`bill-rem-${billId}`);
+      let val = Number(input.value || 0);
+
+      if (val > b.pendingAmount) {
+        val = b.pendingAmount;
+        input.value = val;
+      } else if (val < 0) {
+        val = 0;
+        input.value = val;
+      }
+
+      const rem = Math.max(0, b.pendingAmount - val);
+      if (remEl) {
+        remEl.textContent = inr(rem);
+        remEl.style.color = rem === 0 ? '#4ade80' : '#38bdf8';
+      }
+
+      updateAllocationTotals();
+    }
+
+    function autoKnockoffFifo() {
+      const amtInput = document.getElementById('pm-amount');
+      let totalToAllocate = Number(amtInput ? amtInput.value : 0);
+
+      cachedPendingBills.forEach(b => {
+        const input = document.getElementById(`alloc-input-${b._id}`);
+        const remEl = document.getElementById(`bill-rem-${b._id}`);
+        if (!input) return;
+
+        if (totalToAllocate > 0) {
+          const alloc = Math.min(totalToAllocate, b.pendingAmount);
+          input.value = alloc;
+          const rem = b.pendingAmount - alloc;
+          if (remEl) {
+            remEl.textContent = inr(rem);
+            remEl.style.color = rem === 0 ? '#4ade80' : '#38bdf8';
+          }
+          totalToAllocate -= alloc;
+        } else {
+          input.value = '';
+          if (remEl) {
+            remEl.textContent = inr(b.pendingAmount);
+            remEl.style.color = 'var(--text-sub)';
+          }
+        }
+      });
+
+      updateAllocationTotals();
+    }
+
+    function clearAllocations() {
+      cachedPendingBills.forEach(b => {
+        const input = document.getElementById(`alloc-input-${b._id}`);
+        const remEl = document.getElementById(`bill-rem-${b._id}`);
+        if (input) input.value = '';
+        if (remEl) {
+          remEl.textContent = inr(b.pendingAmount);
+          remEl.style.color = 'var(--text-sub)';
+        }
+      });
+      updateAllocationTotals();
+    }
+
+    function updateAllocationTotals() {
+      const amtInput = document.getElementById('pm-amount');
+      const totalPayment = Number(amtInput ? amtInput.value : 0);
+      const errEl = document.getElementById('pm-error');
+
+      let totalAllocated = 0;
+      cachedPendingBills.forEach(b => {
+        const input = document.getElementById(`alloc-input-${b._id}`);
+        if (input && input.value) {
+          totalAllocated += Number(input.value);
+        }
+      });
+
+      const unallocated = Math.max(0, totalPayment - totalAllocated);
+
+      const totAllocEl = document.getElementById('pm-alloc-total');
+      const unallocEl = document.getElementById('pm-alloc-unalloc');
+      if (totAllocEl) totAllocEl.textContent = inr(totalAllocated);
+      if (unallocEl) unallocEl.textContent = inr(unallocated);
+
+      // Overpayment check against selected party's due amount
+      if (selectedPartyDueAmount > 0 && totalPayment > selectedPartyDueAmount) {
+        if (errEl) {
+          errEl.textContent = `⚠️ Payment amount (${inr(totalPayment)}) cannot exceed total outstanding due of ${inr(selectedPartyDueAmount)}.`;
+          errEl.style.display = 'block';
+        }
+        if (amtInput) amtInput.style.borderColor = 'var(--error, #f87171)';
+      } else {
+        if (errEl && errEl.textContent.includes('cannot exceed total outstanding due')) {
+          errEl.style.display = 'none';
+        }
+        if (amtInput) amtInput.style.borderColor = '';
+      }
+
+      // Update Party Remaining Balance Due
+      const remValEl = document.getElementById('pm-rem-val');
+      if (remValEl) {
+        const partyRem = Math.max(0, selectedPartyDueAmount - totalPayment);
+        remValEl.textContent = inr(partyRem);
+        remValEl.style.color = partyRem === 0 ? '#4ade80' : '#38bdf8';
+      }
+    }
+
+    function onAmountOrAllocationChange() {
+      // Bug Fix: Don't re-run FIFO automatically on every change — only update the summary totals.
+      // FIFO should only run when the user explicitly clicks the "⚡ Auto-Knockoff" button.
+      updateAllocationTotals();
     }
 
     function fillFullOutstanding() {
       const amtInput = document.getElementById('pm-amount');
       if (amtInput && selectedPartyDueAmount > 0) {
         amtInput.value = selectedPartyDueAmount;
+        autoKnockoffFifo();
       }
     }
 
@@ -1381,7 +1801,7 @@
       await onPartyTypeSelect();
       const pSel = document.getElementById('pm-party-id');
       if (pSel) pSel.value = partyId;
-      onPartySelected();
+      await onPartySelected();
     }
 
     async function submitPayment(e) {
@@ -1399,6 +1819,46 @@
       const paymentDate = document.getElementById('pm-date').value;
       const notes = document.getElementById('pm-notes').value;
 
+      // Collect Bill Allocations
+      const allocations = [];
+      cachedPendingBills.forEach(b => {
+        const input = document.getElementById(`alloc-input-${b._id}`);
+        if (input && Number(input.value) > 0) {
+          allocations.push({
+            billId: b._id,
+            amount: Number(input.value),
+          });
+        }
+      });
+
+      // Validation
+      if (!partyId) {
+        if (errEl) { errEl.textContent = 'Please select a party (customer or supplier).'; errEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Save & Update Khata'; btn.disabled = false; }
+        return;
+      }
+      if (!amount || amount <= 0) {
+        if (errEl) { errEl.textContent = 'Please enter a valid payment amount greater than ₹0.'; errEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Save & Update Khata'; btn.disabled = false; }
+        return;
+      }
+      if (selectedPartyDueAmount > 0 && amount > selectedPartyDueAmount) {
+        if (errEl) { errEl.textContent = `Payment amount (${inr(amount)}) cannot exceed total outstanding due of ${inr(selectedPartyDueAmount)}.`; errEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Save & Update Khata'; btn.disabled = false; }
+        return;
+      }
+      if (selectedPartyDueAmount === 0 && cachedPendingBills.length === 0) {
+        if (errEl) { errEl.textContent = 'This party has ₹0 outstanding balance. Cannot record a payment/receipt exceeding the total due.'; errEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Save & Update Khata'; btn.disabled = false; }
+        return;
+      }
+      const sumAllocated = allocations.reduce((sum, a) => sum + (Number(a.amount) || 0), 0);
+      if (sumAllocated > amount) {
+        if (errEl) { errEl.textContent = `Total allocated amount (${inr(sumAllocated)}) cannot exceed payment amount of ${inr(amount)}.`; errEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Save & Update Khata'; btn.disabled = false; }
+        return;
+      }
+
       const body = {
         partyType,
         partyId,
@@ -1407,6 +1867,10 @@
         referenceNo: referenceNo || undefined,
         paymentDate: paymentDate || undefined,
         notes: notes || undefined,
+        allocations: allocations.length > 0 ? allocations : undefined,
+        // Bug Fix: only send autoKnockoff:true if bills exist AND user has made no manual allocations.
+        // For on-account payments (no pending bills), always send false to avoid unnecessary bill queries.
+        autoKnockoff: allocations.length === 0 && cachedPendingBills.length > 0,
       };
 
       try {
@@ -1427,6 +1891,7 @@
         loadKpis();
         loadCustomerOutstandings();
         loadSupplierOutstandings();
+        loadDailySummary();
         loadVouchers();
       } catch (err) {
         if (errEl) {
@@ -1497,25 +1962,34 @@
                 <tr>
                   <th>Date</th>
                   <th>Voucher #</th>
-                  <th>Particulars / Notes</th>
+                  <th>Particulars & Knockoff Details</th>
                   <th>Ref / UTR</th>
                   <th style="text-align:right;">Debit (₹)</th>
                   <th style="text-align:right;">Credit (₹)</th>
-                  <th style="text-align:right;">Balance (₹)</th>
+                  <th style="text-align:right;">Running Due (₹)</th>
                 </tr>
               </thead>
               <tbody>
-                ${(statement && statement.length) ? statement.map(row => `
-                  <tr>
-                    <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
-                    <td style="font-weight:700;font-family:monospace;font-size:0.78rem;">${escHtml(row.voucherNo)}</td>
-                    <td>${escHtml(row.notes || row.txnType)}</td>
-                    <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
-                    <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};">${row.debit ? inr(row.debit) : '—'}</td>
-                    <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};">${row.credit ? inr(row.credit) : '—'}</td>
-                    <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
-                  </tr>
-                `).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+                ${(statement && statement.length) ? statement.map(row => {
+                  const billLinks = (row.allocatedBills && row.allocatedBills.length)
+                    ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+                    : '';
+
+                  return `
+                    <tr>
+                      <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+                      <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)" title="Click to view full invoice / voucher details">🔍 ${escHtml(row.voucherNo)}</td>
+                      <td>
+                        <div>${escHtml(row.notes || row.txnType)}</div>
+                        ${billLinks}
+                      </td>
+                      <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+                      <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};">${row.debit ? inr(row.debit) : '—'}</td>
+                      <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};">${row.credit ? inr(row.credit) : '—'}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+                    </tr>
+                  `;
+                }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
               </tbody>
             </table>
           </div>
@@ -1532,6 +2006,238 @@
 
     function closeStatementModal() {
       const modal = document.getElementById('statement-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    // ─── Invoice & Voucher View Modal ─────────────────────────────────────────
+    async function openVoucherModal(voucherNoOrId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      const modal = document.getElementById('voucher-modal');
+      const container = document.getElementById('vm-content');
+      if (container) container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Loading document details…</div>';
+      if (modal) modal.classList.add('show');
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/voucher/${encodeURIComponent(voucherNoOrId)}`, { headers: H() });
+        if (!r.ok) {
+          if (container) container.innerHTML = '<div style="color:var(--error);padding:24px;text-align:center;">Voucher / Invoice not found.</div>';
+          return;
+        }
+        const json = await r.json();
+        const { txn, party, company, settlements } = json.data || {};
+        if (!txn || !container) return;
+
+        const isInvoice = txn.txnType === 'INVOICE';
+        const isBill = txn.txnType === 'BILL';
+        const isReceipt = txn.txnType === 'PAYMENT_IN';
+        const isPayment = txn.txnType === 'PAYMENT_OUT';
+
+        const docTitle = isInvoice ? 'TAX INVOICE'
+          : isBill ? 'PURCHASE BILL'
+          : isReceipt ? 'PAYMENT RECEIPT'
+          : isPayment ? 'PAYMENT VOUCHER'
+          : 'COMMERCIAL VOUCHER';
+
+        const docIcon = isInvoice ? '🧾' : isBill ? '📦' : isReceipt ? '💵' : '💸';
+
+        const statusBadge = (isInvoice || isBill)
+          ? `<span class="status-badge status-${txn.paymentStatus || 'UNPAID'}">${txn.paymentStatus || 'UNPAID'}</span>`
+          : `<span class="status-badge status-CLEARED">EXECUTED</span>`;
+
+        // Item / Movement details if attached via stock ledger
+        const ledger = txn.stockLedgerId;
+        const product = ledger?.productId;
+        const warehouse = ledger?.warehouseId;
+
+        let itemRowHtml = '';
+        if (product) {
+          const qty = Math.abs(ledger.qty || 0);
+          const rate = ledger.unitCost || (isInvoice ? (product.sellingPrice || 0) : (product.purchasePrice || 0));
+          const gstRate = product.gstRate || 0;
+          const lineTotal = txn.amount || (qty * rate);
+
+          itemRowHtml = `
+            <div style="margin-top:16px;margin-bottom:16px;">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Line Items / Goods Description</div>
+              <table style="font-size:0.8rem;">
+                <thead>
+                  <tr>
+                    <th>Item Description</th>
+                    <th>SKU / HSN</th>
+                    <th>Godown</th>
+                    <th style="text-align:right;">Qty</th>
+                    <th style="text-align:right;">Rate (₹)</th>
+                    <th style="text-align:right;">GST %</th>
+                    <th style="text-align:right;">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div style="font-weight:700;color:var(--text);">${escHtml(product.name)}</div>
+                      ${ledger.batchNo ? `<div style="font-size:0.7rem;color:var(--text-muted);">Batch: ${escHtml(ledger.batchNo)} ${ledger.expiryDate ? '· Exp: ' + fmtDate(ledger.expiryDate) : ''}</div>` : ''}
+                    </td>
+                    <td style="font-family:monospace;font-size:0.75rem;">${escHtml(product.sku || '—')} ${product.hsnCode ? '/ ' + escHtml(product.hsnCode) : ''}</td>
+                    <td>${escHtml(warehouse?.name || 'Main Godown')}</td>
+                    <td style="text-align:right;font-weight:700;">${qty} ${escHtml(product.unit || 'Pcs')}</td>
+                    <td style="text-align:right;">${inr(rate)}</td>
+                    <td style="text-align:right;">${gstRate ? gstRate + '%' : 'Exempt'}</td>
+                    <td style="text-align:right;font-weight:800;color:var(--text);">${inr(lineTotal)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        // Settlements Table (if this is an Invoice or Bill with linked payments)
+        let settlementsHtml = '';
+        if ((isInvoice || isBill) && settlements && settlements.length > 0) {
+          settlementsHtml = `
+            <div style="margin-top:16px;margin-bottom:16px;background:rgba(56,189,248,0.04);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:12px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#38bdf8;text-transform:uppercase;margin-bottom:8px;">🔗 Linked Settlement Payments (${settlements.length})</div>
+              <table style="font-size:0.78rem;background:transparent;">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Voucher #</th>
+                    <th>Mode & Reference</th>
+                    <th style="text-align:right;">Settled (₹)</th>
+                    <th style="text-align:right;">Remaining (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${settlements.map(s => `
+                    <tr>
+                      <td style="font-family:monospace;">${fmtDate(s.date)}</td>
+                      <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${s.voucherNo}', event)">${escHtml(s.voucherNo)}</td>
+                      <td>${escHtml(s.paymentMode || '—')} ${s.referenceNo ? `· Ref: <code>${escHtml(s.referenceNo)}</code>` : ''}</td>
+                      <td style="text-align:right;font-weight:700;color:#4ade80;">${inr(s.allocatedAmount)}</td>
+                      <td style="text-align:right;font-weight:700;color:${s.remainingBillBalance === 0 ? '#4ade80' : '#f87171'};">${inr(s.remainingBillBalance)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else if ((isReceipt || isPayment) && txn.allocatedBills && txn.allocatedBills.length > 0) {
+          settlementsHtml = `
+            <div style="margin-top:16px;margin-bottom:16px;background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:12px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#4ade80;text-transform:uppercase;margin-bottom:8px;">📑 Invoices / Bills Settled By This Voucher</div>
+              <table style="font-size:0.78rem;background:transparent;">
+                <thead>
+                  <tr>
+                    <th>Bill / Invoice #</th>
+                    <th style="text-align:right;">Amount Allocated (₹)</th>
+                    <th style="text-align:right;">Remaining on Bill (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${txn.allocatedBills.map(b => `
+                    <tr>
+                      <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)">${escHtml(b.voucherNo)}</td>
+                      <td style="text-align:right;font-weight:700;color:#4ade80;">${inr(b.allocatedAmount)}</td>
+                      <td style="text-align:right;font-weight:700;color:${b.remainingBillBalance === 0 ? '#4ade80' : '#f87171'};">${inr(b.remainingBillBalance)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        const remainingPending = Math.max(0, txn.amount - (txn.settledAmount || 0));
+
+        container.innerHTML = `
+          <div style="border:1px solid var(--border);border-radius:10px;padding:20px;background:var(--surface);">
+            <!-- Top Branding & Doc Title -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-size:1.15rem;font-weight:800;color:var(--text);letter-spacing:-0.3px;">${escHtml(company?.name || 'WorkSpace Enterprise')}</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(company?.gstin || '—')}</strong> · Phone: ${escHtml(company?.phone || '—')}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</div>
+                <div style="font-family:monospace;font-weight:800;font-size:0.95rem;color:var(--text);margin-top:2px;">${escHtml(txn.voucherNo)}</div>
+                <div style="margin-top:4px;">${statusBadge}</div>
+              </div>
+            </div>
+
+            <!-- Party & Metadata Cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;font-size:0.8rem;">
+              <div>
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">
+                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO)' : '🏭 SUPPLIER (VENDOR)'}
+                </div>
+                <div style="font-weight:800;font-size:0.92rem;color:var(--text);">${escHtml(party?.name || '—')}</div>
+                <div style="color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(party?.gstin || 'Unregistered')}</strong></div>
+                <div style="color:var(--text-muted);">Phone: ${escHtml(party?.phone || '—')} · ${escHtml(party?.email || '')}</div>
+                <div style="color:var(--text-muted);font-size:0.75rem;margin-top:2px;">${escHtml(party?.billingAddress || party?.address || '')}</div>
+              </div>
+              <div style="border-left:1px solid var(--border);padding-left:16px;">
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">📅 VOUCHER DETAILS</div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:0.78rem;">
+                  <span style="color:var(--text-muted);">Date:</span> <strong style="font-family:monospace;">${fmtDate(txn.paymentDate)}</strong>
+                  ${txn.dueDate ? `<span style="color:var(--text-muted);">Due Date:</span> <strong style="font-family:monospace;color:${new Date(txn.dueDate) < new Date() ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}
+                  <span style="color:var(--text-muted);">Payment Mode:</span> <strong>${escHtml(txn.paymentMode || 'CREDIT')}</strong>
+                  ${txn.referenceNo ? `<span style="color:var(--text-muted);">Ref / UTR:</span> <strong style="font-family:monospace;">${escHtml(txn.referenceNo)}</strong>` : ''}
+                  ${txn.notes ? `<span style="color:var(--text-muted);">Remarks:</span> <span style="color:var(--text);">${escHtml(txn.notes)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Goods / Line Items -->
+            ${itemRowHtml}
+
+            <!-- Settlements Linked -->
+            ${settlementsHtml}
+
+            <!-- Financial Summary Box -->
+            <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+              <div style="min-width:280px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
+                <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);">
+                  <span>Total Amount:</span>
+                  <strong style="color:var(--text);font-size:0.95rem;">${inr(txn.amount)}</strong>
+                </div>
+                ${(isInvoice || isBill) ? `
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;">
+                    <span>Settled / Paid:</span>
+                    <strong>${inr(txn.settledAmount || 0)}</strong>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : '#f87171'};font-weight:800;">
+                    <span>Balance Pending:</span>
+                    <span>${inr(remainingPending)}</span>
+                  </div>
+                ` : `
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;font-weight:700;">
+                    <span>Status:</span>
+                    <span>COMPLETED</span>
+                  </div>
+                `}
+              </div>
+            </div>
+
+            <!-- Footer Signatures & Terms -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;padding-top:16px;border-top:1px dashed var(--border);font-size:0.75rem;color:var(--text-muted);">
+              <div>
+                <div>Thank you for doing business with us!</div>
+                <div style="font-size:0.7rem;margin-top:2px;">This is a computer-generated tax invoice/voucher issued via WorkSpace ERP.</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="margin-bottom:30px;">For <strong>${escHtml(company?.name || 'WorkSpace Business')}</strong></div>
+                <div>Authorized Signatory ___________________</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        if (container) container.innerHTML = '<div style="color:var(--error);padding:24px;text-align:center;">Server error loading voucher details.</div>';
+      }
+    }
+
+    function closeVoucherModal() {
+      const modal = document.getElementById('voucher-modal');
       if (modal) modal.classList.remove('show');
     }
 
@@ -1635,12 +2341,17 @@
     window.switchTab = switchTab;
     window.setCustFilter = setCustFilter;
     window.setSuppFilter = setSuppFilter;
+    window.loadDailySummary = loadDailySummary;
     window.fillFullOutstanding = fillFullOutstanding;
     window.onPartyTypeSelect = onPartyTypeSelect;
     window.onPartySelected = onPartySelected;
     window.onPaymentModeChange = onPaymentModeChange;
     window.applyWaTemplate = applyWaTemplate;
     window.submitPayment = submitPayment;
+    window.onAmountOrAllocationChange = onAmountOrAllocationChange;
+    window.autoKnockoffFifo = autoKnockoffFifo;
+    window.clearAllocations = clearAllocations;
+    window.onAllocationInput = onAllocationInput;
 
     // ─── Init ──────────────────────────────────────────────────────────────────
     Promise.all([loadKpis(), loadCustomerOutstandings()]);

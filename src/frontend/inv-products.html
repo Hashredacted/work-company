@@ -333,6 +333,7 @@
           <a href="inv-suppliers.html">🏭 Suppliers</a>
           <a href="inv-customers.html">👥 Customers</a>
           <a href="inv-payments.html">💳 Payments</a>
+          <a href="inv-outstandings.html">💰 Outstandings</a>
           <a href="inv-reports.html">📈 Reports</a>
         </div>
       </div>
@@ -695,20 +696,30 @@
 
     function debounceLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 300); }
 
+    function escHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
     // ─── Warehouses Loader ─────────────────────────────────────────────────────
     async function loadWarehouses() {
       try {
         const r = await fetch(`${API}/inventory/warehouses`, { headers: H() });
         if (!r.ok) return;
-        const { data } = await r.json();
-        warehouses = data || [];
+        const json = await r.json();
+        warehouses = Array.isArray(json.data) ? json.data : (json.data?.items || []);
         const qsWh = document.getElementById('qs-warehouse');
         if (qsWh) {
           qsWh.innerHTML = '<option value="">— Select Godown —</option>';
-          warehouses.forEach(w => qsWh.innerHTML += `<option value="${w._id}">${w.name} (${w.code})</option>`);
+          warehouses.forEach(w => {
+            qsWh.innerHTML += `<option value="${w._id}">${escHtml(w.name)} (${escHtml(w.code)})</option>`;
+          });
+          if (warehouses.length > 0 && !qsWh.value) {
+            qsWh.value = warehouses[0]._id;
+          }
         }
       } catch (e) {
-        console.warn(e);
+        console.warn('Error loading warehouses:', e);
       }
     }
 
@@ -849,113 +860,167 @@
     async function loadParties() {
       try {
         const [sr, cr] = await Promise.all([
-          fetch(`${API}/inventory/suppliers`, { headers: H() }),
-          fetch(`${API}/inventory/customers`, { headers: H() }),
+          fetch(`${API}/inventory/suppliers?limit=500`, { headers: H() }),
+          fetch(`${API}/inventory/customers?limit=500`, { headers: H() }),
         ]);
-        if (sr.ok) suppliersData = (await sr.json()).data || [];
-        if (cr.ok) customersData = (await cr.json()).data || [];
+        if (sr.ok) {
+          const sJson = await sr.json();
+          suppliersData = Array.isArray(sJson.data) ? sJson.data : (sJson.data?.items || []);
+        }
+        if (cr.ok) {
+          const cJson = await cr.json();
+          customersData = Array.isArray(cJson.data) ? cJson.data : (cJson.data?.items || []);
+        }
       } catch (e) {
-        console.warn(e);
+        console.warn('Error loading parties:', e);
       }
     }
 
     function populateQSParties() {
-      const type = document.getElementById('qs-type').value;
+      const type = document.getElementById('qs-type')?.value || 'IN';
       const partySel = document.getElementById('qs-party');
       const partyLbl = document.getElementById('qs-party-lbl');
+      if (!partySel) return;
+
+      const currentVal = partySel.value;
 
       if (type === 'IN') {
-        partyLbl.textContent = 'Supplier (Optional — for Purchase Bill & Payable)';
+        if (partyLbl) partyLbl.textContent = 'Supplier (Optional — for Purchase Bill & Payable)';
         partySel.innerHTML = '<option value="">— No Supplier (Direct Inward) —</option>';
-        suppliersData.forEach(s => {
-          partySel.innerHTML += `<option value="${s._id}">${s.name} (${s.phone || 'No phone'})</option>`;
+        (suppliersData || []).forEach(s => {
+          partySel.innerHTML += `<option value="${s._id}">${escHtml(s.name)} (${escHtml(s.phone || 'No phone')})</option>`;
         });
       } else {
-        partyLbl.textContent = 'Customer (Optional — for Sales Invoice & Receivable)';
+        if (partyLbl) partyLbl.textContent = 'Customer (Optional — for Sales Invoice & Receivable)';
         partySel.innerHTML = '<option value="">— No Customer (Direct Outward) —</option>';
-        customersData.forEach(c => {
-          partySel.innerHTML += `<option value="${c._id}">${c.name} (${c.phone || 'No phone'})</option>`;
+        (customersData || []).forEach(c => {
+          partySel.innerHTML += `<option value="${c._id}">${escHtml(c.name)} (${escHtml(c.phone || 'No phone')})</option>`;
         });
       }
+
+      // If previous value still exists in new options, preserve it
+      if (currentVal && partySel.querySelector(`option[value="${currentVal}"]`)) {
+        partySel.value = currentVal;
+      }
+
       onQSPartyChange();
     }
 
     function onQSPartyChange() {
-      const partyId = document.getElementById('qs-party').value;
+      const partyId = document.getElementById('qs-party')?.value;
       const paySection = document.getElementById('qs-pay-section');
-      paySection.style.display = partyId ? 'block' : 'none';
+      if (paySection) {
+        paySection.style.display = partyId ? 'block' : 'none';
+      }
       calcTotalBill();
     }
 
     function onQSPayStatusChange() {
-      const status = document.getElementById('qs-pay-status').value;
+      const status = document.getElementById('qs-pay-status')?.value;
       const detailsRow = document.getElementById('qs-pay-details-row');
-      detailsRow.style.display = (status === 'PAID' || status === 'PARTIAL') ? 'grid' : 'none';
+      if (detailsRow) {
+        detailsRow.style.display = (status === 'PAID' || status === 'PARTIAL') ? 'grid' : 'none';
+      }
       if (status === 'PAID') {
-        document.getElementById('qs-paid-amt').value = document.getElementById('qs-total-val').value || '';
+        const totalVal = document.getElementById('qs-total-val')?.value || '';
+        const paidAmt = document.getElementById('qs-paid-amt');
+        if (paidAmt) paidAmt.value = totalVal;
       }
     }
 
     function calcTotalBill() {
-      const qty = Number(document.getElementById('qs-qty').value) || 0;
-      const rate = Number(document.getElementById('qs-cost').value) || 0;
+      const qty = Number(document.getElementById('qs-qty')?.value) || 0;
+      const rate = Number(document.getElementById('qs-cost')?.value) || 0;
       const total = Math.round(qty * rate);
-      document.getElementById('qs-total-val').value = total || '';
-      if (document.getElementById('qs-pay-status').value === 'PAID') {
-        document.getElementById('qs-paid-amt').value = total || '';
+      const totalValEl = document.getElementById('qs-total-val');
+      if (totalValEl) totalValEl.value = total || '';
+
+      if (document.getElementById('qs-pay-status')?.value === 'PAID') {
+        const paidAmt = document.getElementById('qs-paid-amt');
+        if (paidAmt) paidAmt.value = total || '';
       }
     }
 
-    function openQuickStockModal(productId = null) {
+    async function openQuickStockModal(productId = null) {
+      // Ensure latest parties & warehouses are loaded
+      if (!suppliersData.length || !customersData.length) {
+        await loadParties();
+      }
+      if (!warehouses.length) {
+        await loadWarehouses();
+      }
+
       const prodSel = document.getElementById('qs-product');
-      prodSel.innerHTML = '<option value="">— Select Product —</option>';
-      productsList.forEach(p => {
-        prodSel.innerHTML += `<option value="${p._id}" data-tracking="${p.trackingType}" data-cost="${p.purchasePrice || 0}" data-sell="${p.sellingPrice || p.mrp || 0}">${p.name} (${p.sku}) · Available: ${p.currentStock} ${p.unit}</option>`;
-      });
+      if (prodSel) {
+        prodSel.innerHTML = '<option value="">— Select Product —</option>';
+        (productsList || []).forEach(p => {
+          const avail = p.currentStock !== undefined ? p.currentStock : 0;
+          prodSel.innerHTML += `<option value="${p._id}" data-tracking="${p.trackingType || 'STANDARD'}" data-cost="${p.purchasePrice || 0}" data-sell="${p.sellingPrice || p.mrp || 0}">${escHtml(p.name)} (${escHtml(p.sku)}) · Available: ${avail} ${escHtml(p.unit || 'Pcs')}</option>`;
+        });
 
-      if (productId) {
-        prodSel.value = productId;
-        onQSProductChange();
-      } else {
-        document.getElementById('qs-cost').value = '';
-        document.getElementById('qs-batch-row').style.display = 'none';
+        if (productId) {
+          prodSel.value = productId;
+          onQSProductChange();
+        } else {
+          const costEl = document.getElementById('qs-cost');
+          if (costEl) costEl.value = '';
+          const batchRow = document.getElementById('qs-batch-row');
+          if (batchRow) batchRow.style.display = 'none';
+        }
       }
 
-      if (warehouses.length > 0 && !document.getElementById('qs-warehouse').value) {
-        document.getElementById('qs-warehouse').value = warehouses[0]._id;
+      const qsWh = document.getElementById('qs-warehouse');
+      if (qsWh && warehouses.length > 0 && !qsWh.value) {
+        qsWh.value = warehouses[0]._id;
       }
 
-      document.getElementById('qs-qty').value = '';
-      document.getElementById('qs-remarks').value = '';
-      document.getElementById('qs-error').style.display = 'none';
+      const qtyEl = document.getElementById('qs-qty');
+      if (qtyEl) qtyEl.value = '';
+      const remEl = document.getElementById('qs-remarks');
+      if (remEl) remEl.value = '';
+      const errEl = document.getElementById('qs-error');
+      if (errEl) errEl.style.display = 'none';
+
       populateQSParties();
-      document.getElementById('quick-stock-modal').classList.add('show');
+      const modal = document.getElementById('quick-stock-modal');
+      if (modal) modal.classList.add('show');
     }
 
     function closeQuickStockModal() {
-      document.getElementById('quick-stock-modal').classList.remove('show');
+      const modal = document.getElementById('quick-stock-modal');
+      if (modal) modal.classList.remove('show');
     }
 
     function onQSProductChange() {
       const prodSel = document.getElementById('qs-product');
+      if (!prodSel) return;
       const selected = prodSel.options[prodSel.selectedIndex];
       if (!selected || !selected.value) return;
 
-      const type = document.getElementById('qs-type').value;
+      const type = document.getElementById('qs-type')?.value || 'IN';
       const tracking = selected.getAttribute('data-tracking');
       const cost = selected.getAttribute('data-cost');
       const sell = selected.getAttribute('data-sell');
 
-      document.getElementById('qs-cost').value = type === 'IN' ? (cost || '') : (sell || cost || '');
-      document.getElementById('qs-batch-row').style.display = tracking === 'BATCH' ? 'grid' : 'none';
+      const costEl = document.getElementById('qs-cost');
+      if (costEl) {
+        costEl.value = type === 'IN' ? (cost || '') : (sell || cost || '');
+      }
+
+      const batchRow = document.getElementById('qs-batch-row');
+      if (batchRow) {
+        batchRow.style.display = tracking === 'BATCH' ? 'grid' : 'none';
+      }
       calcTotalBill();
     }
 
     function onQSTypeChange() {
-      const type = document.getElementById('qs-type').value;
+      const type = document.getElementById('qs-type')?.value || 'IN';
       const btn = document.getElementById('qs-save-btn');
-      btn.textContent = type === 'IN' ? '➕ Apply & Save' : '➖ Apply & Save';
-      document.getElementById('qs-cost-lbl').textContent = type === 'IN' ? 'Purchase Rate (₹)' : 'Selling Rate (₹)';
+      if (btn) btn.textContent = type === 'IN' ? '➕ Apply & Save' : '➖ Apply & Save';
+      const costLbl = document.getElementById('qs-cost-lbl');
+      if (costLbl) costLbl.textContent = type === 'IN' ? 'Purchase Rate (₹)' : 'Selling Rate (₹)';
+
       populateQSParties();
       onQSProductChange();
     }
@@ -989,6 +1054,14 @@
           paymentMode: document.getElementById('qs-pay-mode').value || undefined,
         }),
       };
+
+      if (payStatus === 'PARTIAL' && body.paidAmount && body.totalAmount && body.paidAmount > body.totalAmount) {
+        errEl.textContent = `Paid amount (${inr(body.paidAmount)}) cannot exceed total bill/invoice amount (${inr(body.totalAmount)}).`;
+        errEl.style.display = 'block';
+        btn.textContent = 'Apply & Save';
+        btn.disabled = false;
+        return;
+      }
 
       try {
         const r = await fetch(`${API}/inventory/stock-adjust`, {
@@ -1147,6 +1220,14 @@
           loadProducts();
         }
       });
+    }
+
+    function stopScan() {
+      if (typeof Quagga !== 'undefined') {
+        try { Quagga.stop(); } catch (e) {}
+      }
+      const container = document.getElementById('scanner-container');
+      if (container) container.classList.remove('show');
     }
 
     function startScanForField(fieldId) { openModal(null); startScan(fieldId); }

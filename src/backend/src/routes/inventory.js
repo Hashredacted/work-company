@@ -82,9 +82,13 @@ router.delete('/warehouses/:id', validateObjectId('id'), MANAGE, whCtrl.remove);
 router.get   ('/warehouses/:id/stock', validateObjectId('id'), READ, whCtrl.stockAtWarehouse);
 
 // ─── Payments, Outstandings & Khata Ledger ────────────────────────────────────
+router.get   ('/companies',                                                                    READ,   payCtrl.getAccessibleCompanies);
 router.get   ('/payments/kpis',                                                                READ,   payCtrl.getPaymentKpis);
 router.get   ('/payments/outstandings',                                                        READ,   payCtrl.getOutstandings);
+router.get   ('/payments/pending-bills',                                                       READ,   payCtrl.getPendingBills);
+router.get   ('/payments/daily-summary',                                                       READ,   payCtrl.getDailySummary);
 router.get   ('/payments/statement/:partyType/:partyId', validateObjectId('partyId'),         READ,   payCtrl.getPartyStatement);
+router.get   ('/payments/voucher/:voucherNoOrId',                                              READ,   payCtrl.getVoucherDetail);
 router.get   ('/payments',                                                                     READ,   payCtrl.listPayments);
 router.post  ('/payments', financialLimiter, validateCashLimit,                                MANAGE, payCtrl.recordPayment);
 

@@ -39,11 +39,26 @@ const PaymentTransactionSchema = new mongoose.Schema({
   bankAccount: { type: String, trim: true }, // Bank Name / VPA ID / Cheque Details
   notes: { type: String, trim: true },
 
+  // Bill-wise Knockoff Tracking (for BILL & INVOICE records)
+  settledAmount: { type: Number, default: 0, min: 0 },
+  paymentStatus: { type: String, enum: ['UNPAID', 'PARTIALLY_PAID', 'PAID'], default: 'UNPAID', index: true },
+
+  // Linked Bill Allocations (for PAYMENT_IN & PAYMENT_OUT records)
+  allocatedBills: [
+    {
+      billId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvPaymentTransaction' },
+      voucherNo: { type: String },
+      allocatedAmount: { type: Number, required: true },
+      remainingBillBalance: { type: Number, default: 0 },
+    },
+  ],
+
   stockLedgerId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvStockLedger', default: null },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 PaymentTransactionSchema.index({ tenantId: 1, partyId: 1, paymentDate: -1 });
 PaymentTransactionSchema.index({ tenantId: 1, partyType: 1, txnType: 1 });
+PaymentTransactionSchema.index({ tenantId: 1, 'allocatedBills.billId': 1 });
 
 module.exports = mongoose.model('InvPaymentTransaction', PaymentTransactionSchema);

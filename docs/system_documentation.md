@@ -1,4 +1,4 @@
-# WorkSpace — Multi-Tenant SaaS Platform
+# WorkSpace — Multi-Tenant SaaS & Inventory ERP Platform
 ### Complete System Documentation
 
 > **Server**: `http://localhost:5000` · **DB**: MongoDB Atlas · **Stack**: Node.js + Express 5 + MongoDB (Mongoose) + Vanilla HTML/CSS/JS
@@ -11,29 +11,41 @@
 2. [Architecture](#2-architecture)
 3. [Directory Structure](#3-directory-structure)
 4. [Data Models](#4-data-models)
+   - [Core SaaS Entities](#core-saas-entities)
+   - [Inventory & ERP Entities](#inventory--erp-entities)
+   - [Payments & Khata Ledger Entities](#payments--khata-ledger-entities)
 5. [RBAC — Roles & Permissions](#5-rbac--roles--permissions)
 6. [API Reference](#6-api-reference)
+   - [Auth, Users, Roles, Billing & Audit APIs](#auth-users-roles-billing--audit-apis)
+   - [Inventory, Products, Warehouses & Stock APIs](#inventory-products-warehouses--stock-apis)
+   - [Suppliers, Customers & Party APIs](#suppliers-customers--party-apis)
+   - [Payments, Bill-Wise Knockoff & Khata APIs](#payments-bill-wise-knockoff--khata-apis)
+   - [Reports & Analytics APIs](#reports--analytics-apis)
 7. [Frontend Pages](#7-frontend-pages)
-8. [Security Model](#8-security-model)
-9. [Tenant Lifecycle](#9-tenant-lifecycle)
-10. [Billing & Plans](#10-billing--plans)
-11. [Audit System](#11-audit-system)
-12. [Demo Accounts](#12-demo-accounts)
-13. [Environment Variables](#13-environment-variables)
-14. [Running the Project](#14-running-the-project)
+8. [Bill-Wise Payment & Khata Ledger System](#8-bill-wise-payment--khata-ledger-system)
+9. [Indian Trade & Statutory Compliance](#9-indian-trade--statutory-compliance)
+10. [Security Model](#10-security-model)
+11. [Tenant Lifecycle](#11-tenant-lifecycle)
+12. [Billing & Plans](#12-billing--plans)
+13. [Audit System](#13-audit-system)
+14. [Demo Accounts & Test Scenarios](#14-demo-accounts--test-scenarios)
+15. [Environment Variables & Running the Project](#15-environment-variables--running-the-project)
 
 ---
 
 ## 1. System Overview
 
-WorkSpace is a **multi-tenant B2B SaaS platform** that allows multiple companies (tenants) to operate in full isolation on a shared infrastructure. Each company gets its own:
-- User pool and team management
-- Role-Based Access Control (RBAC) with custom roles
-- 7-day free trial with lifecycle transitions (TRIAL → ACTIVE → EXPIRED/SUSPENDED)
-- Subscription plan and invoice history
-- Audit log and login history
-
-The **Super Admin** is a platform-level operator who can manage all companies, view cross-tenant analytics, and control lifecycle states.
+WorkSpace is a **multi-tenant B2B SaaS & Inventory ERP platform** designed for wholesale, retail, and manufacturing enterprises in India. Each tenant operates in complete database isolation (`tenant_id` filter) and gets access to:
+- **Core SaaS Platform**: User management, custom Role-Based Access Control (RBAC), 7-day free trial lifecycle, subscription billing, and audit logging.
+- **Inventory & Multi-Godown ERP**: Multi-warehouse stock tracking, stock adjustments (IN/OUT/TRANSFER), real-time stock valuation (FIFO/Weighted Average), low-stock & expiry alerts.
+- **Party Directory**: Dedicated customer and supplier registers with GSTIN validation, state codes, credit limits, and credit terms (payment days).
+- **Bill-Wise Payment Knockoff & Khata Bahi (खाता बही)**:
+  - Knock off receipts/payments against specific open invoices (`INVOICE`) or purchase bills (`BILL`).
+  - Real-time remaining balance calculations per bill and per party.
+  - FIFO auto-allocation & on-account advance credits.
+  - Per-day payment collections and disbursements timeline.
+  - Double-entry ledger generation (Statement) with running balances and printable statements.
+  - WhatsApp payment reminder generator with custom bilingual templates.
 
 ---
 
@@ -51,31 +63,28 @@ The **Super Admin** is a platform-level operator who can manage all companies, v
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌───────────┐            │
 │  │ Middleware│  │  Routes  │  │Controllers │            │
-│  │ cors()   │  │ /api/auth│  │  auth.js  │            │
-│  │ json()   │  │ /api/... │  │  company  │            │
-│  │ static() │  │          │  │  billing  │            │
+│  │ Helmet CSP│  │ /api/auth│  │  auth.js  │            │
+│  │ cors()   │  │ /api/inv │  │  inv/*.js │            │
+│  │ json()   │  │ /api/... │  │  payment.js│           │
 │  └──────────┘  └──────────┘  └───────────┘            │
 │                                                         │
 │  ┌────────────────────────────────────┐                │
-│  │         Auth Middleware            │                │
+│  │         Auth & Tenant Middleware   │                │
 │  │  authenticate → resolveTenant      │                │
 │  │      → authorize('perm:action')   │                │
+│  │      → financialLimiter (269ST)    │                │
 │  └────────────────────────────────────┘                │
 └────────────────────┬───────────────────────────────────┘
-                     │  Mongoose ODM
+                     │  Mongoose ODM (with sequence counters)
 ┌────────────────────▼───────────────────────────────────┐
 │                  MongoDB Atlas                           │
 │  Collections: users, tenants, roles, plans,             │
 │  subscriptions, invoices, auditlogs, loginhistories,    │
-│  passwordresettokens                                     │
+│  inv_products, inv_categories, inv_warehouses,          │
+│  inv_stock_adjustments, inv_suppliers, inv_customers,   │
+│  inv_payment_transactions, inv_sequences                │
 └────────────────────────────────────────────────────────┘
 ```
-
-**Key Design Decisions:**
-- Every DB query for tenant-scoped resources must carry `tenantId` — enforced in controllers.
-- Super Admin has `tenantId = null` in DB and JWT payload.
-- Permissions use `resource:action` strings (e.g. `billing:manage`).
-- JWT tokens expire in 7 days. No refresh token (stateless).
 
 ---
 
@@ -83,538 +92,377 @@ The **Super Admin** is a platform-level operator who can manage all companies, v
 
 ```
 work company/
-├── .env                          ← Root env (MONGODB_URI, JWT_SECRET, etc.)
-├── docs/
-│   └── development.md            ← Agile workflow rules
+├── .env                                  ← Root env (MONGODB_URI, JWT_SECRET, etc.)
+├── docs/                                 ← System documentation & architectural specs
+│   ├── system_documentation.md
+│   ├── api.md
+│   ├── database.md
+│   ├── architecture.md
+│   ├── rbac.md
+│   ├── subscription.md
+│   └── development.md
 ├── src/
 │   ├── backend/
-│   │   ├── .env                  ← Backend-specific env (optional)
 │   │   ├── package.json
 │   │   └── src/
-│   │       ├── app.js            ← Express app entry point
+│   │       ├── app.js                    ← Express app with Helmet CSP & routes
 │   │       ├── config/
-│   │       │   └── db.js         ← MongoDB connection
+│   │       │   └── db.js                 ← MongoDB connection
 │   │       ├── controllers/
-│   │       │   ├── auth.js       ← Login, me, forgot/reset password, profile
-│   │       │   ├── billing.js    ← Plans, subscriptions, invoices
-│   │       │   ├── audit.js      ← Audit logs, login history
-│   │       │   ├── company.js    ← Tenant CRUD, lifecycle mgmt
-│   │       │   ├── dashboard.js  ← Super Admin KPI metrics
-│   │       │   ├── role.js       ← Role CRUD + permission mgmt
-│   │       │   └── user.js       ← User CRUD + team mgmt
+│   │       │   ├── auth.js               ← Auth & Profile
+│   │       │   ├── company.js            ← Tenant management
+│   │       │   ├── billing.js            ← Subscriptions & plans
+│   │       │   ├── dashboard.js          ← Super Admin metrics
+│   │       │   ├── role.js & user.js     ← RBAC & Team
+│   │       │   ├── audit.js              ← Audit logs & Login history
+│   │       │   └── inventory/
+│   │       │       ├── category.js       ← Item categories
+│   │       │       ├── product.js        ← Catalog & stock levels
+│   │       │       ├── warehouse.js      ← Godowns & multi-loc stock
+│   │       │       ├── stockAdjustment.js← In/Out/Transfer movements
+│   │       │       ├── supplier.js       ← Vendor register
+│   │       │       ├── customer.js       ← Debtor register
+│   │       │       ├── payment.js        ← Bill-wise payments, Khata & Daily analytics
+│   │       │       └── report.js         ← Stock valuation & dashboard KPIs
 │   │       ├── middlewares/
-│   │       │   ├── auth.js       ← authenticate, resolveTenant, authorize
-│   │       │   └── error.js      ← Global error handler
+│   │       │   ├── auth.js               ← authenticate, resolveTenant, authorize
+│   │       │   ├── security.js           ← Helmet CSP & Section 269ST limiters
+│   │       │   ├── validateObjectId.js   ← Mongoose ID guard
+│   │       │   └── error.js              ← Global error handler
 │   │       ├── models/
-│   │       │   ├── AuditLog.js
-│   │       │   ├── Invoice.js
-│   │       │   ├── LoginHistory.js
-│   │       │   ├── PasswordResetToken.js
-│   │       │   ├── Plan.js
-│   │       │   ├── Role.js
-│   │       │   ├── Subscription.js
-│   │       │   ├── Tenant.js
-│   │       │   └── User.js
+│   │       │   ├── Tenant.js, User.js, Role.js, Plan.js, Subscription.js, Invoice.js
+│   │       │   ├── AuditLog.js, LoginHistory.js, PasswordResetToken.js
+│   │       │   └── inv/
+│   │       │       ├── Category.js, Product.js, Warehouse.js, StockAdjustment.js
+│   │       │       ├── Supplier.js, Customer.js, Sequence.js
+│   │       │       └── PaymentTransaction.js ← Bill-wise transactions & settlements
 │   │       ├── routes/
-│   │       │   ├── auth.js
-│   │       │   ├── audit.js
-│   │       │   ├── billing.js
-│   │       │   ├── company.js
-│   │       │   ├── dashboard.js
-│   │       │   ├── role.js
-│   │       │   └── user.js
+│   │       │   ├── auth.js, company.js, billing.js, dashboard.js, role.js, user.js, audit.js
+│   │       │   └── inventory.js          ← Central inventory & payment router
+│   │       ├── utils/
+│   │       │   └── sequence.js           ← Atomic financial voucher counter (INV/REC/BILL/PAY)
 │   │       └── scripts/
-│   │           └── seed.js       ← DB seeder (plans, roles, demo users)
+│   │           ├── seed.js               ← SaaS core seeder
+│   │           ├── seed_payment_cases.js ← 7 realistic trade scenarios
+│   │           ├── test_payments.js      ← Automated test suite for payments
+│   │           └── validate_frontend_scripts.js ← Syntax compiler
 │   └── frontend/
-│       ├── index.html            ← Login page
-│       ├── register.html         ← Company registration / trial signup
-│       ├── forgot-password.html  ← Request password reset
-│       ├── reset-password.html   ← Set new password via token
-│       ├── dashboard.html        ← Super Admin dashboard
-│       ├── company-dashboard.html← Company Admin dashboard
-│       ├── users.html            ← Team & Role management
-│       ├── billing.html          ← Subscription plans & invoice history
-│       ├── audit.html            ← Audit logs & login history
-│       ├── profile.html          ← Personal settings
-│       ├── style.css             ← Global design system
-│       ├── auth.js               ← Login logic
-│       ├── register.js           ← Registration logic
-│       ├── dashboard.js          ← Super Admin JS
-│       ├── users.js              ← Team management JS
-│       ├── billing.js            ← Billing page JS
-│       ├── audit.js              ← Audit page JS
-│       └── profile.js            ← Profile page JS
+│       ├── index.html                    ← Login & Quick-fill
+│       ├── register.html                 ← Company registration / trial
+│       ├── forgot-password.html / reset-password.html
+│       ├── dashboard.html                ← Super Admin portal
+│       ├── company-dashboard.html        ← Company Admin dashboard
+│       ├── users.html, billing.html, audit.html, profile.html
+│       ├── inv-dashboard.html            ← Inventory ERP overview & alerts
+│       ├── inv-products.html             ← Catalog & quick stock
+│       ├── inv-suppliers.html            ← Supplier payables & ledger
+│       ├── inv-customers.html            ← Customer receivables & ledger
+│       ├── inv-payments.html             ← Bill-wise payments, daily summary & Khata Bahi
+│       ├── inv-reports.html              ← Valuation & Stock Ledger
+│       └── style.css                     ← Global dark-mode UI design system
 ```
 
 ---
 
 ## 4. Data Models
 
-### `Tenant` (Company)
-| Field | Type | Notes |
-|-------|------|-------|
-| `name` | String | Company display name |
-| `email` | String | Primary email, unique |
-| `phone` | String | Contact phone |
-| `address` | String | Business address |
-| `gst` | String | GST / tax number |
-| `license` | String | Business license number |
-| `status` | Enum | `TRIAL` `ACTIVE` `EXPIRED` `SUSPENDED` `CANCELLED` |
-| `trialStartedAt` | Date | Trial start timestamp |
-| `trialEndsAt` | Date | Trial expiry (7 days from start) |
-| `planId` | ObjectId → Plan | Current subscription plan |
-| `subscriptionId` | ObjectId → Subscription | Active subscription |
+### Core SaaS Entities
 
-### `User`
-| Field | Type | Notes |
-|-------|------|-------|
-| `tenantId` | ObjectId → Tenant | `null` = Super Admin |
-| `name` | String | Display name |
-| `email` | String | Unique, lowercased |
-| `password` | String | bcrypt hash (rounds=12) |
-| `roleId` | ObjectId → Role | Assigned role |
-| `lastLoginAt` | Date | Last successful login |
-| `isActive` | Boolean | Account active flag |
-| `deletedAt` | Date | Soft-delete timestamp |
+| Model | Collection | Purpose | Key Fields |
+|---|---|---|---|
+| **Tenant** | `tenants` | Company workspace | `name`, `email`, `gst`, `status` (`TRIAL`, `ACTIVE`, `EXPIRED`), `trialEndsAt`, `planId` |
+| **User** | `users` | Team member / admin | `tenantId`, `name`, `email`, `password` (bcrypt), `roleId`, `lastLoginAt`, `isActive` |
+| **Role** | `roles` | RBAC Definition | `tenantId` (`null` for system), `name`, `permissions` (`[String]`), `isSystemRole` |
+| **Plan** | `plans` | Subscription tier | `name`, `price.monthly`, `price.yearly`, `limits`, `isFree` |
+| **Subscription** | `subscriptions` | Active billing plan | `tenantId`, `planId`, `status`, `currentPeriodEnd`, `autoRenew` |
+| **Invoice** | `invoices` | Platform SaaS billing | `tenantId`, `invoiceNumber`, `subtotal`, `tax` (18%), `total`, `status` |
+| **AuditLog** | `auditlogs` | Immutable audit trail | `tenantId`, `userId`, `action`, `resource`, `resourceId`, `details`, `ip` |
+| **LoginHistory** | `loginhistories` | User login track | `tenantId`, `userId`, `ip`, `userAgent`, `loginAt` |
 
-### `Role`
-| Field | Type | Notes |
-|-------|------|-------|
-| `tenantId` | ObjectId → Tenant | `null` = system role |
-| `name` | String | Role identifier |
-| `permissions` | `[String]` | Array of `resource:action` strings |
-| `isSystemRole` | Boolean | Protected from deletion |
-| `deletedAt` | Date | Soft-delete |
+### Inventory & ERP Entities
 
-### `Plan`
-| Field | Type | Notes |
-|-------|------|-------|
-| `name` | String | Unique slug (`free`, `starter`, `pro`, `enterprise`) |
-| `displayName` | String | Human label |
-| `price.monthly` | Number | Monthly price in USD |
-| `price.yearly` | Number | Yearly price in USD |
-| `limits.maxUsers` | Number | `-1` = unlimited |
-| `limits.maxStorage` | Number | GB |
-| `limits.apiAccess` | Boolean | |
-| `limits.auditLogs` | Boolean | |
-| `limits.customRoles` | Boolean | |
-| `limits.prioritySupport` | Boolean | |
-| `features` | `[String]` | Display bullet points |
-| `isFree` | Boolean | |
-| `sortOrder` | Number | Display order |
+| Model | Collection | Purpose | Key Fields |
+|---|---|---|---|
+| **Product** | `inv_products` | Inventory SKU / item | `tenantId`, `name`, `sku`, `barcode`, `hsnCode`, `categoryId`, `unit`, `purchasePrice`, `sellingPrice`, `minStockLevel`, `stockQuantity`, `valuationMethod` |
+| **Category** | `inv_categories` | Product grouping | `tenantId`, `name`, `code`, `description`, `parentCategory` |
+| **Warehouse** | `inv_warehouses` | Storage godown | `tenantId`, `name`, `code`, `address`, `city`, `state`, `isDefault` |
+| **StockAdjustment** | `inv_stock_adjustments` | Stock movements | `tenantId`, `voucherNo`, `productId`, `warehouseId`, `type` (`IN`, `OUT`, `TRANSFER`), `quantity`, `unitCost`, `supplierId`, `customerId`, `paymentStatus` |
+| **Supplier** | `inv_suppliers` | Vendor register | `tenantId`, `name`, `contactName`, `phone`, `email`, `gstin`, `state`, `paymentTerms` (days), `creditLimit`, `bankDetails` |
+| **Customer** | `inv_customers` | Debtor register | `tenantId`, `name`, `contactName`, `phone`, `email`, `gstin`, `state`, `paymentTerms` (days), `creditLimit`, `billingAddress` |
+| **Sequence** | `inv_sequences` | Atomic sequence counters | `tenantId`, `prefix` (`INV`, `BILL`, `REC`, `PAY`, `ADJ`), `currentSeq`, `fiscalYear` |
 
-### `Subscription`
-| Field | Type | Notes |
-|-------|------|-------|
-| `tenantId` | ObjectId → Tenant | |
-| `planId` | ObjectId → Plan | |
-| `status` | Enum | `TRIALING` `ACTIVE` `PAST_DUE` `CANCELLED` `EXPIRED` |
-| `billingCycle` | Enum | `monthly` `yearly` |
-| `currentPeriodStart` | Date | |
-| `currentPeriodEnd` | Date | Next renewal date |
-| `cancelledAt` | Date | |
-| `cancelReason` | String | |
-| `autoRenew` | Boolean | |
+### Payments & Khata Ledger Entities
 
-### `Invoice`
-| Field | Type | Notes |
-|-------|------|-------|
-| `tenantId` | ObjectId → Tenant | |
-| `subscriptionId` | ObjectId → Subscription | |
-| `invoiceNumber` | String | Unique, e.g. `INV-1234567890-42` |
-| `status` | Enum | `DRAFT` `UNPAID` `PAID` `VOID` `UNCOLLECTIBLE` |
-| `currency` | String | `USD` |
-| `subtotal` | Number | Pre-tax amount |
-| `tax` | Number | 18% GST |
-| `total` | Number | Final amount |
-| `dueDate` | Date | |
-| `paidAt` | Date | |
-| `lineItems` | Array | `{ description, quantity, unitPrice, amount }` |
+#### `PaymentTransaction` (`inv_payment_transactions`)
+Represents all financial bills, sales invoices, receipts, and payments:
 
-### `AuditLog`
-| Field | Type | Notes |
-|-------|------|-------|
-| `tenantId` | ObjectId | `null` for Super Admin actions |
-| `userId` | ObjectId → User | Who performed the action |
-| `action` | String | e.g. `AUTH_LOGIN`, `USER_CREATE`, `SUBSCRIPTION_CREATED` |
-| `resource` | String | `auth`, `user`, `company`, `role`, `subscription` |
-| `resourceId` | String | ID of the affected document |
-| `details` | Mixed | JSON object with context |
-| `ip` | String | Client IP |
-| `userAgent` | String | Browser/client string |
-
-### `LoginHistory`
-| Field | Type | Notes |
-|-------|------|-------|
-| `userId` | ObjectId → User | |
-| `tenantId` | ObjectId → Tenant | |
-| `ip` | String | |
-| `userAgent` | String | |
-| `loginAt` | Date | |
-
-### `PasswordResetToken`
-| Field | Type | Notes |
-|-------|------|-------|
-| `userId` | ObjectId → User | |
-| `token` | String | **SHA-256 hash** of raw token (raw sent to user) |
-| `expiresAt` | Date | 1 hour from creation — TTL index deletes automatically |
-| `usedAt` | Date | Set when consumed; `null` = unused |
+| Field | Type | Description |
+|---|---|---|
+| `tenantId` | `ObjectId → Tenant` | Tenant scoping |
+| `voucherNo` | `String` | Unique voucher number (e.g. `REC-2627-0102`, `INV-2627-0101`) |
+| `partyType` | `Enum` | `CUSTOMER` \| `SUPPLIER` |
+| `partyId` | `ObjectId` | Linked customer or supplier ID |
+| `partyModel` | `Enum` | `InvCustomer` \| `InvSupplier` |
+| `txnType` | `Enum` | `INVOICE` \| `BILL` \| `PAYMENT_IN` \| `PAYMENT_OUT` \| `OPENING_BAL` \| `CREDIT_NOTE` \| `DEBIT_NOTE` |
+| `amount` | `Number` | Total transaction amount in INR (₹) |
+| `settledAmount` | `Number` | Amount knocked off / settled so far (default: 0) |
+| `paymentStatus` | `Enum` | `UNPAID` \| `PARTIALLY_PAID` \| `PAID` |
+| `paymentMode` | `Enum` | `CASH` \| `UPI` \| `NEFT_RTGS` \| `CHEQUE` \| `NET_BANKING` \| `CREDIT` |
+| `paymentDate` | `Date` | Date of payment or bill issuance |
+| `dueDate` | `Date` | Credit due date (calculated via party `paymentTerms`) |
+| `referenceNo` | `String` | 12-digit UTR/RRN, Cheque number, or receipt reference |
+| `bankAccount` | `String` | Bank name and account number |
+| `allocatedBills` | `[SubDoc]` | Array of linked bill knockoffs: `[{ billId, voucherNo, allocatedAmount, remainingBillBalance }]` |
+| `notes` | `String` | Narration / particulars |
+| `createdBy` | `ObjectId → User` | User who recorded the transaction |
 
 ---
 
 ## 5. RBAC — Roles & Permissions
 
-### Permission Format
-All permissions use `resource:action` notation:
+All permissions use `resource:action` strings.
 
-```
-company:read    company:create    company:update    company:delete
-user:read       user:create       user:update       user:delete
-role:read       role:create       role:update       role:delete
-billing:read    billing:manage
-subscription:read  subscription:manage
-audit:read
-```
-
-### System Roles (seeded, `isSystemRole: true`, `tenantId: null`)
-
-| Role | Who It's For | Key Permissions |
-|------|-------------|-----------------|
-| `super_admin` | Platform operator | **All permissions** |
-| `company_admin` | Company owner | company r/w, user CRUD, role CRUD, billing:read, subscription:read |
-| `manager` | Team manager | company:read, user r/create/update, role:read |
-| `billing_manager` | Finance lead | company:read, billing:manage, subscription:manage |
-| `hr_manager` | HR | company:read, full user management, role:read |
-| `auditor` | Compliance | company:read, user:read, audit:read |
-| `viewer` | Read-only observer | company:read, user:read |
-
-### Hierarchy Enforcement (Backend)
-- Only one `super_admin` can exist in the system (enforced in seed + user creation).
-- Company Admins **cannot** create `super_admin` or `company_admin` roles for users.
-- Role assignment validates the caller's own role level before setting a lower role.
-
-### Middleware Chain
-```
-authenticate → resolveTenant → authorize('permission:name')
-```
-- `authenticate`: Validates JWT, attaches `req.user`, `req.permissions`, `req.isSuperAdmin`.
-- `resolveTenant`: Blocks cross-tenant access (Super Admin bypasses).
-- `authorize(perm)`: Checks `req.permissions.includes(perm)` (Super Admin bypasses).
+### Permission Keys
+- `company:read`, `company:create`, `company:update`, `company:delete`
+- `user:read`, `user:create`, `user:update`, `user:delete`
+- `role:read`, `role:create`, `role:update`, `role:delete`
+- `billing:read`, `billing:manage`
+- `inventory:read`, `inventory:manage`
+- `audit:read`
 
 ---
 
 ## 6. API Reference
 
-All API responses follow this shape:
-```json
-{ "data": {...} | null, "message": "...", "errors": {...} | null }
-```
+All responses follow standard JSON structure: `{ "data": ..., "message": "OK", "errors": null }`.
 
-### 🔐 Auth — `/api/auth`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| POST | `/login` | ❌ | — | Sign in, returns JWT + user info |
-| GET | `/me` | ✅ | — | Get current user + role + permissions |
-| POST | `/forgot-password` | ❌ | — | Request reset link (returns URL in demo mode) |
-| POST | `/reset-password` | ❌ | — | Set new password with valid token |
-| PATCH | `/change-password` | ✅ | — | Change own password (requires current) |
-| PATCH | `/profile` | ✅ | — | Update own display name |
+### Auth, Users, Roles & Billing APIs
 
-### 🏢 Companies — `/api/companies`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| POST | `/register` | ❌ | — | Register new company (starts 7-day trial) |
-| GET | `/` | ✅ SA | — | List all tenants (Super Admin) |
-| GET | `/me` | ✅ | `company:read` | Get own tenant profile |
-| PUT | `/me` | ✅ | `company:update` | Update own company profile |
-| PUT | `/:id/status` | ✅ SA | — | Change tenant lifecycle status |
-| DELETE | `/:id` | ✅ SA | — | Soft-delete a tenant |
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Public | Sign in, returns JWT & user payload |
+| `GET` | `/api/auth/me` | User | Current profile, permissions & tenant |
+| `POST` | `/api/auth/forgot-password` | Public | Generate reset token |
+| `POST` | `/api/auth/reset-password` | Public | Reset password with token |
+| `GET` | `/api/users` | `user:read` | List tenant team members |
+| `POST` | `/api/users` | `user:create` | Add team member |
+| `GET` | `/api/roles` | `role:read` | List system & custom roles |
+| `POST` | `/api/roles` | `role:create` | Create custom role |
+| `GET` | `/api/billing/plans` | Public | List available subscription tiers |
+| `POST` | `/api/billing/subscribe` | `billing:manage` | Subscribe to plan |
 
-### 📊 Dashboard — `/api/dashboard`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| GET | `/metrics` | ✅ SA | — | KPI counts: total, active, trial, expired, suspended, revenue |
+### Inventory, Products & Warehouses APIs
 
-### 👤 Users — `/api/users`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| GET | `/` | ✅ | `user:read` | List team members (tenant-scoped) |
-| POST | `/` | ✅ | `user:create` | Invite new team member |
-| PUT | `/:id` | ✅ | `user:update` | Update user name/role/status |
-| DELETE | `/:id` | ✅ | `user:delete` | Soft-delete user |
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/inventory/products` | `inventory:read` | List products with pagination & search |
+| `POST` | `/api/inventory/products` | `inventory:manage` | Create new SKU/product |
+| `PUT` | `/api/inventory/products/:id` | `inventory:manage` | Update product details |
+| `GET` | `/api/inventory/warehouses` | `inventory:read` | List godowns / warehouses |
+| `POST` | `/api/inventory/warehouses` | `inventory:manage` | Create warehouse |
+| `POST` | `/api/inventory/stock-adjust` | `inventory:manage` | Stock In/Out/Transfer (auto creates Bill/Invoice if on credit) |
 
-### 🛡️ Roles — `/api/roles`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| GET | `/` | ✅ | `role:read` | List all roles (system + tenant custom) |
-| POST | `/` | ✅ | `role:create` | Create custom role with permissions |
-| PUT | `/:id` | ✅ | `role:update` | Update role permissions |
-| DELETE | `/:id` | ✅ | `role:delete` | Delete custom role (system roles protected) |
+### Suppliers, Customers & Parties APIs
 
-### 💳 Billing — `/api/billing`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| GET | `/plans` | ❌ | — | List all active pricing plans |
-| GET | `/subscription` | ✅ | `subscription:read` | Get current subscription + plan |
-| POST | `/subscribe` | ✅ | `subscription:manage` | Subscribe to a plan (simulated, auto PAID invoice) |
-| POST | `/cancel` | ✅ | `subscription:manage` | Cancel active subscription |
-| GET | `/invoices` | ✅ | `billing:read` | List invoices (paginated) |
-| GET | `/invoices/:id` | ✅ | `billing:read` | Get single invoice detail |
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/inventory/suppliers` | `inventory:read` | List vendors with balances & credit terms |
+| `POST` | `/api/inventory/suppliers` | `inventory:manage` | Create vendor with GSTIN & Bank details |
+| `PUT` | `/api/inventory/suppliers/:id` | `inventory:manage` | Update vendor profile |
+| `GET` | `/api/inventory/customers` | `inventory:read` | List debtors with balances & credit limits |
+| `POST` | `/api/inventory/customers` | `inventory:manage` | Create debtor with GSTIN & terms |
+| `PUT` | `/api/inventory/customers/:id` | `inventory:manage` | Update customer profile |
 
-### 🔍 Audit — `/api/audit`
-| Method | Endpoint | Auth | Permission | Description |
-|--------|----------|------|-----------|-------------|
-| GET | `/logs` | ✅ | `audit:read` | Audit activity log (filterable by action/resource/user/date) |
-| GET | `/login-history` | ✅ | `audit:read` | Team login history |
+### Payments, Bill-Wise Knockoff & Khata APIs
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/inventory/payments/kpis` | `inventory:read` | Overall Receivables, Payables, Overdue, Working Capital |
+| `GET` | `/api/inventory/payments/outstandings` | `inventory:read` | Party-wise outstandings (`type=CUSTOMER\|SUPPLIER`) |
+| `GET` | `/api/inventory/payments/pending-bills` | `inventory:read` | Fetch open unpaid bills/invoices for a party with remaining balances |
+| `GET` | `/api/inventory/payments/daily-summary` | `inventory:read` | Per-day inflow, outflow, net cashflow, and payment mode breakdown |
+| `GET` | `/api/inventory/payments/statement/:type/:id` | `inventory:read` | Double-entry Khata Bahi with running balances and knockoffs |
+| `GET` | `/api/inventory/payments` | `inventory:read` | Paginated voucher history with settled bill tags |
+| `POST` | `/api/inventory/payments` | `inventory:manage` | Record Payment Voucher with manual or FIFO bill knockoff (Section 269ST guarded) |
 
 ---
 
 ## 7. Frontend Pages
 
-| File | URL | Access | Description |
-|------|-----|--------|-------------|
-| `index.html` | `/` | Public | Login page with quick-fill demo accounts |
-| `register.html` | `/register.html` | Public | Company registration / start free trial |
-| `forgot-password.html` | `/forgot-password.html` | Public | Request password reset link |
-| `reset-password.html` | `/reset-password.html?token=...` | Public | Set new password |
-| `dashboard.html` | `/dashboard.html` | Super Admin | KPI metrics, company table, lifecycle controls |
-| `company-dashboard.html` | `/company-dashboard.html` | Company Admin/User | Trial banner, KPI cards, company profile, nav |
-| `users.html` | `/users.html` | `user:read` | Team members table + invite modal + custom roles |
-| `billing.html` | `/billing.html` | `subscription:read` | Plan cards, subscription status, invoice table |
-| `audit.html` | `/audit.html` | `audit:read` | Activity log + login history with filters |
-| `profile.html` | `/profile.html` | Authenticated | Edit name, change password, view permissions |
-
-### Navigation Available from Each Dashboard
-
-**Company Dashboard** → Team 👥 · Billing 💳 · Audit 🔍 · Profile 👤 · Sign Out
-
-**Super Admin Dashboard** → Team 👥 · Billing 💳 · Audit 🔍 · Profile 👤 · Sign Out
+| Page | URL | Purpose |
+|---|---|---|
+| **Login** | `index.html` | Authentication with quick-fill demo roles |
+| **Registration** | `register.html` | 7-day trial company signup |
+| **Super Admin** | `dashboard.html` | Platform-level tenant & revenue controls |
+| **Company Admin** | `company-dashboard.html` | Workspace hub with quick navigation |
+| **Inventory Dashboard** | `inv-dashboard.html` | Real-time stock alerts, low stock, expiry metrics |
+| **Products** | `inv-products.html` | Product catalog, barcode, HSN, Quick Stock modal |
+| **Suppliers** | `inv-suppliers.html` | Vendor directory, bank details, outstanding payables |
+| **Customers** | `inv-customers.html` | Customer directory, credit terms, outstanding receivables |
+| **Payments & Khata** | `inv-payments.html` | Bill-wise knockoff modal, per-day payments tab, party statements, WhatsApp reminders |
+| **Reports** | `inv-reports.html` | Valuation summary (FIFO/Average) and stock ledgers |
 
 ---
 
-## 8. Security Model
+## 8. Bill-Wise Payment & Khata Ledger System
 
-### Authentication
-- JWT Bearer tokens: `Authorization: Bearer <token>`
-- Token payload: `{ userId, tenantId, iat, exp }`
-- Expiry: 7 days (configurable via `JWT_EXPIRES_IN`)
-- Password hashing: bcrypt with 12 salt rounds
-- Passwords are **never returned** in API responses (`toJSON` strips `password`)
+### 1. Knockoff Settlement Flow
+```
+User Records Payment In (₹40,000) for Customer Apex Tech
+  ├── System fetches open INVOICE vouchers (e.g. INV-2627-0102: ₹1,25,000 total, ₹1,25,000 pending)
+  ├── User allocates ₹40,000 to INV-2627-0102 (or clicks ⚡ Auto-Knockoff FIFO)
+  ├── Modal previews in real-time:
+  │     • Bill Remaining Balance: ₹85,000
+  │     • Party Remaining Due: ₹85,000
+  ├── Backend saves REC-2627-0102:
+  │     • Updates INV-2627-0102: settledAmount = 40000, paymentStatus = 'PARTIALLY_PAID'
+  │     • Saves allocatedBills array on REC-2627-0102
+  └── Khata Statement and Outstandings update atomically.
+```
 
-### Multi-Tenant Isolation
-- Every tenant-scoped query appends `{ tenantId: req.tenantId }` filter
-- `resolveTenant` middleware blocks cross-tenant requests at the HTTP layer
-- Super Admin has `tenantId: null` — bypasses all tenant filters
-- Soft-deletes used for users and roles (`deletedAt: Date | null`)
+### 2. Live Remaining Balance Preview
+When the user types an amount or changes allocations in the payment modal, the system dynamically calculates:
+$$\text{Remaining Party Due} = \max(0, \text{Current Outstanding} - \text{Total Payment})$$
+$$\text{Remaining Bill Balance} = \max(0, \text{Bill Pending Amount} - \text{Current Allocation})$$
 
-### Password Reset Security
-- Raw token: 32 random bytes → hex string (sent to user)
-- Stored token: SHA-256 hash of raw token (never stored in plain)
-- Expiry: 1 hour (MongoDB TTL index auto-deletes)
-- One-time use: `usedAt` is set on first use, subsequent requests rejected
-- User enumeration prevented: always returns HTTP 200 regardless of email existence
-
-### Role Hierarchy Enforcement
-- Backend prevents `super_admin` creation via API (only 1 allowed, created by seed)
-- Company Admins cannot assign `super_admin` or `company_admin` roles to users
-- System roles (`isSystemRole: true`) cannot be deleted or edited via API
+### 3. Per-Day Analytics (`/payments/daily-summary`)
+Provides daily financial monitoring:
+- **Today's Inflow**: Total receipts from customers today.
+- **Today's Outflow**: Total payments to suppliers today.
+- **Today's Net Cashflow**: Inflow minus Outflow.
+- **30-Day Timeline Table**: Daily breakdown with payment modes (UPI, NEFT, Cheque, Cash).
 
 ---
 
-## 9. Tenant Lifecycle
+## 9. Indian Trade & Statutory Compliance
+
+1. **GST Compliance**:
+   - 15-character GSTIN validation (`^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$`).
+   - 2-digit Indian State code mapping (e.g. `27` for Maharashtra, `07` for Delhi).
+   - Standard 18% GST calculation on software & services invoices.
+2. **Income Tax Act — Section 269ST**:
+   - Cash transactions $\ge ₹2,00,000$ in a single day or for a single transaction are blocked at the middleware layer (`financialLimiter`).
+   - Frontend provides warning banners when selecting `CASH` mode.
+3. **Payment Modes Supported**:
+   - `UPI`: 12-digit UTR/RRN tracking for PhonePe, Google Pay, Paytm, BHIM.
+   - `NEFT_RTGS`: Bank UTR transaction reference tracking.
+   - `CHEQUE`: 6-digit cheque number and bank name with clearance tracking.
+   - `CASH`: Cash counter receipt reference.
+   - `NET_BANKING`: Corporate net banking reference.
+
+---
+
+## 10. Security Model
+
+- **Multi-Tenant Isolation**: Strict `tenantId` query scoping server-side.
+- **Helmet CSP Level 3**: Permits modern script attributes (`scriptSrcAttr: ["'unsafe-inline'"]`) while securing local API connections.
+- **Safe Modal Backdrop Handlers**: Two-phase mouse tracking (`mousedown` + `mouseup`) prevents modal flicker or instant closure.
+- **Rate Limiting**: Express rate limiters on login, registration, and financial payment endpoints.
+- **Password Security**: bcrypt hashing (12 salt rounds), one-time password reset tokens with SHA-256 and TTL expiration.
+
+---
+
+## 11. Tenant Lifecycle
 
 ```
   Company Registers
         │
         ▼
     ┌───────┐
-    │ TRIAL │  ← 7-day free trial, all features unlocked
+    │ TRIAL │  ← 7-day free trial, all ERP & payment features active
     └───┬───┘
         │ Subscribes to plan
         ▼
     ┌────────┐
-    │ ACTIVE │  ← Full paying subscriber
+    │ ACTIVE │  ← Full paying enterprise tenant
     └───┬────┘
-        │ Trial expires without subscribing
+        │ Trial expires without renewal
         ▼
     ┌─────────┐
-    │ EXPIRED │  ← Access restricted, warned to subscribe
+    │ EXPIRED │  ← Read-only access with upgrade warnings
     └─────────┘
-        │ Admin suspends manually
+        │ Suspended by admin
         ▼
     ┌───────────┐
-    │ SUSPENDED │  ← Full lockout, contact support
-    └───────────┘
-        │ Admin cancels
-        ▼
-    ┌───────────┐
-    │ CANCELLED │  ← Soft-deleted from active roster
+    │ SUSPENDED │  ← Complete lockout
     └───────────┘
 ```
 
-**Notification Banners** (company-dashboard):
-- ≤ 2 days left on trial → yellow "⏳ Trial Ending Soon!" banner with Upgrade CTA
-- Trial expired → red "🚫 Trial Expired" banner with Choose Plan CTA
-- Suspended → red "🔒 Account Suspended" banner
+---
+
+## 12. Billing & Plans
+
+| Plan | Monthly | Yearly | Users | Godowns | Custom Roles | ERP Features |
+|---|---|---|---|---|---|---|
+| **Free** | $0 | $0 | 3 | 1 | ❌ | Basic Products |
+| **Starter** | $29 | $290 | 10 | 3 | ✅ | Full Inventory & Stock In/Out |
+| **Pro** | $79 | $790 | 50 | 10 | ✅ | Bill-Wise Payments & Khata Bahi |
+| **Enterprise** | $199 | $1,990 | Unlimited | Unlimited | ✅ | Full Analytics & Priority Support |
 
 ---
 
-## 10. Billing & Plans
+## 13. Audit System
 
-### Pricing Tiers
-
-| Plan | Monthly | Yearly | Users | Storage | API | Audit | Custom Roles |
-|------|---------|--------|-------|---------|-----|-------|-------------|
-| **Free** | $0 | $0 | 3 | 1 GB | ❌ | ❌ | ❌ |
-| **Starter** | $29 | $290 | 10 | 10 GB | ❌ | ✅ | ✅ |
-| **Pro** | $79 | $790 | 50 | 50 GB | ✅ | ✅ | ✅ |
-| **Enterprise** | $199 | $1,990 | ∞ | 500 GB | ✅ | ✅ | ✅ |
-
-- Yearly = ~17% discount (`monthly × 10`)
-- Tax: 18% GST applied automatically on invoices
-- Payment gateway: **Simulated** (no real Stripe/Razorpay) — invoice marked PAID instantly
-- Cancellation: Subscription cancelled at end of current period
-
-### Invoice Flow
-```
-POST /api/billing/subscribe
-  → Cancel existing subscription (if any)
-  → Create new Subscription document
-  → Generate Invoice (auto-PAID in demo mode)
-  → Update Tenant.planId + Tenant.subscriptionId
-  → Transition Tenant.status → ACTIVE
-  → Create AuditLog entry
-```
+Every critical action is logged to `AuditLog`:
+- `AUTH_LOGIN`, `USER_CREATE`, `USER_UPDATE`, `ROLE_CREATE`
+- `STOCK_IN`, `STOCK_OUT`, `STOCK_TRANSFER`
+- `PAYMENT_IN`, `PAYMENT_OUT`, `STATUS_CHANGE`
 
 ---
 
-## 11. Audit System
+## 14. Demo Accounts & Test Scenarios
 
-### Tracked Actions
+### Demo Credentials
 
-| Action | Trigger |
-|--------|---------|
-| `AUTH_LOGIN` | Successful login |
-| `AUTH_PASSWORD_RESET` | Password reset via token |
-| `AUTH_PASSWORD_CHANGED` | Change password (authenticated) |
-| `USER_CREATE` | New user invited |
-| `USER_UPDATE` | User profile/role changed |
-| `USER_DELETE` | User soft-deleted |
-| `ROLE_CREATE` | Custom role created |
-| `ROLE_UPDATE` | Role permissions changed |
-| `ROLE_DELETE` | Role deleted |
-| `COMPANY_REGISTERED` | New tenant signed up |
-| `STATUS_CHANGE` | Tenant lifecycle status changed |
-| `SUBSCRIPTION_CREATED` | Tenant subscribed to plan |
-| `SUBSCRIPTION_CANCELLED` | Subscription cancelled |
+| Role | Email | Password | Access |
+|---|---|---|---|
+| **Super Admin** | `admin@platform.com` | `Admin@1234` | Full platform control |
+| **Company Admin** (Acme) | `admin@acme.com` | `Password@123` | Acme Inventory ERP & Payments |
+| **Team User** (Acme) | `user@acme.com` | `Password@123` | Read-only operations |
 
-### Filtering (GET /api/audit/logs)
-```
-?action=AUTH_LOGIN     → filter by action substring
-?resource=user         → filter by resource type
-?userId=<id>           → filter by user
-?from=2024-01-01       → date range start
-?to=2024-12-31         → date range end
-?page=1&limit=50       → pagination
+### 7 Seeded B2B Trade Scenarios
+
+Populated via `node src/scripts/seed_payment_cases.js`:
+1. **VIP Clean Payer** (*Sharma Retail Store*): 100% cleared invoice via UPI (`INV-2627-0101` ₹15,000 cleared by `REC-2627-0101`).
+2. **Multi-Installment Split** (*Apex Tech Distributors*): ₹1,25,000 invoice (`INV-2627-0102`) partially paid in 2 tranches (₹40,000 NEFT + ₹35,000 Cheque), leaving ₹50,000 pending due.
+3. **Critical Overdue Debtor** (*Gupta General Trading Co.*): ₹68,500 invoice (`INV-2627-0103`) unpaid for 60 days (30 days overdue $\rightarrow$ Critical status).
+4. **FIFO Multi-Bill Supplier Payables** (*Bharat Electronics Distributors*): ₹30,000 payment (`PAY-2627-0101`) knocked off across 3 purchase bills in FIFO order.
+5. **Section 269ST Compliant Cash** (*Kalyan Electronics*): ₹1,40,000 bulk purchase settled via compliant cash receipt ($< ₹2\text{L}$).
+6. **Advance / On-Account Credit** (*Metro IT Solutions*): ₹25,000 advance receipt recorded without linking to bills.
+7. **PDC / Cheque Realization** (*SuperTech Component Suppliers*): ₹42,000 purchase bill settled via realized bank cheque.
+
+---
+
+## 15. Environment Variables & Running the Project
+
+### `.env` Configuration
+```env
+PORT=5000
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=your-secure-jwt-secret-key-32-chars
+JWT_EXPIRES_IN=7d
+SUPER_ADMIN_EMAIL=admin@platform.com
+SUPER_ADMIN_PASSWORD=Admin@1234
+SUPER_ADMIN_NAME=Super Admin
 ```
 
----
-
-## 12. Demo Accounts
-
-Seeded via `npm run seed`. **All passwords remain the same after seed runs.**
-
-| Role | Email | Password | Dashboard | Access Level |
-|------|-------|----------|-----------|-------------|
-| **Super Admin** | `admin@platform.com` | `Admin@1234` | `/dashboard.html` | Full platform control |
-| **Company Admin** (Acme — Trial) | `admin@acme.com` | `Password@123` | `/company-dashboard.html` | Acme company management |
-| **Team Member** (Acme) | `user@acme.com` | `Password@123` | `/company-dashboard.html` | Read-only team access |
-| **Company Admin** (Nexus — Active) | `admin@nexus.com` | `Password@123` | `/company-dashboard.html` | Nexus company management |
-
-> **Quick-fill**: The login page has ⚡ Quick-Fill Demo Role buttons that auto-fill credentials.
-
----
-
-## 13. Environment Variables
-
-Located at: `work company/.env` (root level)
-
-| Variable | Example | Required | Description |
-|----------|---------|----------|-------------|
-| `MONGODB_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/saas_platform` | ✅ | MongoDB connection string |
-| `JWT_SECRET` | `your-secret-key-here` | ✅ | JWT signing secret (min 32 chars recommended) |
-| `JWT_EXPIRES_IN` | `7d` | ❌ | Token lifetime (default: `7d`) |
-| `PORT` | `5000` | ❌ | Server port (default: `5000`) |
-| `SUPER_ADMIN_EMAIL` | `admin@platform.com` | ❌ | Seed: super admin email |
-| `SUPER_ADMIN_PASSWORD` | `Admin@1234` | ❌ | Seed: super admin password |
-| `SUPER_ADMIN_NAME` | `Super Admin` | ❌ | Seed: super admin display name |
-
----
-
-## 14. Running the Project
-
-### First-time Setup
+### Setup & Run Commands
 ```bash
-# From: work company/src/backend/
+# Install dependencies
+cd src/backend
 npm install
 
-# Seed the database (plans, roles, demo accounts)
+# Seed database with core SaaS & 7 Payment scenarios
 npm run seed
-```
+node src/scripts/seed_payment_cases.js
 
-### Start Development Server
-```bash
-# From: work company/src/backend/
+# Run integration tests
+node src/scripts/test_payments.js
+
+# Start development server
 npm run dev
-# → Starts nodemon on http://localhost:5000
-# → Frontend served from src/frontend/ as static files
-```
-
-### Re-seed (safe — skips existing records)
-```bash
-npm run seed
-```
-
-### Available npm Scripts
-| Script | Command | Description |
-|--------|---------|-------------|
-| `npm run dev` | `nodemon src/app.js` | Development server with hot-reload |
-| `npm start` | `node src/app.js` | Production server |
-| `npm run seed` | `node src/scripts/seed.js` | Seed plans, roles, demo users |
-
----
-
-## Quick Reference Card
-
-```
-LOGIN          →  POST /api/auth/login
-GET ME         →  GET  /api/auth/me
-FORGOT PW      →  POST /api/auth/forgot-password
-RESET PW       →  POST /api/auth/reset-password
-CHANGE PW      →  PATCH /api/auth/change-password
-
-LIST COMPANIES →  GET  /api/companies           (SA only)
-MY COMPANY     →  GET  /api/companies/me
-REGISTER       →  POST /api/companies/register
-
-LIST USERS     →  GET  /api/users
-INVITE USER    →  POST /api/users
-UPDATE USER    →  PUT  /api/users/:id
-
-LIST ROLES     →  GET  /api/roles
-CREATE ROLE    →  POST /api/roles
-
-PLANS          →  GET  /api/billing/plans
-SUBSCRIBE      →  POST /api/billing/subscribe
-CANCEL         →  POST /api/billing/cancel
-INVOICES       →  GET  /api/billing/invoices
-
-AUDIT LOGS     →  GET  /api/audit/logs
-LOGIN HISTORY  →  GET  /api/audit/login-history
-
-DASHBOARD KPIs →  GET  /api/dashboard/metrics
 ```
 
 ---
 
-*Generated: 2026-08-25 | WorkSpace Multi-Tenant SaaS Platform v1.0*
+*Last Updated: 2026-08-26 | WorkSpace Multi-Tenant SaaS & Inventory ERP Platform v2.0*
