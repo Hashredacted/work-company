@@ -484,8 +484,15 @@
     }
 
     @keyframes pulseCritical {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.75; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.75;
+      }
     }
 
     .bill-pill {
@@ -614,18 +621,29 @@
         background: #fff !important;
         color: #000 !important;
       }
-      .bg-grid, .blob, .top-nav, .controls-bar, .aging-pills, .btn-action, .action-btn-group, .modal-close {
+
+      .bg-grid,
+      .blob,
+      .top-nav,
+      .controls-bar,
+      .aging-pills,
+      .btn-action,
+      .action-btn-group,
+      .modal-close {
         display: none !important;
       }
+
       .table-card {
         border: none !important;
         background: transparent !important;
       }
+
       thead th {
         background: #f1f5f9 !important;
         color: #0f172a !important;
         border-bottom: 2px solid #000 !important;
       }
+
       tbody td {
         border-bottom: 1px solid #cbd5e1 !important;
         color: #0f172a !important;
@@ -657,7 +675,9 @@
             </svg>
           </div>
           <span class="brand-name">WorkSpace</span>
-          <span style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;">📦 INVENTORY</span>
+          <span
+            style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;">📦
+            INVENTORY</span>
         </a>
 
         <nav class="inv-nav">
@@ -672,8 +692,12 @@
       </div>
 
       <div style="display:flex;gap:10px;align-items:center;">
-        <a id="main-nav-link" href="company-dashboard.html" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:6px;">← Main App</a>
-        <button id="logout-btn" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign Out</button>
+        <a id="main-nav-link" href="company-dashboard.html"
+          style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:6px;">←
+          Back App</a>
+        <button id="logout-btn"
+          style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign
+          Out</button>
       </div>
     </header>
 
@@ -687,7 +711,9 @@
         </div>
       </div>
       <div class="company-selector-box">
-        <label for="company-filter" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter By Company:</label>
+        <label for="company-filter"
+          style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter By
+          Company:</label>
         <select id="company-filter" class="company-select" onchange="onCompanyFilterChange()">
           <option value="">Loading companies…</option>
         </select>
@@ -747,16 +773,19 @@
       <div class="party-toggle">
         <button id="btn-tab-customer" class="party-btn active receivables" onclick="switchPartyType('CUSTOMER')">
           <span>👥 Customer Receivables (Lena)</span>
-          <span id="tab-cust-badge" style="background:rgba(56,189,248,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
+          <span id="tab-cust-badge"
+            style="background:rgba(56,189,248,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
         </button>
         <button id="btn-tab-supplier" class="party-btn payables" onclick="switchPartyType('SUPPLIER')">
           <span>🏭 Supplier Payables (Dena)</span>
-          <span id="tab-sup-badge" style="background:rgba(244,63,94,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
+          <span id="tab-sup-badge"
+            style="background:rgba(244,63,94,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
         </button>
       </div>
 
       <div class="filter-actions">
-        <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…" oninput="debounceSearch()" />
+        <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
+          oninput="debounceSearch()" />
         <button class="btn-action" onclick="exportToCsv()">📥 Export CSV</button>
         <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
       </div>
@@ -764,13 +793,20 @@
 
     <!-- Aging Bucket Filter Pills -->
     <div class="aging-pills">
-      <button class="aging-pill active" onclick="filterByAging('ACTIVE', this)">⭐ Active Pending Dues (<span id="count-active">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('CURRENT_0_15', this)">🟢 0-15 Days Current (<span id="count-current">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('DUE_16_30', this)">🟡 16-30 Days Due Soon (<span id="count-soon">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('OVERDUE_31_60', this)">🟠 31-60 Days Overdue (<span id="count-overdue">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('CRITICAL_60_PLUS', this)">🔴 > 60 Days Critical (<span id="count-critical">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('CLEARED', this)">⚪ Cleared Accounts (<span id="count-cleared">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('ALL', this)">📋 All Accounts (<span id="count-all">0</span>)</button>
+      <button class="aging-pill active" onclick="filterByAging('ACTIVE', this)">⭐ Active Pending Dues (<span
+          id="count-active">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('CURRENT_0_15', this)">🟢 0-15 Days Current (<span
+          id="count-current">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('DUE_16_30', this)">🟡 16-30 Days Due Soon (<span
+          id="count-soon">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('OVERDUE_31_60', this)">🟠 31-60 Days Overdue (<span
+          id="count-overdue">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('CRITICAL_60_PLUS', this)">🔴 > 60 Days Critical (<span
+          id="count-critical">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('CLEARED', this)">⚪ Cleared Accounts (<span
+          id="count-cleared">0</span>)</button>
+      <button class="aging-pill" onclick="filterByAging('ALL', this)">📋 All Accounts (<span
+          id="count-all">0</span>)</button>
     </div>
 
     <!-- Outstandings Table -->
@@ -792,7 +828,8 @@
           </thead>
           <tbody id="outstandings-tbody">
             <tr>
-              <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings data…</td>
+              <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings data…
+              </td>
             </tr>
           </tbody>
         </table>
@@ -806,7 +843,8 @@
       <div class="modal-title">
         <div>
           <span id="ob-party-name">Party Open Invoices / Bills</span>
-          <div id="ob-party-meta" style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-top:2px;"></div>
+          <div id="ob-party-meta" style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-top:2px;">
+          </div>
         </div>
         <button class="modal-close" onclick="closeOpenBillsModal()">✕</button>
       </div>
@@ -815,11 +853,14 @@
         <!-- Injected via JS -->
       </div>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
-        <div id="ob-total-pending" style="font-weight:800;font-size:0.95rem;color:var(--receivable);">Total Pending: ₹0</div>
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+        <div id="ob-total-pending" style="font-weight:800;font-size:0.95rem;color:var(--receivable);">Total Pending: ₹0
+        </div>
         <div style="display:flex;gap:8px;">
           <button type="button" class="btn-action" onclick="closeOpenBillsModal()">Close</button>
-          <button type="button" id="ob-pay-btn" class="btn-action" style="background:var(--primary);color:#fff;border-color:var(--primary);">💳 Settle Bills</button>
+          <button type="button" id="ob-pay-btn" class="btn-action"
+            style="background:var(--primary);color:#fff;border-color:var(--primary);">💳 Settle Bills</button>
         </div>
       </div>
     </div>
@@ -831,7 +872,8 @@
       <div class="modal-title">
         <span>Tax Invoice / Voucher Document</span>
         <div style="display:flex;gap:8px;">
-          <button class="btn-action" onclick="window.print()" style="padding:4px 10px;font-size:0.75rem;">🖨️ Print</button>
+          <button class="btn-action" onclick="window.print()" style="padding:4px 10px;font-size:0.75rem;">🖨️
+            Print</button>
           <button class="modal-close" onclick="closeVoucherModal()">✕</button>
         </div>
       </div>
@@ -847,7 +889,8 @@
       <div class="modal-title">
         <span>📖 Verified Khata Bahi Statement</span>
         <div style="display:flex;gap:8px;">
-          <button class="btn-action" onclick="window.print()" style="padding:4px 10px;font-size:0.75rem;">🖨️ Print</button>
+          <button class="btn-action" onclick="window.print()" style="padding:4px 10px;font-size:0.75rem;">🖨️
+            Print</button>
           <button class="modal-close" onclick="closeStatementModal()">✕</button>
         </div>
       </div>
@@ -864,15 +907,19 @@
         <span>💬 Send WhatsApp Payment Reminder</span>
         <button class="modal-close" onclick="closeWaModal()">✕</button>
       </div>
-      <div style="font-size:0.8rem;color:var(--text-sub);margin-bottom:14px;">Send a customized payment reminder directly to the party's WhatsApp number.</div>
-      
+      <div style="font-size:0.8rem;color:var(--text-sub);margin-bottom:14px;">Send a customized payment reminder
+        directly to the party's WhatsApp number.</div>
+
       <div style="margin-bottom:12px;">
-        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Phone Number (with Country Code):</label>
+        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Phone
+          Number (with Country Code):</label>
         <input type="text" id="wa-phone" class="search-box" style="width:100%;" placeholder="e.g. 919876543210" />
       </div>
 
       <div style="margin-bottom:12px;">
-        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Reminder Tone / Template:</label>
+        <label
+          style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Reminder
+          Tone / Template:</label>
         <select id="wa-template" class="company-select" style="width:100%;" onchange="applyWaTemplate()">
           <option value="FRIENDLY">🟢 Friendly Reminder (Normal)</option>
           <option value="DUE_DATE">🟡 Due Date Approaching</option>
@@ -881,13 +928,18 @@
       </div>
 
       <div style="margin-bottom:16px;">
-        <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Message Preview:</label>
-        <textarea id="wa-msg" rows="5" class="search-box" style="width:100%;font-family:monospace;font-size:0.8rem;resize:vertical;"></textarea>
+        <label
+          style="font-size:0.75rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;">Message
+          Preview:</label>
+        <textarea id="wa-msg" rows="5" class="search-box"
+          style="width:100%;font-family:monospace;font-size:0.8rem;resize:vertical;"></textarea>
       </div>
 
       <div style="display:flex;justify-content:flex-end;gap:10px;">
         <button type="button" class="btn-action" onclick="closeWaModal()">Cancel</button>
-        <button type="button" onclick="sendWhatsApp()" style="background:#25d366;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Send via WhatsApp →</button>
+        <button type="button" onclick="sendWhatsApp()"
+          style="background:#25d366;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Send
+          via WhatsApp →</button>
       </div>
     </div>
   </div>
@@ -1104,9 +1156,9 @@
         const badgeClass = `status-${p.status || 'CLEARED'}`;
         const statusLabel = p.status === 'CRITICAL' ? `🚨 CRITICAL (${p.daysOverdue}d)`
           : p.status === 'OVERDUE' ? `🟠 OVERDUE (${p.daysOverdue}d)`
-          : p.status === 'DUE_SOON' ? `🟡 DUE SOON`
-          : p.status === 'CURRENT' ? `🟢 CURRENT`
-          : `⚪ CLEARED`;
+            : p.status === 'DUE_SOON' ? `🟡 DUE SOON`
+              : p.status === 'CURRENT' ? `🟢 CURRENT`
+                : `⚪ CLEARED`;
 
         const openBills = (p.openBills || []).filter(b => b.pendingAmount > 0);
         const openBillsCount = openBills.length;
@@ -1159,7 +1211,7 @@
       document.getElementById('btn-tab-customer').classList.toggle('active', type === 'CUSTOMER');
       document.getElementById('btn-tab-supplier').classList.toggle('active', type === 'SUPPLIER');
       activeAgingFilter = 'ACTIVE';
-      
+
       document.querySelectorAll('.aging-pill').forEach((btn, idx) => {
         btn.classList.toggle('active', idx === 0);
       });
@@ -1276,9 +1328,9 @@
 
         const docTitle = isInvoice ? 'TAX INVOICE'
           : isBill ? 'PURCHASE BILL'
-          : isReceipt ? 'PAYMENT RECEIPT'
-          : isPayment ? 'PAYMENT VOUCHER'
-          : 'COMMERCIAL VOUCHER';
+            : isReceipt ? 'PAYMENT RECEIPT'
+              : isPayment ? 'PAYMENT VOUCHER'
+                : 'COMMERCIAL VOUCHER';
 
         const docIcon = isInvoice ? '🧾' : isBill ? '📦' : isReceipt ? '💵' : '💸';
 
@@ -1513,11 +1565,11 @@
               </thead>
               <tbody>
                 ${(statement && statement.length) ? statement.map(row => {
-                  const billLinks = (row.allocatedBills && row.allocatedBills.length)
-                    ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
-                    : '';
+          const billLinks = (row.allocatedBills && row.allocatedBills.length)
+            ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+            : '';
 
-                  return `
+          return `
                     <tr>
                       <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
                       <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)">🔍 ${escHtml(row.voucherNo)}</td>
@@ -1531,7 +1583,7 @@
                       <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
                     </tr>
                   `;
-                }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
               </tbody>
             </table>
           </div>
