@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
   <style>
     :root {
       --bg: #090d16;
@@ -37,12 +38,14 @@
     }
 
     body {
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      display: block;
       overflow-x: hidden;
+      overflow-y: auto;
+      padding: 0;
     }
 
     .bg-grid {
@@ -228,9 +231,10 @@
     /* Executive KPI Grid */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 14px;
       margin-bottom: 22px;
+      width: 100%;
     }
 
     .kpi-card {
@@ -767,147 +771,151 @@
     <!-- Main Content Area -->
     <main class="main-content">
       <!-- Top Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;">
           <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
           <div>
-            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">💰 Multi-Company Outstandings</h1>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Consolidated ledger balances, aging buckets, and party knockoffs</div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">💰
+              Multi-Company Outstandings</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Consolidated ledger balances, aging
+              buckets, and party knockoffs</div>
           </div>
         </div>
       </div>
 
-    <!-- Company Filter & Context Banner -->
-    <div class="company-banner">
-      <div class="company-info">
-        <div class="company-avatar" id="company-avatar">🏢</div>
-        <div>
-          <div class="company-title" id="company-display-name">Active Company Outstandings</div>
-          <div class="company-meta" id="company-meta-text">Loading company information…</div>
+      <!-- Company Filter & Context Banner -->
+      <div class="company-banner">
+        <div class="company-info">
+          <div class="company-avatar" id="company-avatar">🏢</div>
+          <div>
+            <div class="company-title" id="company-display-name">Active Company Outstandings</div>
+            <div class="company-meta" id="company-meta-text">Loading company information…</div>
+          </div>
+        </div>
+        <div class="company-selector-box">
+          <label for="company-filter"
+            style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter By
+            Company:</label>
+          <select id="company-filter" class="company-select" onchange="onCompanyFilterChange()">
+            <option value="">Loading companies…</option>
+          </select>
         </div>
       </div>
-      <div class="company-selector-box">
-        <label for="company-filter"
-          style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter By
-          Company:</label>
-        <select id="company-filter" class="company-select" onchange="onCompanyFilterChange()">
-          <option value="">Loading companies…</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- Financial KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi-card" style="border-top:3px solid var(--receivable);">
-        <div class="kpi-lbl">
-          <span>Customer Receivables (लेना)</span>
-          <span>👥</span>
+      <!-- Financial KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card" style="border-top:3px solid var(--receivable);">
+          <div class="kpi-lbl">
+            <span>Customer Receivables (लेना)</span>
+            <span>👥</span>
+          </div>
+          <div class="kpi-val" id="kpi-receivables" style="color:var(--receivable);">₹0</div>
+          <div class="kpi-sub" id="kpi-debtors-count">0 active debtor accounts</div>
         </div>
-        <div class="kpi-val" id="kpi-receivables" style="color:var(--receivable);">₹0</div>
-        <div class="kpi-sub" id="kpi-debtors-count">0 active debtor accounts</div>
-      </div>
 
-      <div class="kpi-card" style="border-top:3px solid var(--payable);">
-        <div class="kpi-lbl">
-          <span>Supplier Payables (देना)</span>
-          <span>🏭</span>
+        <div class="kpi-card" style="border-top:3px solid var(--payable);">
+          <div class="kpi-lbl">
+            <span>Supplier Payables (देना)</span>
+            <span>🏭</span>
+          </div>
+          <div class="kpi-val" id="kpi-payables" style="color:var(--payable);">₹0</div>
+          <div class="kpi-sub" id="kpi-creditors-count">0 active creditor accounts</div>
         </div>
-        <div class="kpi-val" id="kpi-payables" style="color:var(--payable);">₹0</div>
-        <div class="kpi-sub" id="kpi-creditors-count">0 active creditor accounts</div>
-      </div>
 
-      <div class="kpi-card" style="border-top:3px solid #6366f1;">
-        <div class="kpi-lbl">
-          <span>Net Position</span>
-          <span>⚖️</span>
+        <div class="kpi-card" style="border-top:3px solid #6366f1;">
+          <div class="kpi-lbl">
+            <span>Net Position</span>
+            <span>⚖️</span>
+          </div>
+          <div class="kpi-val" id="kpi-net-working" style="color:#4ade80;">₹0</div>
+          <div class="kpi-sub">Receivables minus Payables</div>
         </div>
-        <div class="kpi-val" id="kpi-net-working" style="color:#4ade80;">₹0</div>
-        <div class="kpi-sub">Receivables minus Payables</div>
-      </div>
 
-      <div class="kpi-card" style="border-top:3px solid var(--warning);">
-        <div class="kpi-lbl">
-          <span>Overdue Balance</span>
-          <span>⏳</span>
+        <div class="kpi-card" style="border-top:3px solid var(--warning);">
+          <div class="kpi-lbl">
+            <span>Overdue Balance</span>
+            <span>⏳</span>
+          </div>
+          <div class="kpi-val" id="kpi-overdue" style="color:#fbbf24;">₹0</div>
+          <div class="kpi-sub">Due date passed on invoices</div>
         </div>
-        <div class="kpi-val" id="kpi-overdue" style="color:#fbbf24;">₹0</div>
-        <div class="kpi-sub">Due date passed on invoices</div>
-      </div>
 
-      <div class="kpi-card" style="border-top:3px solid var(--error);">
-        <div class="kpi-lbl">
-          <span>Critical Risk (> 30 Days)</span>
-          <span>🚨</span>
+        <div class="kpi-card" style="border-top:3px solid var(--error);">
+          <div class="kpi-lbl">
+            <span>Critical Risk (> 30 Days)</span>
+            <span>🚨</span>
+          </div>
+          <div class="kpi-val" id="kpi-critical" style="color:#f87171;">₹0</div>
+          <div class="kpi-sub">High priority debt recovery</div>
         </div>
-        <div class="kpi-val" id="kpi-critical" style="color:#f87171;">₹0</div>
-        <div class="kpi-sub">High priority debt recovery</div>
-      </div>
-    </div>
-
-    <!-- Controls Toolbar (Customer vs Supplier Toggle & Search) -->
-    <div class="controls-bar">
-      <div class="party-toggle">
-        <button id="btn-tab-customer" class="party-btn active receivables" onclick="switchPartyType('CUSTOMER')">
-          <span>👥 Customer Receivables (Lena)</span>
-          <span id="tab-cust-badge"
-            style="background:rgba(56,189,248,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
-        </button>
-        <button id="btn-tab-supplier" class="party-btn payables" onclick="switchPartyType('SUPPLIER')">
-          <span>🏭 Supplier Payables (Dena)</span>
-          <span id="tab-sup-badge"
-            style="background:rgba(244,63,94,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
-        </button>
       </div>
 
-      <div class="filter-actions">
-        <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
-          oninput="debounceSearch()" />
-        <button class="btn-action" onclick="exportToCsv()">📥 Export CSV</button>
-        <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
-      </div>
-    </div>
+      <!-- Controls Toolbar (Customer vs Supplier Toggle & Search) -->
+      <div class="controls-bar">
+        <div class="party-toggle">
+          <button id="btn-tab-customer" class="party-btn active receivables" onclick="switchPartyType('CUSTOMER')">
+            <span>👥 Customer Receivables (Lena)</span>
+            <span id="tab-cust-badge"
+              style="background:rgba(56,189,248,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
+          </button>
+          <button id="btn-tab-supplier" class="party-btn payables" onclick="switchPartyType('SUPPLIER')">
+            <span>🏭 Supplier Payables (Dena)</span>
+            <span id="tab-sup-badge"
+              style="background:rgba(244,63,94,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
+          </button>
+        </div>
 
-    <!-- Aging Bucket Filter Pills -->
-    <div class="aging-pills">
-      <button class="aging-pill active" onclick="filterByAging('ACTIVE', this)">⭐ Active Pending Dues (<span
-          id="count-active">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('CURRENT_0_15', this)">🟢 0-15 Days Current (<span
-          id="count-current">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('DUE_16_30', this)">🟡 16-30 Days Due Soon (<span
-          id="count-soon">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('OVERDUE_31_60', this)">🟠 31-60 Days Overdue (<span
-          id="count-overdue">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('CRITICAL_60_PLUS', this)">🔴 > 60 Days Critical (<span
-          id="count-critical">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('CLEARED', this)">⚪ Cleared Accounts (<span
-          id="count-cleared">0</span>)</button>
-      <button class="aging-pill" onclick="filterByAging('ALL', this)">📋 All Accounts (<span
-          id="count-all">0</span>)</button>
-    </div>
-
-    <!-- Outstandings Table -->
-    <div class="table-card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Party Name & Contact</th>
-              <th>GSTIN / State</th>
-              <th>Credit Terms</th>
-              <th style="text-align:right;">Due Amount (₹)</th>
-              <th>Aging Status</th>
-              <th>Open Invoices / Bills</th>
-              <th style="text-align:center;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="outstandings-tbody">
-            <tr>
-              <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings data…
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="filter-actions">
+          <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
+            oninput="debounceSearch()" />
+          <button class="btn-action" onclick="exportToCsv()">📥 Export CSV</button>
+          <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
+        </div>
       </div>
+
+      <!-- Aging Bucket Filter Pills -->
+      <div class="aging-pills">
+        <button class="aging-pill active" onclick="filterByAging('ACTIVE', this)">⭐ Active Pending Dues (<span
+            id="count-active">0</span>)</button>
+        <button class="aging-pill" onclick="filterByAging('CURRENT_0_15', this)">🟢 0-15 Days Current (<span
+            id="count-current">0</span>)</button>
+        <button class="aging-pill" onclick="filterByAging('DUE_16_30', this)">🟡 16-30 Days Due Soon (<span
+            id="count-soon">0</span>)</button>
+        <button class="aging-pill" onclick="filterByAging('OVERDUE_31_60', this)">🟠 31-60 Days Overdue (<span
+            id="count-overdue">0</span>)</button>
+        <button class="aging-pill" onclick="filterByAging('CRITICAL_60_PLUS', this)">🔴 > 60 Days Critical (<span
+            id="count-critical">0</span>)</button>
+        <button class="aging-pill" onclick="filterByAging('CLEARED', this)">⚪ Cleared Accounts (<span
+            id="count-cleared">0</span>)</button>
+        <button class="aging-pill" onclick="filterByAging('ALL', this)">📋 All Accounts (<span
+            id="count-all">0</span>)</button>
+      </div>
+
+      <!-- Outstandings Table -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Party Name & Contact</th>
+                <th>GSTIN / State</th>
+                <th>Credit Terms</th>
+                <th style="text-align:right;">Due Amount (₹)</th>
+                <th>Aging Status</th>
+                <th>Open Invoices / Bills</th>
+                <th style="text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="outstandings-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings
+                  data…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
     </main>
   </div>
 
