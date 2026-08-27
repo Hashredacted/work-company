@@ -818,9 +818,7 @@
               <th>Party Name & Contact</th>
               <th>GSTIN / State</th>
               <th>Credit Terms</th>
-              <th style="text-align:right;">Total Billed (₹)</th>
-              <th style="text-align:right;">Total Settled (₹)</th>
-              <th style="text-align:right;">Outstanding Due (₹)</th>
+              <th style="text-align:right;">Due Amount (₹)</th>
               <th>Aging Status</th>
               <th>Open Invoices / Bills</th>
               <th style="text-align:center;">Actions</th>
@@ -828,7 +826,7 @@
           </thead>
           <tbody id="outstandings-tbody">
             <tr>
-              <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings data…
+              <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings data…
               </td>
             </tr>
           </tbody>
@@ -1145,7 +1143,7 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} with active pending balance found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} with active pending balance found.</td></tr>`;
         return;
       }
 
@@ -1160,6 +1158,10 @@
               : p.status === 'CURRENT' ? `🟢 CURRENT`
                 : `⚪ CLEARED`;
 
+        const typeBadge = isReceivable
+          ? `<span style="background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:3px;">📥 RECEIVABLE · लेना</span>`
+          : `<span style="background:rgba(244,63,94,0.14);border:1px solid rgba(244,63,94,0.3);color:#fb7185;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:3px;">📤 PAYABLE · देना</span>`;
+
         const openBills = (p.openBills || []).filter(b => b.pendingAmount > 0);
         const openBillsCount = openBills.length;
         const openBillsHtml = openBillsCount > 0
@@ -1170,6 +1172,7 @@
           <tr>
             <td>
               <div style="font-weight:700;color:var(--text);font-size:0.9rem;">${escHtml(p.name)}</div>
+              <div>${typeBadge}</div>
               <div style="font-size:0.74rem;color:var(--text-muted);margin-top:2px;">
                 ${p.contactName ? escHtml(p.contactName) + ' · ' : ''}
                 ${p.phone ? `📞 <a href="tel:${escHtml(p.phone)}" style="color:var(--text-sub);text-decoration:none;">${escHtml(p.phone)}</a>` : 'No phone'}
@@ -1183,10 +1186,9 @@
               <div>${p.paymentTerms || 15} Days Net</div>
               ${p.creditLimit ? `<div style="font-size:0.7rem;color:var(--text-muted);">Limit: ${inr(p.creditLimit)}</div>` : ''}
             </td>
-            <td style="text-align:right;font-family:monospace;">${inr(p.totalAmount)}</td>
-            <td style="text-align:right;font-family:monospace;color:#4ade80;">${inr(p.totalSettled)}</td>
-            <td style="text-align:right;font-family:monospace;font-weight:800;font-size:0.95rem;color:${p.outstanding > 0 ? color : 'var(--text-muted)'};">
-              ${inr(p.outstanding)}
+            <td style="text-align:right;font-family:monospace;">
+              <div style="font-weight:800;font-size:0.95rem;color:${p.outstanding > 0 ? color : 'var(--text-muted)'};">${inr(p.outstanding)}</div>
+              <div style="font-size:0.68rem;font-weight:700;color:${color};margin-top:1px;">${p.outstanding > 0 ? (isReceivable ? '📥 RECEIVABLE (LENA)' : '📤 PAYABLE (DENA)') : 'CLEARED'}</div>
             </td>
             <td>
               <span class="status-badge ${badgeClass}">${statusLabel}</span>
@@ -1237,12 +1239,20 @@
       const party = rawOutstandings.find(p => p._id === partyId);
       if (!party) return;
 
-      document.getElementById('ob-party-name').textContent = `${party.name} · Open Invoices & Bills`;
+      const isReceivable = activePartyType === 'CUSTOMER';
+      const categoryText = isReceivable ? '📥 RECEIVABLE (Customer owes you / लेना)' : '📤 PAYABLE (You owe supplier / देना)';
+      const color = isReceivable ? 'var(--receivable)' : 'var(--payable)';
+
+      document.getElementById('ob-party-name').innerHTML = `
+        <span style="font-weight:800;color:var(--text);">${escHtml(party.name)}</span>
+        <span style="margin-left:8px;font-size:0.75rem;padding:3px 8px;border-radius:6px;background:${isReceivable ? 'rgba(56,189,248,0.15)' : 'rgba(244,63,94,0.15)'};color:${color};font-weight:700;border:1px solid ${isReceivable ? 'rgba(56,189,248,0.3)' : 'rgba(244,63,94,0.3)'};">${categoryText}</span>
+      `;
       document.getElementById('ob-party-meta').textContent = `GSTIN: ${party.gstin || 'Unregistered'} · Phone: ${party.phone || '—'} · Credit Terms: ${party.paymentTerms || 15} Days`;
-      document.getElementById('ob-total-pending').textContent = `Total Outstanding: ${inr(party.outstanding)}`;
+      document.getElementById('ob-total-pending').innerHTML = `Total Outstanding: <span style="color:${color};">${inr(party.outstanding)}</span> <span style="font-size:0.75rem;color:var(--text-muted);">(${isReceivable ? 'Receivable' : 'Payable'})</span>`;
 
       const payBtn = document.getElementById('ob-pay-btn');
       if (payBtn) {
+        payBtn.textContent = isReceivable ? '💳 Settle Receipt (Receive)' : '💳 Settle Payment (Pay)';
         payBtn.onclick = () => {
           closeOpenBillsModal();
           openRecordPayment(party._id, party.name, party.outstanding);
@@ -1260,6 +1270,7 @@
             <thead>
               <tr>
                 <th>Voucher / Invoice #</th>
+                <th>Type</th>
                 <th>Date</th>
                 <th>Due Date</th>
                 <th style="text-align:right;">Bill Amount (₹)</th>
@@ -1275,6 +1286,11 @@
                   <td>
                     <span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view full invoice">🔍 ${escHtml(b.voucherNo)}</span>
                   </td>
+                  <td>
+                    <span style="font-size:0.7rem;font-weight:700;padding:2px 6px;border-radius:4px;background:${isReceivable ? 'rgba(56,189,248,0.12)' : 'rgba(244,63,94,0.12)'};color:${color};">
+                      ${isReceivable ? '📥 Receivable' : '📤 Payable'}
+                    </span>
+                  </td>
                   <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(b.date)}</td>
                   <td style="font-family:monospace;font-size:0.78rem;color:${b.isOverdue ? '#f87171' : 'var(--text)'};">
                     ${fmtDate(b.dueDate)}
@@ -1282,7 +1298,9 @@
                   </td>
                   <td style="text-align:right;font-family:monospace;">${inr(b.totalAmount)}</td>
                   <td style="text-align:right;font-family:monospace;color:#4ade80;">${inr(b.settledAmount)}</td>
-                  <td style="text-align:right;font-family:monospace;font-weight:800;color:#f87171;">${inr(b.pendingAmount)}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:800;color:${color};">
+                    ${inr(b.pendingAmount)}
+                  </td>
                   <td>
                     <span class="status-badge ${b.isOverdue ? 'status-OVERDUE' : 'status-CURRENT'}">${b.isOverdue ? 'OVERDUE' : 'UNPAID'}</span>
                   </td>
@@ -1333,6 +1351,15 @@
                 : 'COMMERCIAL VOUCHER';
 
         const docIcon = isInvoice ? '🧾' : isBill ? '📦' : isReceipt ? '💵' : '💸';
+
+        // Prominent Receivable / Payable nature badge
+        const accountNatureBadge = isInvoice
+          ? `<span style="background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.4);color:#38bdf8;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📥 RECEIVABLE · पैसा लेना है</span>`
+          : isBill
+            ? `<span style="background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.4);color:#fb7185;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📤 PAYABLE · पैसा देना है</span>`
+            : isReceipt
+              ? `<span style="background:rgba(74,222,128,0.18);border:1px solid rgba(74,222,128,0.4);color:#4ade80;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📥 RECEIPT SETTLEMENT · जमा</span>`
+              : `<span style="background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.4);color:#fb7185;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📤 PAYMENT SETTLEMENT · भुगतान</span>`;
 
         const statusBadge = (isInvoice || isBill)
           ? `<span class="status-badge status-${txn.paymentStatus || 'UNPAID'}">${txn.paymentStatus || 'UNPAID'}</span>`
@@ -1425,7 +1452,10 @@
                 <div style="font-size:0.75rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
               </div>
               <div style="text-align:right;">
-                <div style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</div>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</span>
+                  ${accountNatureBadge}
+                </div>
                 <div style="font-family:monospace;font-weight:800;font-size:0.95rem;color:var(--text);margin-top:2px;">${escHtml(txn.voucherNo)}</div>
                 <div style="margin-top:4px;">${statusBadge}</div>
               </div>
@@ -1434,7 +1464,7 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;font-size:0.8rem;">
               <div>
                 <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">
-                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO)' : '🏭 SUPPLIER (VENDOR)'}
+                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO) · RECEIVABLE PARTY' : '🏭 SUPPLIER (VENDOR) · PAYABLE PARTY'}
                 </div>
                 <div style="font-weight:800;font-size:0.92rem;color:var(--text);">${escHtml(party?.name || '—')}</div>
                 <div style="color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(party?.gstin || 'Unregistered')}</strong></div>
@@ -1444,6 +1474,7 @@
               <div style="border-left:1px solid var(--border);padding-left:16px;">
                 <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">📅 VOUCHER DETAILS</div>
                 <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:0.78rem;">
+                  <span style="color:var(--text-muted);">Category:</span> <strong>${isInvoice ? '📥 Customer Receivable (Lena)' : isBill ? '📤 Supplier Payable (Dena)' : isReceipt ? '📥 Inflow Receipt' : '📤 Outflow Payment'}</strong>
                   <span style="color:var(--text-muted);">Date:</span> <strong style="font-family:monospace;">${fmtDate(txn.paymentDate)}</strong>
                   ${txn.dueDate ? `<span style="color:var(--text-muted);">Due Date:</span> <strong style="font-family:monospace;color:${new Date(txn.dueDate) < new Date() ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}
                   <span style="color:var(--text-muted);">Payment Mode:</span> <strong>${escHtml(txn.paymentMode || 'CREDIT')}</strong>
@@ -1457,7 +1488,7 @@
             ${settlementsHtml}
 
             <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-              <div style="min-width:280px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
+              <div style="min-width:320px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
                 <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);">
                   <span>Total Amount:</span>
                   <strong style="color:var(--text);font-size:0.95rem;">${inr(txn.amount)}</strong>
@@ -1467,8 +1498,8 @@
                     <span>Settled / Paid:</span>
                     <strong>${inr(txn.settledAmount || 0)}</strong>
                   </div>
-                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : '#f87171'};font-weight:800;">
-                    <span>Balance Pending:</span>
+                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : (isInvoice ? '#38bdf8' : '#fb7185')};font-weight:800;">
+                    <span>${isInvoice ? 'Receivable Due (To Collect):' : 'Payable Due (To Pay):'}</span>
                     <span>${inr(remainingPending)}</span>
                   </div>
                 ` : `
@@ -1528,7 +1559,9 @@
               <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">PARTY ACCOUNT (खाता)</div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
+                PARTY ACCOUNT (खाता) · ${partyType === 'CUSTOMER' ? '<span style="color:#38bdf8;">📥 CUSTOMER (RECEIVABLE)</span>' : '<span style="color:#fb7185;">📤 SUPPLIER (PAYABLE)</span>'}
+              </div>
               <div style="font-size:1.1rem;font-weight:800;color:var(--text);">${escHtml(party.name)}</div>
               <div style="font-size:0.75rem;color:var(--text-muted);">GSTIN: <strong>${escHtml(party.gstin || 'Unregistered')}</strong> · Phone: ${escHtml(party.phone || '—')}</div>
               <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(party.billingAddress || '')}</div>
@@ -1546,7 +1579,12 @@
             </div>
             <div style="background:rgba(99,102,241,0.1);border:1px solid #6366f1;border-radius:8px;padding:12px;">
               <div style="font-size:0.7rem;color:#a5b4fc;text-transform:uppercase;font-weight:700;">Net Closing Outstanding</div>
-              <div style="font-size:1.2rem;font-weight:800;color:#a5b4fc;font-family:monospace;margin-top:4px;">${inr(summary?.netOutstanding)} <span style="font-size:0.75rem;">${escHtml(summary?.balanceType)}</span></div>
+              <div style="font-size:1.2rem;font-weight:800;color:#a5b4fc;font-family:monospace;margin-top:4px;">
+                ${inr(summary?.netOutstanding)} 
+                <span style="font-size:0.75rem;font-weight:700;color:${summary?.balanceType === 'Dr' ? '#38bdf8' : '#fb7185'};">
+                  (${summary?.balanceType === 'Dr' ? 'RECEIVABLE · लेना' : 'PAYABLE · देना'})
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1580,7 +1618,12 @@
                       <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
                       <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};">${row.debit ? inr(row.debit) : '—'}</td>
                       <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};">${row.credit ? inr(row.credit) : '—'}</td>
-                      <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;">
+                        ${inr(row.runningBalance)} 
+                        <span style="font-size:0.7rem;font-weight:700;color:${row.balanceType === 'Dr' ? '#38bdf8' : '#fb7185'};">
+                          ${row.balanceType === 'Dr' ? 'Dr (Receivable)' : 'Cr (Payable)'}
+                        </span>
+                      </td>
                     </tr>
                   `;
         }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
@@ -1664,16 +1707,16 @@
         return;
       }
 
-      const headers = ['Party Name', 'Contact Name', 'Phone', 'GSTIN', 'State', 'Credit Terms (Days)', 'Total Billed (INR)', 'Total Settled (INR)', 'Outstanding Due (INR)', 'Aging Status', 'Days Overdue', 'Open Bills Count'];
+      const isReceivable = activePartyType === 'CUSTOMER';
+      const headers = ['Party Name', 'Category', 'Contact Name', 'Phone', 'GSTIN', 'State', 'Credit Terms (Days)', 'Due Amount (INR)', 'Aging Status', 'Days Overdue', 'Open Bills Count'];
       const rows = rawOutstandings.map(p => [
         `"${(p.name || '').replace(/"/g, '""')}"`,
+        `"${isReceivable ? 'RECEIVABLE (LENA)' : 'PAYABLE (DENA)'}"`,
         `"${(p.contactName || '').replace(/"/g, '""')}"`,
         `"${p.phone || ''}"`,
         `"${p.gstin || ''}"`,
         `"${p.state || ''}"`,
         p.paymentTerms || 15,
-        p.totalAmount || 0,
-        p.totalSettled || 0,
         p.outstanding || 0,
         p.status || 'CLEARED',
         p.daysOverdue || 0,
@@ -1684,7 +1727,7 @@
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `${activePartyType.toLowerCase()}_outstandings_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `${activePartyType.toLowerCase()}_outstandings_due_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

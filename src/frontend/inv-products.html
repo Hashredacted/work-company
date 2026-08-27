@@ -290,6 +290,88 @@
       box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
       pointer-events: none;
     }
+
+    /* ─── Searchable Select / Combobox Component ─── */
+    .searchable-select-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .searchable-select-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-sizing: border-box;
+    }
+    .searchable-select-btn:focus, .searchable-select-btn.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
+      outline: none;
+    }
+    .searchable-select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 10000;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      max-height: 280px;
+      overflow: hidden;
+    }
+    .searchable-select-dropdown.show {
+      display: flex;
+    }
+    .searchable-select-search {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      background: #1e293b;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: #f8fafc;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    .searchable-select-options {
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .searchable-select-opt {
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: background 0.1s;
+    }
+    .searchable-select-opt:hover, .searchable-select-opt.focused {
+      background: rgba(99,102,241,0.2);
+      color: #fff;
+    }
+    .searchable-select-opt.selected {
+      background: rgba(99,102,241,0.35);
+      color: #fff;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -404,20 +486,26 @@
         <div class="form-grid">
           <div class="form-group" style="grid-column:1/-1;">
             <label class="form-label">Product Name *</label>
-            <input id="f-name" class="form-input" type="text" required />
+            <input id="f-name" class="form-input" type="text" required placeholder="e.g. Sony WH-1000XM5 Wireless Headphones" oninput="onProductNameInput()" />
           </div>
           <div class="form-group">
-            <label class="form-label">SKU *</label>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="form-label" style="margin-bottom:0;">SKU *</label>
+              <button type="button" onclick="autoGenerateSku(true)" style="background:rgba(99,102,241,0.15);border:1px solid #6366f1;color:#a5b4fc;padding:2px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;font-weight:700;">⚡ Auto SKU</button>
+            </div>
             <div style="display:flex;gap:6px;">
-              <input id="f-sku" class="form-input" type="text" required style="flex:1;" />
+              <input id="f-sku" class="form-input" type="text" required placeholder="e.g. ELEC-SONY-101" style="flex:1;font-family:monospace;text-transform:uppercase;" />
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Barcode</label>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="form-label" style="margin-bottom:0;">Barcode / EAN</label>
+              <button type="button" onclick="autoGenerateBarcode(true)" style="background:rgba(56,189,248,0.15);border:1px solid #38bdf8;color:#38bdf8;padding:2px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;font-weight:700;">⚡ Auto Code</button>
+            </div>
             <div style="display:flex;gap:6px;">
-              <input id="f-barcode" class="form-input" type="text" placeholder="EAN/UPC" style="flex:1;" />
+              <input id="f-barcode" class="form-input" type="text" placeholder="EAN/UPC (e.g. 8901234567890)" style="flex:1;font-family:monospace;" />
               <button type="button" onclick="startScanForField('f-barcode')"
-                style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:0.8rem;">📷</button>
+                style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:0.8rem;" title="Scan with camera">📷</button>
             </div>
           </div>
           <div class="form-group" style="grid-column:1/-1;">
@@ -692,6 +780,7 @@
     let categories = [];
     let warehouses = [];
     let productsList = [];
+    let masterProductsList = [];
     let debounceTimer;
 
     function debounceLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 300); }
@@ -701,13 +790,268 @@
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 
+    // ─── Searchable Select / Combobox Component ────────────────────────────────
+    class SearchableSelect {
+      constructor(selectEl, placeholder = 'Type to search & narrow down…') {
+        if (!selectEl) return;
+        this.selectEl = selectEl;
+        this.placeholder = placeholder;
+        this.highlightIndex = -1;
+        this.init();
+      }
+
+      init() {
+        if (this.selectEl._searchable) {
+          this.selectEl._searchable.refresh();
+          return;
+        }
+        this.selectEl._searchable = this;
+        this.selectEl.style.display = 'none';
+
+        this.wrap = document.createElement('div');
+        this.wrap.className = 'searchable-select-wrap';
+
+        this.btn = document.createElement('div');
+        this.btn.className = 'searchable-select-btn';
+        this.btn.tabIndex = 0;
+
+        this.dropdown = document.createElement('div');
+        this.dropdown.className = 'searchable-select-dropdown';
+
+        this.searchInput = document.createElement('input');
+        this.searchInput.type = 'text';
+        this.searchInput.className = 'searchable-select-search';
+        this.searchInput.placeholder = this.placeholder;
+
+        this.optionsContainer = document.createElement('div');
+        this.optionsContainer.className = 'searchable-select-options';
+
+        this.dropdown.appendChild(this.searchInput);
+        this.dropdown.appendChild(this.optionsContainer);
+
+        this.wrap.appendChild(this.btn);
+        this.wrap.appendChild(this.dropdown);
+
+        this.selectEl.parentNode.insertBefore(this.wrap, this.selectEl.nextSibling);
+
+        this.bindEvents();
+        this.refresh();
+      }
+
+      bindEvents() {
+        this.btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggle();
+        });
+
+        this.btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.open();
+          }
+        });
+
+        this.searchInput.addEventListener('input', () => {
+          this.filter(this.searchInput.value);
+        });
+
+        this.searchInput.addEventListener('keydown', (e) => {
+          const items = Array.from(this.optionsContainer.querySelectorAll('.searchable-select-opt:not([style*="display: none"])'));
+          if (!items.length) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.highlightIndex = (this.highlightIndex + 1) % items.length;
+            this.updateHighlight(items);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.highlightIndex = (this.highlightIndex - 1 + items.length) % items.length;
+            this.updateHighlight(items);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (this.highlightIndex >= 0 && this.highlightIndex < items.length) {
+              items[this.highlightIndex].click();
+            } else if (items.length === 1) {
+              items[0].click();
+            }
+          } else if (e.key === 'Escape') {
+            this.close();
+          }
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!this.wrap.contains(e.target)) {
+            this.close();
+          }
+        });
+      }
+
+      updateHighlight(items) {
+        items.forEach((it, idx) => {
+          it.classList.toggle('focused', idx === this.highlightIndex);
+          if (idx === this.highlightIndex) {
+            it.scrollIntoView({ block: 'nearest' });
+          }
+        });
+      }
+
+      toggle() {
+        if (this.dropdown.classList.contains('show')) {
+          this.close();
+        } else {
+          this.open();
+        }
+      }
+
+      open() {
+        document.querySelectorAll('.searchable-select-dropdown.show').forEach(d => {
+          if (d !== this.dropdown) d.classList.remove('show');
+        });
+        document.querySelectorAll('.searchable-select-btn.active').forEach(b => {
+          if (b !== this.btn) b.classList.remove('active');
+        });
+
+        this.dropdown.classList.add('show');
+        this.btn.classList.add('active');
+        this.searchInput.value = '';
+        this.filter('');
+        setTimeout(() => this.searchInput.focus(), 50);
+      }
+
+      close() {
+        this.dropdown.classList.remove('show');
+        this.btn.classList.remove('active');
+        this.highlightIndex = -1;
+      }
+
+      refresh() {
+        const rawOptions = Array.from(this.selectEl.options);
+        this.optionsContainer.innerHTML = '';
+        const selectedVal = this.selectEl.value;
+
+        let selectedLabel = '— Select —';
+
+        rawOptions.forEach(opt => {
+          if (opt.value === selectedVal) {
+            selectedLabel = opt.text;
+          }
+
+          const item = document.createElement('div');
+          item.className = `searchable-select-opt ${opt.value === selectedVal ? 'selected' : ''}`;
+          item.dataset.value = opt.value;
+          item.dataset.text = opt.text.toLowerCase();
+          item.innerHTML = `<span>${escHtml(opt.text)}</span>`;
+
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.selectEl.value = opt.value;
+            this.selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+            this.refresh();
+            this.close();
+            this.btn.focus();
+          });
+
+          this.optionsContainer.appendChild(item);
+        });
+
+        this.btn.innerHTML = `
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%;">${escHtml(selectedLabel)}</span>
+          <span style="font-size:0.7rem;color:var(--text-muted);margin-left:6px;">▼</span>
+        `;
+      }
+
+      filter(query) {
+        const q = query.toLowerCase().trim();
+        const items = this.optionsContainer.querySelectorAll('.searchable-select-opt');
+        let matched = 0;
+        this.highlightIndex = -1;
+
+        items.forEach(it => {
+          const match = !q || it.dataset.text.includes(q);
+          it.style.display = match ? 'flex' : 'none';
+          if (match) matched++;
+        });
+
+        let noResultsEl = this.optionsContainer.querySelector('.searchable-select-no-results');
+        if (matched === 0) {
+          if (!noResultsEl) {
+            noResultsEl = document.createElement('div');
+            noResultsEl.className = 'searchable-select-no-results';
+            noResultsEl.style.cssText = 'padding:12px;text-align:center;color:var(--text-muted);font-size:0.8rem;';
+            noResultsEl.textContent = 'No matching items found';
+            this.optionsContainer.appendChild(noResultsEl);
+          }
+          noResultsEl.style.display = 'block';
+        } else if (noResultsEl) {
+          noResultsEl.style.display = 'none';
+        }
+      }
+    }
+
+    function makeSearchable(selectIdOrEl, placeholder) {
+      const el = typeof selectIdOrEl === 'string' ? document.getElementById(selectIdOrEl) : selectIdOrEl;
+      if (!el) return null;
+      return new SearchableSelect(el, placeholder);
+    }
+
+    // ─── Code Auto-Generators ──────────────────────────────────────────────────
+    function autoGenerateSku(force = false) {
+      const skuEl = document.getElementById('f-sku');
+      if (!skuEl) return;
+      if (!force && skuEl.value.trim().length > 0) return;
+
+      const name = document.getElementById('f-name')?.value || '';
+      const catSel = document.getElementById('f-category');
+      const catText = catSel?.options[catSel.selectedIndex]?.text || '';
+
+      let prefix = 'PRD';
+      if (catText && !catText.startsWith('—')) {
+        const cleanCat = catText.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+        if (cleanCat) prefix = cleanCat;
+      } else if (name) {
+        const cleanName = name.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+        if (cleanName) prefix = cleanName;
+      }
+
+      const rand = Math.floor(100 + Math.random() * 900);
+      skuEl.value = `${prefix}-${rand}`;
+    }
+
+    function autoGenerateBarcode(force = false) {
+      const barEl = document.getElementById('f-barcode');
+      if (!barEl) return;
+      if (!force && barEl.value.trim().length > 0) return;
+
+      // Generate EAN-13: 890 (India) + 9 random digits + check digit
+      let digits = '890';
+      for (let i = 0; i < 9; i++) {
+        digits += Math.floor(Math.random() * 10);
+      }
+      let sum = 0;
+      for (let i = 0; i < 12; i++) {
+        sum += parseInt(digits[i]) * (i % 2 === 0 ? 1 : 3);
+      }
+      const checkDigit = (10 - (sum % 10)) % 10;
+      barEl.value = digits + (checkDigit === 10 ? 0 : checkDigit);
+    }
+
+    function onProductNameInput() {
+      const skuEl = document.getElementById('f-sku');
+      if (skuEl && !skuEl.value) {
+        autoGenerateSku(false);
+      }
+    }
+
     // ─── Warehouses Loader ─────────────────────────────────────────────────────
     async function loadWarehouses() {
       try {
         const r = await fetch(`${API}/inventory/warehouses`, { headers: H() });
         if (!r.ok) return;
         const json = await r.json();
-        warehouses = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        const raw = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        // Deduplicate warehouses by _id
+        warehouses = Array.from(new Map(raw.map(w => [w._id, w])).values());
+        
         const qsWh = document.getElementById('qs-warehouse');
         if (qsWh) {
           qsWh.innerHTML = '<option value="">— Select Godown —</option>';
@@ -717,6 +1061,7 @@
           if (warehouses.length > 0 && !qsWh.value) {
             qsWh.value = warehouses[0]._id;
           }
+          makeSearchable('qs-warehouse', '🔍 Search godown…');
         }
       } catch (e) {
         console.warn('Error loading warehouses:', e);
@@ -729,7 +1074,9 @@
         const r = await fetch(`${API}/inventory/categories`, { headers: H() });
         if (!r.ok) return;
         const { data } = await r.json();
-        categories = data || [];
+        const raw = data || [];
+        // Deduplicate categories by _id
+        categories = Array.from(new Map(raw.map(c => [c._id, c])).values());
 
         const sel = document.getElementById('filter-cat');
         const fSel = document.getElementById('f-category');
@@ -749,9 +1096,7 @@
 
           if (children.length > 0) {
             let optGroupHtml = `<optgroup label="${icon} ${root.name}">`;
-            // Option for root itself
             optGroupHtml += `<option value="${root._id}" data-hsn="${root.defaultHsn || ''}" data-gst="${root.defaultGstRate ?? 18}" data-cess="${root.defaultCessRate ?? 0}">${icon} All ${root.name}</option>`;
-            // Options for children
             children.forEach(sub => {
               optGroupHtml += `<option value="${sub._id}" data-hsn="${sub.defaultHsn || root.defaultHsn || ''}" data-gst="${sub.defaultGstRate ?? root.defaultGstRate ?? 18}" data-cess="${sub.defaultCessRate ?? 0}">  └ ${sub.name} (HSN: ${sub.defaultHsn || '—'} · ${sub.defaultGstRate}%)</option>`;
             });
@@ -769,6 +1114,8 @@
             qcParent.innerHTML += `<option value="${root._id}">${icon} ${root.name}</option>`;
           }
         });
+
+        makeSearchable('f-category', '🔍 Search category…');
       } catch (e) {
         console.warn(e);
       }
@@ -797,6 +1144,9 @@
       if (defaultCess !== null && defaultCess !== undefined && defaultCess !== '') {
         document.getElementById('f-cess').value = defaultCess;
       }
+
+      // Auto generate SKU if blank
+      autoGenerateSku(false);
 
       if (hint) {
         hint.textContent = `✨ Auto-filled: HSN ${defaultHsn || '—'} · GST ${defaultGst || 18}%`;
@@ -842,6 +1192,7 @@
         if (json.data?._id) {
           document.getElementById('f-category').value = json.data._id;
           onCategoryChange();
+          makeSearchable('f-category', '🔍 Search category…');
         }
         closeQuickCatModal();
       } catch (err) {
@@ -865,14 +1216,31 @@
         ]);
         if (sr.ok) {
           const sJson = await sr.json();
-          suppliersData = Array.isArray(sJson.data) ? sJson.data : (sJson.data?.items || []);
+          const sRaw = Array.isArray(sJson.data) ? sJson.data : (sJson.data?.items || []);
+          // Deduplicate by normalized name and phone
+          suppliersData = Array.from(new Map(sRaw.map(s => [`${(s.name || '').trim().toLowerCase()}_${(s.phone || '').trim()}`, s])).values());
         }
         if (cr.ok) {
           const cJson = await cr.json();
-          customersData = Array.isArray(cJson.data) ? cJson.data : (cJson.data?.items || []);
+          const cRaw = Array.isArray(cJson.data) ? cJson.data : (cJson.data?.items || []);
+          // Deduplicate by normalized name and phone
+          customersData = Array.from(new Map(cRaw.map(c => [`${(c.name || '').trim().toLowerCase()}_${(c.phone || '').trim()}`, c])).values());
         }
       } catch (e) {
         console.warn('Error loading parties:', e);
+      }
+    }
+
+    async function loadMasterProducts() {
+      try {
+        const r = await fetch(`${API}/inventory/products?limit=1000`, { headers: H() });
+        if (!r.ok) return;
+        const json = await r.json();
+        const pRaw = json.data?.products || [];
+        // Deduplicate by name and SKU
+        masterProductsList = Array.from(new Map(pRaw.map(p => [`${(p.name || '').trim().toLowerCase()}_${(p.sku || '').trim().toLowerCase()}`, p])).values());
+      } catch (e) {
+        console.warn('Error loading master products:', e);
       }
     }
 
@@ -903,6 +1271,7 @@
         partySel.value = currentVal;
       }
 
+      makeSearchable('qs-party', type === 'IN' ? '🔍 Search supplier name, phone…' : '🔍 Search customer name, phone…');
       onQSPartyChange();
     }
 
@@ -942,7 +1311,10 @@
     }
 
     async function openQuickStockModal(productId = null) {
-      // Ensure latest parties & warehouses are loaded
+      // Ensure master datasets are loaded
+      if (!masterProductsList.length) {
+        await loadMasterProducts();
+      }
       if (!suppliersData.length || !customersData.length) {
         await loadParties();
       }
@@ -953,7 +1325,8 @@
       const prodSel = document.getElementById('qs-product');
       if (prodSel) {
         prodSel.innerHTML = '<option value="">— Select Product —</option>';
-        (productsList || []).forEach(p => {
+        const listToUse = masterProductsList.length ? masterProductsList : productsList;
+        (listToUse || []).forEach(p => {
           const avail = p.currentStock !== undefined ? p.currentStock : 0;
           prodSel.innerHTML += `<option value="${p._id}" data-tracking="${p.trackingType || 'STANDARD'}" data-cost="${p.purchasePrice || 0}" data-sell="${p.sellingPrice || p.mrp || 0}">${escHtml(p.name)} (${escHtml(p.sku)}) · Available: ${avail} ${escHtml(p.unit || 'Pcs')}</option>`;
         });
@@ -967,11 +1340,15 @@
           const batchRow = document.getElementById('qs-batch-row');
           if (batchRow) batchRow.style.display = 'none';
         }
+        makeSearchable('qs-product', '🔍 Type product name or SKU…');
       }
 
       const qsWh = document.getElementById('qs-warehouse');
-      if (qsWh && warehouses.length > 0 && !qsWh.value) {
-        qsWh.value = warehouses[0]._id;
+      if (qsWh) {
+        if (warehouses.length > 0 && !qsWh.value) {
+          qsWh.value = warehouses[0]._id;
+        }
+        makeSearchable('qs-warehouse', '🔍 Search godown…');
       }
 
       const qtyEl = document.getElementById('qs-qty');
@@ -1196,6 +1573,7 @@
         if (!r.ok) { errEl.textContent = json.message; errEl.style.display = 'block'; return; }
         closeModal();
         loadProducts();
+        loadMasterProducts();
       } catch (err) { errEl.textContent = 'Server error.'; errEl.style.display = 'block'; }
       finally { btn.textContent = 'Save Product'; btn.disabled = false; }
     }
@@ -1263,9 +1641,12 @@
     window.startScan = startScan;
     window.stopScan = stopScan;
     window.startScanForField = startScanForField;
+    window.autoGenerateSku = autoGenerateSku;
+    window.autoGenerateBarcode = autoGenerateBarcode;
+    window.onProductNameInput = onProductNameInput;
 
     // ─── Init ──────────────────────────────────────────────────────────────────
-    Promise.all([loadCategories(), loadWarehouses(), loadParties()]).then(loadProducts);
+    Promise.all([loadCategories(), loadWarehouses(), loadParties(), loadMasterProducts()]).then(loadProducts);
   </script>
 </body>
 

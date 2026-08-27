@@ -577,6 +577,88 @@
         color: #000 !important;
       }
     }
+
+    /* ─── Searchable Select / Combobox Component ─── */
+    .searchable-select-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .searchable-select-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-sizing: border-box;
+    }
+    .searchable-select-btn:focus, .searchable-select-btn.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
+      outline: none;
+    }
+    .searchable-select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 10000;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      max-height: 280px;
+      overflow: hidden;
+    }
+    .searchable-select-dropdown.show {
+      display: flex;
+    }
+    .searchable-select-search {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      background: #1e293b;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: #f8fafc;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    .searchable-select-options {
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .searchable-select-opt {
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: background 0.1s;
+    }
+    .searchable-select-opt:hover, .searchable-select-opt.focused {
+      background: rgba(99,102,241,0.2);
+      color: #fff;
+    }
+    .searchable-select-opt.selected {
+      background: rgba(99,102,241,0.35);
+      color: #fff;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -690,8 +772,8 @@
               <tr>
                 <th>Customer</th>
                 <th>Phone / GSTIN</th>
-                <th style="text-align:right;">Total Invoiced</th>
-                <th style="text-align:right;">Total Collected</th>
+                <th style="text-align:right;">Total Invoiced (₹)</th>
+                <th style="text-align:right;">Total Collected (₹)</th>
                 <th style="text-align:right;">Outstanding (₹)</th>
                 <th>Credit Days</th>
                 <th>Aging Status</th>
@@ -707,8 +789,8 @@
               <tr>
                 <td colspan="2">Total Summary</td>
                 <td style="text-align:right;" id="cust-foot-inv">—</td>
-                <td style="text-align:right;" id="cust-foot-coll" style="color:#4ade80;">—</td>
-                <td style="text-align:right;" id="cust-foot-out" style="color:#f87171;">—</td>
+                <td style="text-align:right;color:#4ade80;" id="cust-foot-coll">—</td>
+                <td style="text-align:right;color:#38bdf8;font-weight:800;font-size:0.95rem;" id="cust-foot-out">—</td>
                 <td colspan="3"></td>
               </tr>
             </tfoot>
@@ -741,8 +823,8 @@
               <tr>
                 <th>Supplier</th>
                 <th>Phone / GSTIN</th>
-                <th style="text-align:right;">Total Purchased</th>
-                <th style="text-align:right;">Total Paid</th>
+                <th style="text-align:right;">Total Purchased (₹)</th>
+                <th style="text-align:right;">Total Paid (₹)</th>
                 <th style="text-align:right;">Outstanding (₹)</th>
                 <th>Payment Terms</th>
                 <th>Status</th>
@@ -758,8 +840,8 @@
               <tr>
                 <td colspan="2">Total Summary</td>
                 <td style="text-align:right;" id="supp-foot-pur">—</td>
-                <td style="text-align:right;" id="supp-foot-paid" style="color:#4ade80;">—</td>
-                <td style="text-align:right;" id="supp-foot-out" style="color:#f87171;">—</td>
+                <td style="text-align:right;color:#4ade80;" id="supp-foot-paid">—</td>
+                <td style="text-align:right;color:#fb7185;font-weight:800;font-size:0.95rem;" id="supp-foot-out">—</td>
                 <td colspan="3"></td>
               </tr>
             </tfoot>
@@ -1113,6 +1195,214 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    // ─── Searchable Select / Combobox Component ────────────────────────────────
+    class SearchableSelect {
+      constructor(selectEl, placeholder = 'Type to search & narrow down…') {
+        if (!selectEl) return;
+        this.selectEl = selectEl;
+        this.placeholder = placeholder;
+        this.highlightIndex = -1;
+        this.init();
+      }
+
+      init() {
+        if (this.selectEl._searchable) {
+          this.selectEl._searchable.placeholder = this.placeholder;
+          if (this.selectEl._searchable.searchInput) {
+            this.selectEl._searchable.searchInput.placeholder = this.placeholder;
+          }
+          this.selectEl._searchable.refresh();
+          return;
+        }
+        this.selectEl._searchable = this;
+        this.selectEl.style.display = 'none';
+
+        this.wrap = document.createElement('div');
+        this.wrap.className = 'searchable-select-wrap';
+
+        this.btn = document.createElement('div');
+        this.btn.className = 'searchable-select-btn';
+        this.btn.tabIndex = 0;
+
+        this.dropdown = document.createElement('div');
+        this.dropdown.className = 'searchable-select-dropdown';
+
+        this.searchInput = document.createElement('input');
+        this.searchInput.type = 'text';
+        this.searchInput.className = 'searchable-select-search';
+        this.searchInput.placeholder = this.placeholder;
+
+        this.optionsContainer = document.createElement('div');
+        this.optionsContainer.className = 'searchable-select-options';
+
+        this.dropdown.appendChild(this.searchInput);
+        this.dropdown.appendChild(this.optionsContainer);
+
+        this.wrap.appendChild(this.btn);
+        this.wrap.appendChild(this.dropdown);
+
+        this.selectEl.parentNode.insertBefore(this.wrap, this.selectEl.nextSibling);
+
+        this.bindEvents();
+        this.refresh();
+      }
+
+      bindEvents() {
+        this.btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggle();
+        });
+
+        this.btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.open();
+          }
+        });
+
+        this.searchInput.addEventListener('input', () => {
+          this.filter(this.searchInput.value);
+        });
+
+        this.searchInput.addEventListener('keydown', (e) => {
+          const items = Array.from(this.optionsContainer.querySelectorAll('.searchable-select-opt:not([style*="display: none"])'));
+          if (!items.length) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.highlightIndex = (this.highlightIndex + 1) % items.length;
+            this.updateHighlight(items);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.highlightIndex = (this.highlightIndex - 1 + items.length) % items.length;
+            this.updateHighlight(items);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (this.highlightIndex >= 0 && this.highlightIndex < items.length) {
+              items[this.highlightIndex].click();
+            } else if (items.length === 1) {
+              items[0].click();
+            }
+          } else if (e.key === 'Escape') {
+            this.close();
+          }
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!this.wrap.contains(e.target)) {
+            this.close();
+          }
+        });
+      }
+
+      updateHighlight(items) {
+        items.forEach((it, idx) => {
+          it.classList.toggle('focused', idx === this.highlightIndex);
+          if (idx === this.highlightIndex) {
+            it.scrollIntoView({ block: 'nearest' });
+          }
+        });
+      }
+
+      toggle() {
+        if (this.dropdown.classList.contains('show')) {
+          this.close();
+        } else {
+          this.open();
+        }
+      }
+
+      open() {
+        document.querySelectorAll('.searchable-select-dropdown.show').forEach(d => {
+          if (d !== this.dropdown) d.classList.remove('show');
+        });
+        document.querySelectorAll('.searchable-select-btn.active').forEach(b => {
+          if (b !== this.btn) b.classList.remove('active');
+        });
+
+        this.dropdown.classList.add('show');
+        this.btn.classList.add('active');
+        this.searchInput.value = '';
+        this.filter('');
+        setTimeout(() => this.searchInput.focus(), 50);
+      }
+
+      close() {
+        this.dropdown.classList.remove('show');
+        this.btn.classList.remove('active');
+        this.highlightIndex = -1;
+      }
+
+      refresh() {
+        const rawOptions = Array.from(this.selectEl.options);
+        this.optionsContainer.innerHTML = '';
+        const selectedVal = this.selectEl.value;
+
+        let selectedLabel = '— Select —';
+
+        rawOptions.forEach(opt => {
+          if (opt.value === selectedVal) {
+            selectedLabel = opt.text;
+          }
+
+          const item = document.createElement('div');
+          item.className = `searchable-select-opt ${opt.value === selectedVal ? 'selected' : ''}`;
+          item.dataset.value = opt.value;
+          item.dataset.text = opt.text.toLowerCase();
+          item.innerHTML = `<span>${escHtml(opt.text)}</span>`;
+
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.selectEl.value = opt.value;
+            this.selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+            this.refresh();
+            this.close();
+            this.btn.focus();
+          });
+
+          this.optionsContainer.appendChild(item);
+        });
+
+        this.btn.innerHTML = `
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%;">${escHtml(selectedLabel)}</span>
+          <span style="font-size:0.7rem;color:var(--text-muted);margin-left:6px;">▼</span>
+        `;
+      }
+
+      filter(query) {
+        const q = query.toLowerCase().trim();
+        const items = this.optionsContainer.querySelectorAll('.searchable-select-opt');
+        let matched = 0;
+        this.highlightIndex = -1;
+
+        items.forEach(it => {
+          const match = !q || it.dataset.text.includes(q);
+          it.style.display = match ? 'flex' : 'none';
+          if (match) matched++;
+        });
+
+        let noResultsEl = this.optionsContainer.querySelector('.searchable-select-no-results');
+        if (matched === 0) {
+          if (!noResultsEl) {
+            noResultsEl = document.createElement('div');
+            noResultsEl.className = 'searchable-select-no-results';
+            noResultsEl.style.cssText = 'padding:12px;text-align:center;color:var(--text-muted);font-size:0.8rem;';
+            noResultsEl.textContent = 'No matching items found';
+            this.optionsContainer.appendChild(noResultsEl);
+          }
+          noResultsEl.style.display = 'block';
+        } else if (noResultsEl) {
+          noResultsEl.style.display = 'none';
+        }
+      }
+    }
+
+    function makeSearchable(selectIdOrEl, placeholder) {
+      const el = typeof selectIdOrEl === 'string' ? document.getElementById(selectIdOrEl) : selectIdOrEl;
+      if (!el) return null;
+      return new SearchableSelect(el, placeholder);
+    }
+
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
@@ -1234,15 +1524,19 @@
           <tr>
             <td>
               <div style="font-weight:700;color:var(--text);">${escHtml(c.name)}</div>
-              <div style="font-size:0.72rem;color:var(--text-muted);">${c.contactName ? 'Attn: ' + escHtml(c.contactName) : ''}</div>
+              <div><span style="background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📥 RECEIVABLE · लेना</span></div>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${c.contactName ? 'Attn: ' + escHtml(c.contactName) : ''}</div>
             </td>
             <td>
               <div>${escHtml(c.phone || '—')}</div>
               <div style="font-size:0.7rem;font-family:monospace;color:var(--text-muted);">${escHtml(c.gstin || 'No GSTIN')}</div>
             </td>
-            <td style="text-align:right;">${inr(c.totalAmount)}</td>
-            <td style="text-align:right;color:#4ade80;">${inr(c.totalSettled)}</td>
-            <td style="text-align:right;font-weight:800;font-size:0.95rem;color:${c.outstanding > 0 ? '#f87171' : '#4ade80'};">${inr(c.outstanding)}</td>
+            <td style="text-align:right;font-family:monospace;">${inr(c.totalAmount)}</td>
+            <td style="text-align:right;font-family:monospace;color:#4ade80;">${inr(c.totalSettled)}</td>
+            <td style="text-align:right;font-family:monospace;">
+              <div style="font-weight:800;font-size:0.95rem;color:${c.outstanding > 0 ? '#38bdf8' : '#4ade80'};">${inr(c.outstanding)}</div>
+              <div style="font-size:0.68rem;font-weight:700;color:#38bdf8;margin-top:1px;">${c.outstanding > 0 ? '📥 RECEIVABLE (LENA)' : 'CLEARED'}</div>
+            </td>
             <td>${c.paymentTerms} Days</td>
             <td><span class="status-badge status-${c.status}">${escHtml(c.status.replace('_', ' '))}</span></td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -1257,7 +1551,6 @@
       const footInv = document.getElementById('cust-foot-inv');
       const footColl = document.getElementById('cust-foot-coll');
       const footOut = document.getElementById('cust-foot-out');
-
       if (footInv) footInv.textContent = inr(totInv);
       if (footColl) footColl.textContent = inr(totColl);
       if (footOut) footOut.textContent = inr(totOut);
@@ -1326,15 +1619,19 @@
           <tr>
             <td>
               <div style="font-weight:700;color:var(--text);">${escHtml(s.name)}</div>
-              <div style="font-size:0.72rem;color:var(--text-muted);">${s.contactName ? 'Attn: ' + escHtml(s.contactName) : ''}</div>
+              <div><span style="background:rgba(244,63,94,0.14);border:1px solid rgba(244,63,94,0.3);color:#fb7185;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📤 PAYABLE · देना</span></div>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${s.contactName ? 'Attn: ' + escHtml(s.contactName) : ''}</div>
             </td>
             <td>
               <div>${escHtml(s.phone || '—')}</div>
               <div style="font-size:0.7rem;font-family:monospace;color:var(--text-muted);">${escHtml(s.gstin || 'No GSTIN')}</div>
             </td>
-            <td style="text-align:right;">${inr(s.totalAmount)}</td>
-            <td style="text-align:right;color:#4ade80;">${inr(s.totalSettled)}</td>
-            <td style="text-align:right;font-weight:800;font-size:0.95rem;color:${s.outstanding > 0 ? '#f87171' : '#4ade80'};">${inr(s.outstanding)}</td>
+            <td style="text-align:right;font-family:monospace;">${inr(s.totalAmount)}</td>
+            <td style="text-align:right;font-family:monospace;color:#4ade80;">${inr(s.totalSettled)}</td>
+            <td style="text-align:right;font-family:monospace;">
+              <div style="font-weight:800;font-size:0.95rem;color:${s.outstanding > 0 ? '#fb7185' : '#4ade80'};">${inr(s.outstanding)}</div>
+              <div style="font-size:0.68rem;font-weight:700;color:#fb7185;margin-top:1px;">${s.outstanding > 0 ? '📤 PAYABLE (DENA)' : 'CLEARED'}</div>
+            </td>
             <td>${s.paymentTerms} Days</td>
             <td><span class="status-badge status-${s.status}">${escHtml(s.status.replace('_', ' '))}</span></td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -1348,7 +1645,6 @@
       const footPur = document.getElementById('supp-foot-pur');
       const footPaid = document.getElementById('supp-foot-paid');
       const footOut = document.getElementById('supp-foot-out');
-
       if (footPur) footPur.textContent = inr(totPur);
       if (footPaid) footPaid.textContent = inr(totPaid);
       if (footOut) footOut.textContent = inr(totOut);
@@ -1511,6 +1807,20 @@
       if (modal) modal.classList.remove('show');
     }
 
+    async function openRecordPaymentForParty(partyType, partyId, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      openPaymentModal(e);
+      const typeEl = document.getElementById('pm-party-type');
+      if (typeEl) typeEl.value = partyType;
+      await onPartyTypeSelect();
+      const pSel = document.getElementById('pm-party-id');
+      if (pSel) {
+        pSel.value = partyId;
+        if (pSel._searchable) pSel._searchable.refresh();
+        await onPartySelected();
+      }
+    }
+
     async function onPartyTypeSelect() {
       const typeEl = document.getElementById('pm-party-type');
       const pSel = document.getElementById('pm-party-id');
@@ -1529,7 +1839,8 @@
       try {
         const r = await fetch(`${API}/inventory/payments/outstandings?type=${pType}`, { headers: H() });
         const json = await r.json();
-        const list = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        const raw = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+        const list = Array.from(new Map(raw.map(p => [`${(p.name || '').trim().toLowerCase()}_${(p.phone || '').trim()}`, p])).values());
         
         // Cache party list
         if (pType === 'CUSTOMER') rawCustomers = list;
@@ -1539,6 +1850,7 @@
         list.forEach(p => {
           pSel.innerHTML += `<option value="${p._id}">${escHtml(p.name)} (${escHtml(p.phone || 'No phone')})</option>`;
         });
+        makeSearchable('pm-party-id', pType === 'CUSTOMER' ? '🔍 Type customer name, phone…' : '🔍 Type supplier name, phone…');
       } catch (e) {
         console.error('Error loading parties:', e);
         pSel.innerHTML = '<option value="">Error loading</option>';
@@ -2148,6 +2460,15 @@
 
         const remainingPending = Math.max(0, txn.amount - (txn.settledAmount || 0));
 
+        // Prominent Receivable / Payable nature badge
+        const accountNatureBadge = isInvoice
+          ? `<span style="background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.4);color:#38bdf8;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📥 RECEIVABLE · पैसा लेना है</span>`
+          : isBill
+            ? `<span style="background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.4);color:#fb7185;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📤 PAYABLE · पैसा देना है</span>`
+            : isReceipt
+              ? `<span style="background:rgba(74,222,128,0.18);border:1px solid rgba(74,222,128,0.4);color:#4ade80;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📥 RECEIPT SETTLEMENT · जमा</span>`
+              : `<span style="background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.4);color:#fb7185;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📤 PAYMENT SETTLEMENT · भुगतान</span>`;
+
         container.innerHTML = `
           <div style="border:1px solid var(--border);border-radius:10px;padding:20px;background:var(--surface);">
             <!-- Top Branding & Doc Title -->
@@ -2158,7 +2479,10 @@
                 <div style="font-size:0.75rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
               </div>
               <div style="text-align:right;">
-                <div style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</div>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</span>
+                  ${accountNatureBadge}
+                </div>
                 <div style="font-family:monospace;font-weight:800;font-size:0.95rem;color:var(--text);margin-top:2px;">${escHtml(txn.voucherNo)}</div>
                 <div style="margin-top:4px;">${statusBadge}</div>
               </div>
@@ -2168,7 +2492,7 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;font-size:0.8rem;">
               <div>
                 <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">
-                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO)' : '🏭 SUPPLIER (VENDOR)'}
+                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO) · RECEIVABLE PARTY' : '🏭 SUPPLIER (VENDOR) · PAYABLE PARTY'}
                 </div>
                 <div style="font-weight:800;font-size:0.92rem;color:var(--text);">${escHtml(party?.name || '—')}</div>
                 <div style="color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(party?.gstin || 'Unregistered')}</strong></div>
@@ -2178,6 +2502,7 @@
               <div style="border-left:1px solid var(--border);padding-left:16px;">
                 <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">📅 VOUCHER DETAILS</div>
                 <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:0.78rem;">
+                  <span style="color:var(--text-muted);">Category:</span> <strong>${isInvoice ? '📥 Customer Receivable (Lena)' : isBill ? '📤 Supplier Payable (Dena)' : isReceipt ? '📥 Inflow Receipt' : '📤 Outflow Payment'}</strong>
                   <span style="color:var(--text-muted);">Date:</span> <strong style="font-family:monospace;">${fmtDate(txn.paymentDate)}</strong>
                   ${txn.dueDate ? `<span style="color:var(--text-muted);">Due Date:</span> <strong style="font-family:monospace;color:${new Date(txn.dueDate) < new Date() ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}
                   <span style="color:var(--text-muted);">Payment Mode:</span> <strong>${escHtml(txn.paymentMode || 'CREDIT')}</strong>
@@ -2195,7 +2520,7 @@
 
             <!-- Financial Summary Box -->
             <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-              <div style="min-width:280px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
+              <div style="min-width:320px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
                 <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);">
                   <span>Total Amount:</span>
                   <strong style="color:var(--text);font-size:0.95rem;">${inr(txn.amount)}</strong>
@@ -2205,8 +2530,8 @@
                     <span>Settled / Paid:</span>
                     <strong>${inr(txn.settledAmount || 0)}</strong>
                   </div>
-                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : '#f87171'};font-weight:800;">
-                    <span>Balance Pending:</span>
+                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : (isInvoice ? '#38bdf8' : '#fb7185')};font-weight:800;">
+                    <span>${isInvoice ? 'Receivable Due (To Collect):' : 'Payable Due (To Pay):'}</span>
                     <span>${inr(remainingPending)}</span>
                   </div>
                 ` : `

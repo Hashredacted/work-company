@@ -289,9 +289,11 @@
               *</label><input id="f-name" class="form-input" type="text" required /></div>
           <div class="form-group"><label class="form-label">GSTIN</label><input id="f-gstin" class="form-input"
               type="text" maxlength="15" placeholder="27AABCU9603R1ZM"
-              style="font-family:monospace;text-transform:uppercase;" /></div>
+              style="font-family:monospace;text-transform:uppercase;" oninput="onCustomerGstinInput()" />
+            <div id="cus-gstin-hint" style="display:none;font-size:0.72rem;color:#38bdf8;margin-top:4px;"></div>
+          </div>
           <div class="form-group"><label class="form-label">PAN</label><input id="f-pan" class="form-input" type="text"
-              maxlength="10" style="font-family:monospace;text-transform:uppercase;" /></div>
+              maxlength="10" placeholder="AABCU9603R" style="font-family:monospace;text-transform:uppercase;" oninput="this.value = this.value.toUpperCase()" /></div>
           <div class="form-group"><label class="form-label">Contact Person</label><input id="f-contact"
               class="form-input" type="text" /></div>
           <div class="form-group"><label class="form-label">Phone</label><input id="f-phone" class="form-input"
@@ -299,15 +301,15 @@
           <div class="form-group"><label class="form-label">Email</label><input id="f-email" class="form-input"
               type="email" /></div>
           <div class="form-group"><label class="form-label">State</label><input id="f-state" class="form-input"
-              type="text" /></div>
+              type="text" placeholder="Maharashtra" oninput="onCustomerStateInput()" /></div>
           <div class="form-group"><label class="form-label">GST State Code</label><input id="f-state-code"
-              class="form-input" type="text" maxlength="2" placeholder="27" /></div>
+              class="form-input" type="text" maxlength="2" placeholder="27" oninput="onCustomerStateCodeInput()" /></div>
           <div class="form-group"><label class="form-label">City</label><input id="f-city" class="form-input"
               type="text" /></div>
           <div class="form-group"><label class="form-label">Pincode</label><input id="f-pin" class="form-input"
               type="text" maxlength="6" /></div>
           <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Billing Address</label><input
-              id="f-billing-addr" class="form-input" type="text" /></div>
+              id="f-billing-addr" class="form-input" type="text" oninput="onCustomerBillingAddrInput()" /></div>
           <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Shipping Address</label><input
               id="f-shipping-addr" class="form-input" type="text" placeholder="Leave blank if same as billing" /></div>
         </div>
@@ -333,6 +335,90 @@
     const API = 'http://localhost:5000/api';
     const token = localStorage.getItem('auth_token');
     if (!token) window.location.href = 'index.html';
+
+    const GST_STATE_CODES = {
+      '01': 'Jammu and Kashmir', '02': 'Himachal Pradesh', '03': 'Punjab', '04': 'Chandigarh',
+      '05': 'Uttarakhand', '06': 'Haryana', '07': 'Delhi', '08': 'Rajasthan',
+      '09': 'Uttar Pradesh', '10': 'Bihar', '11': 'Sikkim', '12': 'Arunachal Pradesh',
+      '13': 'Nagaland', '14': 'Manipur', '15': 'Mizoram', '16': 'Tripura',
+      '17': 'Meghalaya', '18': 'Assam', '19': 'West Bengal', '20': 'Jharkhand',
+      '21': 'Odisha', '22': 'Chhattisgarh', '23': 'Madhya Pradesh', '24': 'Gujarat',
+      '26': 'Dadra and Nagar Haveli and Daman and Diu', '27': 'Maharashtra', '29': 'Karnataka',
+      '30': 'Goa', '31': 'Lakshadweep', '32': 'Kerala', '33': 'Tamil Nadu',
+      '34': 'Puducherry', '35': 'Andaman and Nicobar Islands', '36': 'Telangana', '37': 'Andhra Pradesh',
+      '38': 'Ladakh', '97': 'Other Territory'
+    };
+
+    function onCustomerGstinInput() {
+      const gstinEl = document.getElementById('f-gstin');
+      const hintEl = document.getElementById('cus-gstin-hint');
+      let val = (gstinEl.value || '').toUpperCase().trim();
+      gstinEl.value = val;
+
+      let filledMsg = [];
+
+      // Auto extract state code & state name
+      if (val.length >= 2) {
+        const code = val.substring(0, 2);
+        if (GST_STATE_CODES[code]) {
+          const stateCodeEl = document.getElementById('f-state-code');
+          const stateEl = document.getElementById('f-state');
+          if (stateCodeEl) stateCodeEl.value = code;
+          if (stateEl) stateEl.value = GST_STATE_CODES[code];
+          filledMsg.push(`State: ${GST_STATE_CODES[code]} (${code})`);
+        }
+      }
+
+      // Auto extract PAN (10 chars from pos 2 to 12)
+      if (val.length >= 12) {
+        const pan = val.substring(2, 12);
+        const panEl = document.getElementById('f-pan');
+        if (panEl) {
+          panEl.value = pan;
+          filledMsg.push(`PAN: ${pan}`);
+        }
+      }
+
+      if (hintEl) {
+        if (filledMsg.length > 0) {
+          hintEl.textContent = `✨ Auto-filled: ${filledMsg.join(' · ')}`;
+          hintEl.style.display = 'block';
+        } else {
+          hintEl.style.display = 'none';
+        }
+      }
+    }
+
+    function onCustomerStateCodeInput() {
+      const codeEl = document.getElementById('f-state-code');
+      const code = (codeEl.value || '').trim();
+      if (code.length === 2 && GST_STATE_CODES[code]) {
+        const stateEl = document.getElementById('f-state');
+        if (stateEl) stateEl.value = GST_STATE_CODES[code];
+      }
+    }
+
+    function onCustomerStateInput() {
+      const stateVal = (document.getElementById('f-state')?.value || '').toLowerCase().trim();
+      if (!stateVal) return;
+      for (const [code, name] of Object.entries(GST_STATE_CODES)) {
+        if (name.toLowerCase() === stateVal || name.toLowerCase().startsWith(stateVal)) {
+          const stateCodeEl = document.getElementById('f-state-code');
+          if (stateCodeEl && (!stateCodeEl.value || stateCodeEl.value !== code)) {
+            stateCodeEl.value = code;
+          }
+          break;
+        }
+      }
+    }
+
+    function onCustomerBillingAddrInput() {
+      const bill = document.getElementById('f-billing-addr')?.value || '';
+      const ship = document.getElementById('f-shipping-addr');
+      if (ship && !ship.value) {
+        ship.placeholder = `Same as billing (${bill.substring(0, 25)}${bill.length > 25 ? '…' : ''})`;
+      }
+    }
 
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
     const mainNav = document.getElementById('main-nav-link');
