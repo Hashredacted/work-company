@@ -2,26 +2,26 @@
 
 const API_BASE = 'http://localhost:5000/api';
 
-const form           = document.getElementById('register-form');
-const companyName    = document.getElementById('companyName');
-const companyEmail   = document.getElementById('companyEmail');
-const companyPhone   = document.getElementById('companyPhone');
-const companyGst     = document.getElementById('companyGst');
+const form = document.getElementById('register-form');
+const companyName = document.getElementById('companyName');
+const companyEmail = document.getElementById('companyEmail');
+const companyPhone = document.getElementById('companyPhone');
+const companyGst = document.getElementById('companyGst');
 const companyLicense = document.getElementById('companyLicense');
 const companyAddress = document.getElementById('companyAddress');
-const adminName      = document.getElementById('adminName');
-const adminEmail     = document.getElementById('adminEmail');
-const adminPassword  = document.getElementById('adminPassword');
+const adminName = document.getElementById('adminName');
+const adminEmail = document.getElementById('adminEmail');
+const adminPassword = document.getElementById('adminPassword');
 
-const nameError          = document.getElementById('name-error');
-const emailError         = document.getElementById('email-error');
-const adminNameError     = document.getElementById('adminName-error');
-const adminEmailError    = document.getElementById('adminEmail-error');
+const nameError = document.getElementById('name-error');
+const emailError = document.getElementById('email-error');
+const adminNameError = document.getElementById('adminName-error');
+const adminEmailError = document.getElementById('adminEmail-error');
 const adminPasswordError = document.getElementById('adminPassword-error');
-const formError          = document.getElementById('form-error');
+const formError = document.getElementById('form-error');
 
-const submitBtn  = document.getElementById('submit-btn');
-const btnText    = document.getElementById('btn-text');
+const submitBtn = document.getElementById('submit-btn');
+const btnText = document.getElementById('btn-text');
 const btnSpinner = document.getElementById('btn-spinner');
 
 function setLoading(state) {
@@ -42,14 +42,14 @@ form.addEventListener('submit', async (e) => {
   clearErrors();
 
   const payload = {
-    name:          companyName.value.trim(),
-    email:         companyEmail.value.trim(),
-    phone:         companyPhone.value.trim() || undefined,
-    gst:           companyGst.value.trim() || undefined,
-    license:       companyLicense.value.trim() || undefined,
-    address:       companyAddress.value.trim() || undefined,
-    adminName:     adminName.value.trim(),
-    adminEmail:    adminEmail.value.trim(),
+    name: companyName.value.trim(),
+    email: companyEmail.value.trim(),
+    phone: companyPhone.value.trim() || undefined,
+    gst: companyGst.value.trim() || undefined,
+    license: companyLicense.value.trim() || undefined,
+    address: companyAddress.value.trim() || undefined,
+    adminName: adminName.value.trim(),
+    adminEmail: adminEmail.value.trim(),
     adminPassword: adminPassword.value,
   };
 

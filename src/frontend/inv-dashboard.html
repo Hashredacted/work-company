@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -336,17 +336,24 @@
     <!-- Main Content Area -->
     <main class="main-content">
       <!-- Top Header / Context -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;">
           <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
           <div>
-            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📊 Inventory Overview</h1>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Real-time KPIs, low stock notifications, and cash flow</div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📊
+              Inventory Overview</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Real-time KPIs, low stock
+              notifications, and cash flow</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <a href="inv-products.html?action=stock&type=IN" style="background:var(--primary);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;padding:8px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">+ Quick Stock In</a>
-          <a href="inv-products.html?action=stock&type=OUT" style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);text-decoration:none;font-size:0.8rem;font-weight:600;padding:8px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">- Quick Stock Out</a>
+          <a href="inv-products.html?action=stock&type=IN"
+            style="background:var(--primary);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;padding:8px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">+
+            Quick Stock In</a>
+          <a href="inv-products.html?action=stock&type=OUT"
+            style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);text-decoration:none;font-size:0.8rem;font-weight:600;padding:8px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">-
+            Quick Stock Out</a>
         </div>
       </div>
 
@@ -356,82 +363,83 @@
         workspace administrator to grant <code>inventory:read</code>.
       </div>
 
-    <!-- KPI Cards -->
-    <div class="kpi-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-      <div class="kpi" style="--accent:#6366f1;">
-        <div class="kpi-lbl">Total Products</div>
-        <div class="kpi-val" id="kpi-products">—</div>
-        <div class="kpi-sub">Active Catalog Items</div>
-      </div>
-      <div class="kpi" style="--accent:#f87171;">
-        <div class="kpi-lbl">Low Stock Alerts</div>
-        <div class="kpi-val" id="kpi-low-stock" style="color:#f87171;">—</div>
-        <div class="kpi-sub">Below reorder level</div>
-      </div>
-      <div class="kpi" style="--accent:#38bdf8;">
-        <div class="kpi-lbl">Total Stock Value</div>
-        <div class="kpi-val" id="kpi-stock-val" style="font-size:1.3rem;color:#38bdf8;">—</div>
-        <div class="kpi-sub">At purchase cost</div>
-      </div>
-      <div class="kpi" style="--accent:#4ade80;">
-        <div class="kpi-lbl">Receivables (लेना है)</div>
-        <div class="kpi-val" id="kpi-receivables" style="font-size:1.3rem;color:#4ade80;">—</div>
-        <div class="kpi-sub">From Customer sales</div>
-      </div>
-      <div class="kpi" style="--accent:#f87171;">
-        <div class="kpi-lbl">Payables (देना है)</div>
-        <div class="kpi-val" id="kpi-payables" style="font-size:1.3rem;color:#f87171;">—</div>
-        <div class="kpi-sub">To Supplier purchases</div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <!-- Low Stock Alerts -->
-      <div class="card">
-        <div class="section-title">
-          <span>🚨 Low Stock Alerts</span>
-          <a href="inv-products.html" style="font-size:0.75rem;color:#a5b4fc;text-decoration:none;">View Products →</a>
+      <!-- KPI Cards -->
+      <div class="kpi-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div class="kpi" style="--accent:#6366f1;">
+          <div class="kpi-lbl">Total Products</div>
+          <div class="kpi-val" id="kpi-products">—</div>
+          <div class="kpi-sub">Active Catalog Items</div>
         </div>
-        <div id="low-stock-list">
-          <div class="empty-state">Loading...</div>
+        <div class="kpi" style="--accent:#f87171;">
+          <div class="kpi-lbl">Low Stock Alerts</div>
+          <div class="kpi-val" id="kpi-low-stock" style="color:#f87171;">—</div>
+          <div class="kpi-sub">Below reorder level</div>
+        </div>
+        <div class="kpi" style="--accent:#38bdf8;">
+          <div class="kpi-lbl">Total Stock Value</div>
+          <div class="kpi-val" id="kpi-stock-val" style="font-size:1.3rem;color:#38bdf8;">—</div>
+          <div class="kpi-sub">At purchase cost</div>
+        </div>
+        <div class="kpi" style="--accent:#4ade80;">
+          <div class="kpi-lbl">Receivables (लेना है)</div>
+          <div class="kpi-val" id="kpi-receivables" style="font-size:1.3rem;color:#4ade80;">—</div>
+          <div class="kpi-sub">From Customer sales</div>
+        </div>
+        <div class="kpi" style="--accent:#f87171;">
+          <div class="kpi-lbl">Payables (देना है)</div>
+          <div class="kpi-val" id="kpi-payables" style="font-size:1.3rem;color:#f87171;">—</div>
+          <div class="kpi-sub">To Supplier purchases</div>
         </div>
       </div>
 
-      <!-- Recent Activity -->
-      <div class="card">
-        <div class="section-title">
-          <span>⚡ Recent Stock Movements</span>
-          <a href="inv-reports.html" style="font-size:0.75rem;color:#a5b4fc;text-decoration:none;">View Ledger →</a>
+      <div class="grid-2">
+        <!-- Low Stock Alerts -->
+        <div class="card">
+          <div class="section-title">
+            <span>🚨 Low Stock Alerts</span>
+            <a href="inv-products.html" style="font-size:0.75rem;color:#a5b4fc;text-decoration:none;">View Products
+              →</a>
+          </div>
+          <div id="low-stock-list">
+            <div class="empty-state">Loading...</div>
+          </div>
         </div>
-        <div id="activity-list">
-          <div class="empty-state">Loading...</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Quick Action Buttons -->
-    <div class="card" style="margin-bottom:20px;">
-      <div class="section-title"><span>⚡ Quick Actions</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;">
-        <a href="inv-products.html"
-          style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">+
-          Add Product</a>
-        <a href="inv-products.html?action=stock"
-          style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">⚡
-          Quick Stock & Bill</a>
-        <a href="inv-payments.html"
-          style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:#34d399;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">💳
-          Payments & Khata</a>
-        <a href="inv-suppliers.html"
-          style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.35);color:#a78bfa;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">🏭
-          Suppliers</a>
-        <a href="inv-customers.html"
-          style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">👥
-          Customers</a>
-        <a href="inv-reports.html"
-          style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">📈
-          Reports</a>
+        <!-- Recent Activity -->
+        <div class="card">
+          <div class="section-title">
+            <span>⚡ Recent Stock Movements</span>
+            <a href="inv-reports.html" style="font-size:0.75rem;color:#a5b4fc;text-decoration:none;">View Ledger →</a>
+          </div>
+          <div id="activity-list">
+            <div class="empty-state">Loading...</div>
+          </div>
+        </div>
       </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="section-title"><span>⚡ Quick Actions</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <a href="inv-products.html"
+            style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">+
+            Add Product</a>
+          <a href="inv-products.html?action=stock"
+            style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">⚡
+            Quick Stock & Bill</a>
+          <a href="inv-payments.html"
+            style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:#34d399;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">💳
+            Payments & Khata</a>
+          <a href="inv-suppliers.html"
+            style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.35);color:#a78bfa;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">🏭
+            Suppliers</a>
+          <a href="inv-customers.html"
+            style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">👥
+            Customers</a>
+          <a href="inv-reports.html"
+            style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">📈
+            Reports</a>
+        </div>
     </main>
   </div>
 

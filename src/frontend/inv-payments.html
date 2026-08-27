@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -583,6 +583,7 @@
       position: relative;
       width: 100%;
     }
+
     .searchable-select-btn {
       width: 100%;
       display: flex;
@@ -599,11 +600,14 @@
       transition: border-color 0.15s, box-shadow 0.15s;
       box-sizing: border-box;
     }
-    .searchable-select-btn:focus, .searchable-select-btn.active {
+
+    .searchable-select-btn:focus,
+    .searchable-select-btn.active {
       border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
       outline: none;
     }
+
     .searchable-select-dropdown {
       position: absolute;
       top: calc(100% + 4px);
@@ -613,15 +617,17 @@
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
       display: none;
       flex-direction: column;
       max-height: 280px;
       overflow: hidden;
     }
+
     .searchable-select-dropdown.show {
       display: flex;
     }
+
     .searchable-select-search {
       width: 100%;
       box-sizing: border-box;
@@ -633,11 +639,13 @@
       font-size: 0.82rem;
       outline: none;
     }
+
     .searchable-select-options {
       max-height: 220px;
       overflow-y: auto;
       padding: 4px;
     }
+
     .searchable-select-opt {
       padding: 8px 10px;
       font-size: 0.82rem;
@@ -650,12 +658,15 @@
       gap: 8px;
       transition: background 0.1s;
     }
-    .searchable-select-opt:hover, .searchable-select-opt.focused {
-      background: rgba(99,102,241,0.2);
+
+    .searchable-select-opt:hover,
+    .searchable-select-opt.focused {
+      background: rgba(99, 102, 241, 0.2);
       color: #fff;
     }
+
     .searchable-select-opt.selected {
-      background: rgba(99,102,241,0.35);
+      background: rgba(99, 102, 241, 0.35);
       color: #fff;
       font-weight: 700;
     }
@@ -736,7 +747,8 @@
             <a href="javascript:void(0)" onclick="switchTab('suppliers')" id="nav-sub-payments" class="nav-subitem">
               <span class="nav-bullet">💸</span> Payments
             </a>
-            <a href="javascript:void(0)" onclick="switchTab('customers')" id="nav-sub-received" class="nav-subitem active">
+            <a href="javascript:void(0)" onclick="switchTab('customers')" id="nav-sub-received"
+              class="nav-subitem active">
               <span class="nav-bullet">💵</span> Received
             </a>
           </div>
@@ -777,12 +789,15 @@
     <!-- Main Content Area -->
     <main class="main-content">
       <!-- Top Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;">
           <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
           <div>
-            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">💳 Payment & Collection Vouchers</h1>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Track dues, record FIFO knockoffs, settlements, and download khata statements</div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">💳 Payment
+              & Collection Vouchers</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Track dues, record FIFO knockoffs,
+              settlements, and download khata statements</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
@@ -793,255 +808,271 @@
         </div>
       </div>
 
-    <!-- KPI Summary Row -->
-    <div class="kpi-row">
-      <div class="kpi" style="--accent:#4ade80;">
-        <div class="kpi-lbl">Total Receivables (लेना है)</div>
-        <div class="kpi-val" id="kpi-receivables" style="color:#4ade80;">—</div>
-        <div class="kpi-sub">👥 Customer Credit Dues</div>
+      <!-- KPI Summary Row -->
+      <div class="kpi-row">
+        <div class="kpi" style="--accent:#4ade80;">
+          <div class="kpi-lbl">Total Receivables (लेना है)</div>
+          <div class="kpi-val" id="kpi-receivables" style="color:#4ade80;">—</div>
+          <div class="kpi-sub">👥 Customer Credit Dues</div>
+        </div>
+        <div class="kpi" style="--accent:#f87171;">
+          <div class="kpi-lbl">Total Payables (देना है)</div>
+          <div class="kpi-val" id="kpi-payables" style="color:#f87171;">—</div>
+          <div class="kpi-sub">🏭 Supplier Credit Purchases</div>
+        </div>
+        <div class="kpi" style="--accent:#fbbf24;">
+          <div class="kpi-lbl">Overdue Receivables</div>
+          <div class="kpi-val" id="kpi-overdue-rec" style="color:#fbbf24;">—</div>
+          <div class="kpi-sub">⏰ Past Payment Terms</div>
+        </div>
+        <div class="kpi" style="--accent:#38bdf8;">
+          <div class="kpi-lbl">Net Working Capital</div>
+          <div class="kpi-val" id="kpi-working-cap" style="color:#38bdf8;">—</div>
+          <div class="kpi-sub">💼 Receivables - Payables</div>
+        </div>
       </div>
-      <div class="kpi" style="--accent:#f87171;">
-        <div class="kpi-lbl">Total Payables (देना है)</div>
-        <div class="kpi-val" id="kpi-payables" style="color:#f87171;">—</div>
-        <div class="kpi-sub">🏭 Supplier Credit Purchases</div>
-      </div>
-      <div class="kpi" style="--accent:#fbbf24;">
-        <div class="kpi-lbl">Overdue Receivables</div>
-        <div class="kpi-val" id="kpi-overdue-rec" style="color:#fbbf24;">—</div>
-        <div class="kpi-sub">⏰ Past Payment Terms</div>
-      </div>
-      <div class="kpi" style="--accent:#38bdf8;">
-        <div class="kpi-lbl">Net Working Capital</div>
-        <div class="kpi-val" id="kpi-working-cap" style="color:#38bdf8;">—</div>
-        <div class="kpi-sub">💼 Receivables - Payables</div>
-      </div>
-    </div>
 
-    <!-- Tabs -->
-    <div class="pay-tabs">
-      <button class="tab-btn active" id="tab-btn-customers" onclick="switchTab('customers')">👥 Customer Receivables
-        (लेनदार)</button>
-      <button class="tab-btn" id="tab-btn-suppliers" onclick="switchTab('suppliers')">🏭 Supplier Payables
-        (देनदार)</button>
-      <button class="tab-btn" id="tab-btn-daily" onclick="switchTab('daily')">📅 Daily Collections (दैनिक
-        सारांश)</button>
-      <button class="tab-btn" id="tab-btn-vouchers" onclick="switchTab('vouchers')">📋 Payment History /
-        Vouchers</button>
-    </div>
+      <!-- Tabs -->
+      <div class="pay-tabs">
+        <button class="tab-btn active" id="tab-btn-customers" onclick="switchTab('customers')">👥 Customer Receivables
+          (लेनदार)</button>
+        <button class="tab-btn" id="tab-btn-suppliers" onclick="switchTab('suppliers')">🏭 Supplier Payables
+          (देनदार)</button>
+        <button class="tab-btn" id="tab-btn-daily" onclick="switchTab('daily')">📅 Daily Collections (दैनिक
+          सारांश)</button>
+        <button class="tab-btn" id="tab-btn-vouchers" onclick="switchTab('vouchers')">📋 Payment History /
+          Vouchers</button>
+      </div>
 
-    <!-- Customer Receivables Panel -->
-    <div id="panel-customers" class="pay-panel active">
-      <div class="card">
-        <div class="filter-row">
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input id="search-cust" class="form-input" style="min-width:260px;" type="text"
-              placeholder="🔍 Search customer name, GSTIN, phone…" oninput="debounceCust()" />
-            <div class="pill-group">
-              <button class="filter-pill active" onclick="setCustFilter('DUE', this)">Pending (> ₹0)</button>
-              <button class="filter-pill" onclick="setCustFilter('OVERDUE', this)">Overdue / Critical</button>
-              <button class="filter-pill" onclick="setCustFilter('CLEARED', this)">Cleared</button>
-              <button class="filter-pill" onclick="setCustFilter('ALL', this)">All</button>
+      <!-- Customer Receivables Panel -->
+      <div id="panel-customers" class="pay-panel active">
+        <div class="card">
+          <div class="filter-row">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input id="search-cust" class="form-input" style="min-width:260px;" type="text"
+                placeholder="🔍 Search customer name, GSTIN, phone…" oninput="debounceCust()" />
+              <div class="pill-group">
+                <button class="filter-pill active" onclick="setCustFilter('DUE', this)">Pending (> ₹0)</button>
+                <button class="filter-pill" onclick="setCustFilter('OVERDUE', this)">Overdue / Critical</button>
+                <button class="filter-pill" onclick="setCustFilter('CLEARED', this)">Cleared</button>
+                <button class="filter-pill" onclick="setCustFilter('ALL', this)">All</button>
+              </div>
             </div>
-          </div>
-          <button onclick="loadCustomerOutstandings()"
-            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
-            Refresh</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Phone / GSTIN</th>
-                <th style="text-align:right;">Total Invoiced (₹)</th>
-                <th style="text-align:right;">Total Collected (₹)</th>
-                <th style="text-align:right;">Outstanding (₹)</th>
-                <th>Credit Days</th>
-                <th>Aging Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="cust-tbody">
-              <tr>
-                <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…</td>
-              </tr>
-            </tbody>
-            <tfoot id="cust-tfoot" style="display:none;">
-              <tr>
-                <td colspan="2">Total Summary</td>
-                <td style="text-align:right;" id="cust-foot-inv">—</td>
-                <td style="text-align:right;color:#4ade80;" id="cust-foot-coll">—</td>
-                <td style="text-align:right;color:#38bdf8;font-weight:800;font-size:0.95rem;" id="cust-foot-out">—</td>
-                <td colspan="3"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Supplier Payables Panel -->
-    <div id="panel-suppliers" class="pay-panel">
-      <div class="card">
-        <div class="filter-row">
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input id="search-supp" class="form-input" style="min-width:260px;" type="text"
-              placeholder="🔍 Search supplier name, GSTIN, phone…" oninput="debounceSupp()" />
-            <div class="pill-group">
-              <button class="filter-pill active" onclick="setSuppFilter('DUE', this)">Pending (> ₹0)</button>
-              <button class="filter-pill" onclick="setSuppFilter('OVERDUE', this)">Overdue / Critical</button>
-              <button class="filter-pill" onclick="setSuppFilter('CLEARED', this)">Cleared</button>
-              <button class="filter-pill" onclick="setSuppFilter('ALL', this)">All</button>
-            </div>
-          </div>
-          <button onclick="loadSupplierOutstandings()"
-            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
-            Refresh</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Supplier</th>
-                <th>Phone / GSTIN</th>
-                <th style="text-align:right;">Total Purchased (₹)</th>
-                <th style="text-align:right;">Total Paid (₹)</th>
-                <th style="text-align:right;">Outstanding (₹)</th>
-                <th>Payment Terms</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="supp-tbody">
-              <tr>
-                <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…</td>
-              </tr>
-            </tbody>
-            <tfoot id="supp-tfoot" style="display:none;">
-              <tr>
-                <td colspan="2">Total Summary</td>
-                <td style="text-align:right;" id="supp-foot-pur">—</td>
-                <td style="text-align:right;color:#4ade80;" id="supp-foot-paid">—</td>
-                <td style="text-align:right;color:#fb7185;font-weight:800;font-size:0.95rem;" id="supp-foot-out">—</td>
-                <td colspan="3"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Daily Payment Collections / Outflow Panel [NEW] -->
-    <div id="panel-daily" class="pay-panel">
-      <div class="card">
-        <!-- Today's Collection Highlights -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:20px;">
-          <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:#4ade80;text-transform:uppercase;">Today Inflow (Customer Receipts)</div>
-            <div id="daily-today-inflow" style="font-size:1.4rem;font-weight:800;color:#4ade80;margin:4px 0;">₹0</div>
-            <div id="daily-today-inflow-count" style="font-size:0.72rem;color:var(--text-muted);">0 receipts recorded today</div>
-          </div>
-          <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:#f87171;text-transform:uppercase;">Today Outflow (Supplier Payments)</div>
-            <div id="daily-today-outflow" style="font-size:1.4rem;font-weight:800;color:#f87171;margin:4px 0;">₹0</div>
-            <div id="daily-today-outflow-count" style="font-size:0.72rem;color:var(--text-muted);">0 payments recorded today</div>
-          </div>
-          <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:#38bdf8;text-transform:uppercase;">Today Net Cashflow</div>
-            <div id="daily-today-net" style="font-size:1.4rem;font-weight:800;color:#38bdf8;margin:4px 0;">₹0</div>
-            <div style="font-size:0.72rem;color:var(--text-muted);">Daily Inflow minus Outflow</div>
-          </div>
-        </div>
-
-        <div class="filter-row">
-          <div style="font-weight:700;font-size:0.95rem;color:var(--text);display:flex;align-items:center;gap:6px;">
-            <span>📅 Per-Day Collections & Disbursements Breakdown</span>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <select id="daily-range-select" class="form-select" style="width:auto;" onchange="loadDailySummary()">
-              <option value="7">Last 7 Days</option>
-              <option value="15">Last 15 Days</option>
-              <option value="30" selected>Last 30 Days</option>
-              <option value="60">Last 60 Days</option>
-            </select>
-            <button onclick="loadDailySummary()"
+            <button onclick="loadCustomerOutstandings()"
               style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
               Refresh</button>
           </div>
-        </div>
-
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Day</th>
-                <th style="text-align:right;">Inflow Received (₹)</th>
-                <th style="text-align:right;">Outflow Paid (₹)</th>
-                <th style="text-align:right;">Net Cashflow (₹)</th>
-                <th>Payment Modes Breakdown</th>
-                <th style="text-align:center;">Vouchers Count</th>
-              </tr>
-            </thead>
-            <tbody id="daily-tbody">
-              <tr>
-                <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading daily summary…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Payment Vouchers History Panel -->
-    <div id="panel-vouchers" class="pay-panel">
-      <div class="card">
-        <div class="filter-row">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <select id="voucher-party-type" class="form-select" onchange="loadVouchers()" style="width:auto;">
-              <option value="">All Parties</option>
-              <option value="CUSTOMER">Customer Receipts (Payment In)</option>
-              <option value="SUPPLIER">Supplier Payments (Payment Out)</option>
-            </select>
-            <select id="voucher-mode" class="form-select" onchange="loadVouchers()" style="width:auto;">
-              <option value="">All Payment Modes</option>
-              <option value="UPI">📱 UPI</option>
-              <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
-              <option value="CHEQUE">📝 Cheque</option>
-              <option value="CASH">💵 Cash</option>
-            </select>
-            <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Notes…"
-              oninput="loadVouchers()" style="min-width:220px;width:auto;" />
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Phone / GSTIN</th>
+                  <th style="text-align:right;">Total Invoiced (₹)</th>
+                  <th style="text-align:right;">Total Collected (₹)</th>
+                  <th style="text-align:right;">Outstanding (₹)</th>
+                  <th>Credit Days</th>
+                  <th>Aging Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cust-tbody">
+                <tr>
+                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot id="cust-tfoot" style="display:none;">
+                <tr>
+                  <td colspan="2">Total Summary</td>
+                  <td style="text-align:right;" id="cust-foot-inv">—</td>
+                  <td style="text-align:right;color:#4ade80;" id="cust-foot-coll">—</td>
+                  <td style="text-align:right;color:#38bdf8;font-weight:800;font-size:0.95rem;" id="cust-foot-out">—
+                  </td>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-          <button onclick="loadVouchers()"
-            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
-            Refresh</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Voucher #</th>
-                <th>Party Name</th>
-                <th>Voucher Type</th>
-                <th>Mode</th>
-                <th>Reference / UTR</th>
-                <th style="text-align:right;">Amount (₹)</th>
-                <th>Settled Bills (Knockoff)</th>
-                <th>Notes / Particulars</th>
-                <th>Statement</th>
-              </tr>
-            </thead>
-            <tbody id="vouchers-tbody">
-              <tr>
-                <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
-    </div>
+
+      <!-- Supplier Payables Panel -->
+      <div id="panel-suppliers" class="pay-panel">
+        <div class="card">
+          <div class="filter-row">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <input id="search-supp" class="form-input" style="min-width:260px;" type="text"
+                placeholder="🔍 Search supplier name, GSTIN, phone…" oninput="debounceSupp()" />
+              <div class="pill-group">
+                <button class="filter-pill active" onclick="setSuppFilter('DUE', this)">Pending (> ₹0)</button>
+                <button class="filter-pill" onclick="setSuppFilter('OVERDUE', this)">Overdue / Critical</button>
+                <button class="filter-pill" onclick="setSuppFilter('CLEARED', this)">Cleared</button>
+                <button class="filter-pill" onclick="setSuppFilter('ALL', this)">All</button>
+              </div>
+            </div>
+            <button onclick="loadSupplierOutstandings()"
+              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+              Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Supplier</th>
+                  <th>Phone / GSTIN</th>
+                  <th style="text-align:right;">Total Purchased (₹)</th>
+                  <th style="text-align:right;">Total Paid (₹)</th>
+                  <th style="text-align:right;">Outstanding (₹)</th>
+                  <th>Payment Terms</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="supp-tbody">
+                <tr>
+                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot id="supp-tfoot" style="display:none;">
+                <tr>
+                  <td colspan="2">Total Summary</td>
+                  <td style="text-align:right;" id="supp-foot-pur">—</td>
+                  <td style="text-align:right;color:#4ade80;" id="supp-foot-paid">—</td>
+                  <td style="text-align:right;color:#fb7185;font-weight:800;font-size:0.95rem;" id="supp-foot-out">—
+                  </td>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Payment Collections / Outflow Panel [NEW] -->
+      <div id="panel-daily" class="pay-panel">
+        <div class="card">
+          <!-- Today's Collection Highlights -->
+          <div
+            style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:20px;">
+            <div
+              style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:14px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#4ade80;text-transform:uppercase;">Today Inflow
+                (Customer Receipts)</div>
+              <div id="daily-today-inflow" style="font-size:1.4rem;font-weight:800;color:#4ade80;margin:4px 0;">₹0</div>
+              <div id="daily-today-inflow-count" style="font-size:0.72rem;color:var(--text-muted);">0 receipts recorded
+                today</div>
+            </div>
+            <div
+              style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:14px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#f87171;text-transform:uppercase;">Today Outflow
+                (Supplier Payments)</div>
+              <div id="daily-today-outflow" style="font-size:1.4rem;font-weight:800;color:#f87171;margin:4px 0;">₹0
+              </div>
+              <div id="daily-today-outflow-count" style="font-size:0.72rem;color:var(--text-muted);">0 payments recorded
+                today</div>
+            </div>
+            <div
+              style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:14px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#38bdf8;text-transform:uppercase;">Today Net Cashflow
+              </div>
+              <div id="daily-today-net" style="font-size:1.4rem;font-weight:800;color:#38bdf8;margin:4px 0;">₹0</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Daily Inflow minus Outflow</div>
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div style="font-weight:700;font-size:0.95rem;color:var(--text);display:flex;align-items:center;gap:6px;">
+              <span>📅 Per-Day Collections & Disbursements Breakdown</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select id="daily-range-select" class="form-select" style="width:auto;" onchange="loadDailySummary()">
+                <option value="7">Last 7 Days</option>
+                <option value="15">Last 15 Days</option>
+                <option value="30" selected>Last 30 Days</option>
+                <option value="60">Last 60 Days</option>
+              </select>
+              <button onclick="loadDailySummary()"
+                style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+                Refresh</button>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Day</th>
+                  <th style="text-align:right;">Inflow Received (₹)</th>
+                  <th style="text-align:right;">Outflow Paid (₹)</th>
+                  <th style="text-align:right;">Net Cashflow (₹)</th>
+                  <th>Payment Modes Breakdown</th>
+                  <th style="text-align:center;">Vouchers Count</th>
+                </tr>
+              </thead>
+              <tbody id="daily-tbody">
+                <tr>
+                  <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading daily summary…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Vouchers History Panel -->
+      <div id="panel-vouchers" class="pay-panel">
+        <div class="card">
+          <div class="filter-row">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <select id="voucher-party-type" class="form-select" onchange="loadVouchers()" style="width:auto;">
+                <option value="">All Parties</option>
+                <option value="CUSTOMER">Customer Receipts (Payment In)</option>
+                <option value="SUPPLIER">Supplier Payments (Payment Out)</option>
+              </select>
+              <select id="voucher-mode" class="form-select" onchange="loadVouchers()" style="width:auto;">
+                <option value="">All Payment Modes</option>
+                <option value="UPI">📱 UPI</option>
+                <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
+                <option value="CHEQUE">📝 Cheque</option>
+                <option value="CASH">💵 Cash</option>
+              </select>
+              <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Notes…"
+                oninput="loadVouchers()" style="min-width:220px;width:auto;" />
+            </div>
+            <button onclick="loadVouchers()"
+              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+              Refresh</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Voucher #</th>
+                  <th>Party Name</th>
+                  <th>Voucher Type</th>
+                  <th>Mode</th>
+                  <th>Reference / UTR</th>
+                  <th style="text-align:right;">Amount (₹)</th>
+                  <th>Settled Bills (Knockoff)</th>
+                  <th>Notes / Particulars</th>
+                  <th>Statement</th>
+                </tr>
+              </thead>
+              <tbody id="vouchers-tbody">
+                <tr>
+                  <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -1070,14 +1101,17 @@
         <div id="pm-due-info"
           style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:12px 14px;margin-bottom:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div>
-            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current Total Outstanding</div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current
+              Total Outstanding</div>
             <div id="pm-due-val" style="font-size:1.15rem;font-weight:800;color:#f87171;">₹0</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">✨ Remaining Due After Payment</div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">✨ Remaining
+              Due After Payment</div>
             <div id="pm-rem-val" style="font-size:1.15rem;font-weight:800;color:#38bdf8;">₹0</div>
           </div>
-          <div style="width:100%;display:flex;justify-content:flex-end;border-top:1px dashed rgba(255,255,255,0.1);padding-top:6px;margin-top:4px;">
+          <div
+            style="width:100%;display:flex;justify-content:flex-end;border-top:1px dashed rgba(255,255,255,0.1);padding-top:6px;margin-top:4px;">
             <button type="button" onclick="fillFullOutstanding()"
               style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡
               Settle Full Outstanding</button>
@@ -1104,7 +1138,8 @@
 
         <!-- 📑 Bill-Wise Knockoff Allocation Section -->
         <div id="pm-bills-container" class="bill-alloc-box" style="display:none;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <div
+            style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
             <div>
               <span style="font-weight:700;font-size:0.82rem;color:var(--text);">📑 Bill-Wise Knockoff Allocation</span>
               <span id="pm-bills-count" style="font-size:0.7rem;color:var(--text-muted);margin-left:4px;"></span>
@@ -1119,7 +1154,8 @@
             </div>
           </div>
 
-          <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;">
+          <div
+            style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;">
             <table style="font-size:0.78rem;">
               <thead>
                 <tr>
@@ -1132,12 +1168,16 @@
                 </tr>
               </thead>
               <tbody id="pm-bills-tbody">
-                <tr><td colspan="6" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…</td></tr>
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          <div id="pm-alloc-summary" style="display:flex;justify-content:space-between;font-size:0.75rem;padding:6px 8px;background:var(--surface-2);border-radius:6px;color:var(--text-muted);">
+          <div id="pm-alloc-summary"
+            style="display:flex;justify-content:space-between;font-size:0.75rem;padding:6px 8px;background:var(--surface-2);border-radius:6px;color:var(--text-muted);">
             <div>Allocated: <strong id="pm-alloc-total" style="color:#4ade80;">₹0</strong></div>
             <div>Unallocated / Advance: <strong id="pm-alloc-unalloc" style="color:#a5b4fc;">₹0</strong></div>
           </div>
@@ -1939,7 +1979,7 @@
         const json = await r.json();
         const raw = Array.isArray(json.data) ? json.data : (json.data?.items || []);
         const list = Array.from(new Map(raw.map(p => [`${(p.name || '').trim().toLowerCase()}_${(p.phone || '').trim()}`, p])).values());
-        
+
         // Cache party list
         if (pType === 'CUSTOMER') rawCustomers = list;
         else rawSuppliers = list;
@@ -2381,11 +2421,11 @@
               </thead>
               <tbody>
                 ${(statement && statement.length) ? statement.map(row => {
-                  const billLinks = (row.allocatedBills && row.allocatedBills.length)
-                    ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
-                    : '';
+          const billLinks = (row.allocatedBills && row.allocatedBills.length)
+            ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+            : '';
 
-                  return `
+          return `
                     <tr>
                       <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
                       <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)" title="Click to view full invoice / voucher details">🔍 ${escHtml(row.voucherNo)}</td>
@@ -2399,7 +2439,7 @@
                       <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
                     </tr>
                   `;
-                }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
               </tbody>
             </table>
           </div>
@@ -2444,9 +2484,9 @@
 
         const docTitle = isInvoice ? 'TAX INVOICE'
           : isBill ? 'PURCHASE BILL'
-          : isReceipt ? 'PAYMENT RECEIPT'
-          : isPayment ? 'PAYMENT VOUCHER'
-          : 'COMMERCIAL VOUCHER';
+            : isReceipt ? 'PAYMENT RECEIPT'
+              : isPayment ? 'PAYMENT VOUCHER'
+                : 'COMMERCIAL VOUCHER';
 
         const docIcon = isInvoice ? '🧾' : isBill ? '📦' : isReceipt ? '💵' : '💸';
 

@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign In — SaaS Platform</title>
-  <meta name="description" content="Sign in to your SaaS platform account. Secure multi-tenant login with role-based access control." />
+  <meta name="description"
+    content="Sign in to your SaaS platform account. Secure multi-tenant login with role-based access control." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="css/style.css" nts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
 
   <!-- Background grid + blobs -->
@@ -23,12 +26,12 @@
     <div class="brand" aria-label="Platform brand">
       <div class="brand-logo">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-          <rect width="28" height="28" rx="8" fill="url(#brandGrad)"/>
-          <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/>
+          <rect width="28" height="28" rx="8" fill="url(#brandGrad)" />
+          <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
           <defs>
             <linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28">
-              <stop offset="0%" stop-color="#6366f1"/>
-              <stop offset="100%" stop-color="#8b5cf6"/>
+              <stop offset="0%" stop-color="#6366f1" />
+              <stop offset="100%" stop-color="#8b5cf6" />
             </linearGradient>
           </defs>
         </svg>
@@ -47,7 +50,9 @@
       <!-- Previous login notice -->
       <div id="prev-login-banner" class="prev-login-banner" aria-live="polite" hidden>
         <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h3a.75.75 0 000-1.5H10.75V5z" clip-rule="evenodd"/>
+          <path fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h3a.75.75 0 000-1.5H10.75V5z"
+            clip-rule="evenodd" />
         </svg>
         <span id="prev-login-text"></span>
       </div>
@@ -59,19 +64,11 @@
           <label class="field-label" for="email">Email address</label>
           <div class="field-wrapper">
             <svg class="field-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/>
-              <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/>
+              <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
+              <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
             </svg>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              class="field-input"
-              placeholder="you@company.com"
-              autocomplete="email"
-              required
-              aria-describedby="email-error"
-            />
+            <input id="email" name="email" type="email" class="field-input" placeholder="you@company.com"
+              autocomplete="email" required aria-describedby="email-error" />
           </div>
           <span id="email-error" class="field-error" role="alert" aria-live="polite"></span>
         </div>
@@ -83,22 +80,18 @@
           </div>
           <div class="field-wrapper">
             <svg class="field-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+              <path fill-rule="evenodd"
+                d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
+                clip-rule="evenodd" />
             </svg>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              class="field-input"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              required
-              aria-describedby="password-error"
-            />
+            <input id="password" name="password" type="password" class="field-input" placeholder="••••••••"
+              autocomplete="current-password" required aria-describedby="password-error" />
             <button type="button" class="toggle-pw" id="toggle-pw" aria-label="Show or hide password">
               <svg id="pw-show-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/>
-                <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                <path fill-rule="evenodd"
+                  d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd" />
               </svg>
             </button>
           </div>
@@ -116,21 +109,27 @@
       </form>
 
       <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; text-align: center;">⚡ Quick-Fill Demo Roles</div>
+        <div
+          style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; text-align: center;">
+          ⚡ Quick-Fill Demo Roles</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <button type="button" onclick="fillCreds('admin@platform.com', 'Admin@1234')" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
+          <button type="button" onclick="fillCreds('admin@platform.com', 'Admin@1234')"
+            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
             <div style="font-weight: 600; color: #a855f7;">Super Admin</div>
             <div style="color: var(--text-muted); font-size: 0.68rem;">Platform wide</div>
           </button>
-          <button type="button" onclick="fillCreds('admin@acme.com', 'Password@123')" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
+          <button type="button" onclick="fillCreds('admin@acme.com', 'Password@123')"
+            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
             <div style="font-weight: 600; color: #38bdf8;">Company Admin</div>
             <div style="color: var(--text-muted); font-size: 0.68rem;">Trial Tenant</div>
           </button>
-          <button type="button" onclick="fillCreds('user@acme.com', 'Password@123')" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
+          <button type="button" onclick="fillCreds('user@acme.com', 'Password@123')"
+            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
             <div style="font-weight: 600; color: #4ade80;">Standard User</div>
             <div style="color: var(--text-muted); font-size: 0.68rem;">Restricted Role</div>
           </button>
-          <button type="button" onclick="fillCreds('admin@nexus.com', 'Password@123')" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
+          <button type="button" onclick="fillCreds('admin@nexus.com', 'Password@123')"
+            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
             <div style="font-weight: 600; color: #fbbf24;">Active Admin</div>
             <div style="color: var(--text-muted); font-size: 0.68rem;">Subscribed Tenant</div>
           </button>
@@ -159,6 +158,7 @@
       document.getElementById('password').classList.remove('invalid');
     }
   </script>
-  <script src="auth.js"></script>
+  <script src="js/auth.js"></script>
 </body>
+
 </html>

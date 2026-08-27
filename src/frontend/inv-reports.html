@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -237,6 +237,7 @@
       width: 100%;
       min-width: 180px;
     }
+
     .searchable-select-btn {
       width: 100%;
       display: flex;
@@ -253,11 +254,14 @@
       transition: border-color 0.15s, box-shadow 0.15s;
       box-sizing: border-box;
     }
-    .searchable-select-btn:focus, .searchable-select-btn.active {
+
+    .searchable-select-btn:focus,
+    .searchable-select-btn.active {
       border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
       outline: none;
     }
+
     .searchable-select-dropdown {
       position: absolute;
       top: calc(100% + 4px);
@@ -267,15 +271,17 @@
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
       display: none;
       flex-direction: column;
       max-height: 280px;
       overflow: hidden;
     }
+
     .searchable-select-dropdown.show {
       display: flex;
     }
+
     .searchable-select-search {
       width: 100%;
       box-sizing: border-box;
@@ -287,11 +293,13 @@
       font-size: 0.82rem;
       outline: none;
     }
+
     .searchable-select-options {
       max-height: 220px;
       overflow-y: auto;
       padding: 4px;
     }
+
     .searchable-select-opt {
       padding: 8px 10px;
       font-size: 0.82rem;
@@ -304,12 +312,15 @@
       gap: 8px;
       transition: background 0.1s;
     }
-    .searchable-select-opt:hover, .searchable-select-opt.focused {
-      background: rgba(99,102,241,0.2);
+
+    .searchable-select-opt:hover,
+    .searchable-select-opt.focused {
+      background: rgba(99, 102, 241, 0.2);
       color: #fff;
     }
+
     .searchable-select-opt.selected {
-      background: rgba(99,102,241,0.35);
+      background: rgba(99, 102, 241, 0.35);
       color: #fff;
       font-weight: 700;
     }
@@ -431,12 +442,15 @@
     <!-- Main Content Area -->
     <main class="main-content">
       <!-- Top Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;">
           <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
           <div>
-            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📈 Inventory & Stock Reports</h1>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Stock summaries, valuation, batch tracking, and item movement ledgers</div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📈
+              Inventory & Stock Reports</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Stock summaries, valuation, batch
+              tracking, and item movement ledgers</div>
           </div>
         </div>
       </div>
@@ -448,152 +462,154 @@
         <button class="tab-btn" onclick="switchTab('ledger')">📋 Stock Ledger</button>
       </div>
 
-    <!-- Stock Summary -->
-    <div id="panel-stock" class="report-panel active">
-      <div class="card">
-        <div class="filter-row">
-          <div class="form-group-inline">
-            <div class="form-label">Warehouse</div><select id="stock-wh" class="form-select" onchange="loadStock()">
-              <option value="">All Warehouses</option>
-            </select>
+      <!-- Stock Summary -->
+      <div id="panel-stock" class="report-panel active">
+        <div class="card">
+          <div class="filter-row">
+            <div class="form-group-inline">
+              <div class="form-label">Warehouse</div><select id="stock-wh" class="form-select" onchange="loadStock()">
+                <option value="">All Warehouses</option>
+              </select>
+            </div>
+            <div class="form-group-inline">
+              <div class="form-label">Category</div><select id="stock-cat" class="form-select" onchange="loadStock()">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+            <button onclick="loadStock()"
+              style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Refresh</button>
           </div>
-          <div class="form-group-inline">
-            <div class="form-label">Category</div><select id="stock-cat" class="form-select" onchange="loadStock()">
-              <option value="">All Categories</option>
-            </select>
+          <div style="overflow-x:auto;">
+            <table id="stock-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Category</th>
+                  <th>HSN</th>
+                  <th>GST %</th>
+                  <th>Unit</th>
+                  <th>Stock</th>
+                  <th>MRP ₹</th>
+                  <th>Purchase ₹</th>
+                  <th>Stock Value ₹</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="stock-tbody">
+                <tr>
+                  <td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <button onclick="loadStock()"
-            style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Refresh</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table id="stock-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>HSN</th>
-                <th>GST %</th>
-                <th>Unit</th>
-                <th>Stock</th>
-                <th>MRP ₹</th>
-                <th>Purchase ₹</th>
-                <th>Stock Value ₹</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="stock-tbody">
-              <tr>
-                <td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
-    </div>
 
-    <!-- Valuation -->
-    <div id="panel-valuation" class="report-panel">
-      <div class="card">
-        <div id="val-kpis" class="kpi-row"></div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Unit</th>
-                <th>Purchase Price ₹</th>
-                <th>Current Stock</th>
-                <th>Stock Value ₹</th>
-              </tr>
-            </thead>
-            <tbody id="val-tbody">
-              <tr>
-                <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Valuation -->
+      <div id="panel-valuation" class="report-panel">
+        <div class="card">
+          <div id="val-kpis" class="kpi-row"></div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Unit</th>
+                  <th>Purchase Price ₹</th>
+                  <th>Current Stock</th>
+                  <th>Stock Value ₹</th>
+                </tr>
+              </thead>
+              <tbody id="val-tbody">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Expiry Alerts -->
-    <div id="panel-expiry" class="report-panel">
-      <div class="card">
-        <div class="filter-row">
-          <div class="form-group-inline">
-            <div class="form-label">Expiring within (days)</div><input id="expiry-days" class="form-input" type="number"
-              value="30" min="1" style="width:100px;" />
+      <!-- Expiry Alerts -->
+      <div id="panel-expiry" class="report-panel">
+        <div class="card">
+          <div class="filter-row">
+            <div class="form-group-inline">
+              <div class="form-label">Expiring within (days)</div><input id="expiry-days" class="form-input"
+                type="number" value="30" min="1" style="width:100px;" />
+            </div>
+            <button onclick="loadExpiry()"
+              style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Fetch
+              Alerts</button>
           </div>
-          <button onclick="loadExpiry()"
-            style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Fetch
-            Alerts</button>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Batch No</th>
-                <th>Expiry Date</th>
-                <th>Warehouse</th>
-                <th>Qty Remaining</th>
-                <th>Days Left</th>
-              </tr>
-            </thead>
-            <tbody id="expiry-tbody">
-              <tr>
-                <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Click "Fetch Alerts" to
-                  load.</td>
-              </tr>
-            </tbody>
-          </table>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Batch No</th>
+                  <th>Expiry Date</th>
+                  <th>Warehouse</th>
+                  <th>Qty Remaining</th>
+                  <th>Days Left</th>
+                </tr>
+              </thead>
+              <tbody id="expiry-tbody">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Click "Fetch Alerts"
+                    to
+                    load.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Stock Ledger -->
-    <div id="panel-ledger" class="report-panel">
-      <div class="card">
-        <div class="filter-row">
-          <div class="form-group-inline">
-            <div class="form-label">Product *</div><select id="ledger-product" class="form-select"
-              style="min-width:200px;">
-              <option value="">— Select Product —</option>
-            </select>
+      <!-- Stock Ledger -->
+      <div id="panel-ledger" class="report-panel">
+        <div class="card">
+          <div class="filter-row">
+            <div class="form-group-inline">
+              <div class="form-label">Product *</div><select id="ledger-product" class="form-select"
+                style="min-width:200px;">
+                <option value="">— Select Product —</option>
+              </select>
+            </div>
+            <div class="form-group-inline">
+              <div class="form-label">From</div><input id="ledger-from" class="form-input" type="date" />
+            </div>
+            <div class="form-group-inline">
+              <div class="form-label">To</div><input id="ledger-to" class="form-input" type="date" />
+            </div>
+            <button onclick="loadLedger()"
+              style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Load</button>
           </div>
-          <div class="form-group-inline">
-            <div class="form-label">From</div><input id="ledger-from" class="form-input" type="date" />
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Movement Type</th>
+                  <th>Godown</th>
+                  <th>Batch</th>
+                  <th>Qty</th>
+                  <th>Unit Cost ₹</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-tbody">
+                <tr>
+                  <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to
+                    view
+                    its stock ledger.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="form-group-inline">
-            <div class="form-label">To</div><input id="ledger-to" class="form-input" type="date" />
-          </div>
-          <button onclick="loadLedger()"
-            style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Load</button>
         </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Movement Type</th>
-                <th>Godown</th>
-                <th>Batch</th>
-                <th>Qty</th>
-                <th>Unit Cost ₹</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody id="ledger-tbody">
-              <tr>
-                <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to view
-                  its stock ledger.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </main>
   </div>
 

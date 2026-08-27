@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,56 +9,273 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
-    body { overflow-y: auto; display: block; padding: 0; }
-    .page-container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
-    .top-nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
-    .tab-bar { display: flex; gap: 12px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
-    .tab-btn { background: none; border: none; font-family: var(--font); font-size: 0.95rem; font-weight: 600; color: var(--text-muted); padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
-    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-    .content-section { display: none; }
-    .content-section.active { display: block; }
+    body {
+      overflow-y: auto;
+      display: block;
+      padding: 0;
+    }
+
+    .page-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
 
     /* Plan Cards */
-    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .plan-card {
-      background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
-      padding: 24px; cursor: pointer; transition: all 0.25s; position: relative;
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
     }
-    .plan-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.15); }
-    .plan-card.current-plan { border-color: #22c55e; background: rgba(34,197,94,0.05); }
-    .plan-card.popular { border-color: var(--primary); }
-    .plan-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 3px 10px; border-radius: 20px; }
-    .plan-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
-    .plan-price { font-size: 2rem; font-weight: 800; color: var(--primary); }
-    .plan-price span { font-size: 0.875rem; font-weight: 400; color: var(--text-muted); }
-    .plan-desc { font-size: 0.8rem; color: var(--text-muted); margin: 8px 0 14px; }
-    .plan-features { list-style: none; padding: 0; margin: 0 0 16px; }
-    .plan-features li { font-size: 0.8rem; color: var(--text-sub); padding: 4px 0; display: flex; align-items: center; gap: 6px; }
-    .plan-features li::before { content: '✓'; color: #22c55e; font-weight: 700; }
-    .plan-btn { width: 100%; padding: 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .plan-btn.plan-btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; color: #fff; }
-    .plan-btn.plan-btn-current { background: rgba(34,197,94,0.15); border-color: #22c55e; color: #4ade80; cursor: default; }
+
+    .plan-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+    }
+
+    .plan-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+    }
+
+    .plan-card.current-plan {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .plan-card.popular {
+      border-color: var(--primary);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .plan-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .plan-price {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .plan-price span {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .plan-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 8px 0 14px;
+    }
+
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+    }
+
+    .plan-features li {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .plan-features li::before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: 700;
+    }
+
+    .plan-btn {
+      width: 100%;
+      padding: 9px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .plan-btn.plan-btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: none;
+      color: #fff;
+    }
+
+    .plan-btn.plan-btn-current {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: #22c55e;
+      color: #4ade80;
+      cursor: default;
+    }
 
     /* Billing cycle toggle */
-    .billing-toggle { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-    .toggle-switch { width: 44px; height: 24px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; position: relative; transition: background 0.2s; }
-    .toggle-switch.on { background: var(--primary); border-color: var(--primary); }
-    .toggle-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left 0.2s; }
-    .toggle-switch.on .toggle-knob { left: 22px; }
+    .billing-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .toggle-switch {
+      width: 44px;
+      height: 24px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .toggle-switch.on {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: left 0.2s;
+    }
+
+    .toggle-switch.on .toggle-knob {
+      left: 22px;
+    }
 
     /* Sub status */
-    .sub-status-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+    .sub-status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
 
     /* Invoice table */
-    .table-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
-    th { padding: 12px 20px; background: var(--surface-2); color: var(--text-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
-    td { padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text-sub); }
-    tr:last-child td { border-bottom: none; }
+    .table-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    th {
+      padding: 12px 20px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-sub);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
   </style>
 </head>
+
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
@@ -68,15 +286,22 @@
       <div class="brand">
         <div class="brand-logo">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect width="28" height="28" rx="8" fill="url(#bg)"/>
-            <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/>
-            <defs><linearGradient id="bg" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
+            <rect width="28" height="28" rx="8" fill="url(#bg)" />
+            <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
+            <defs>
+              <linearGradient id="bg" x1="0" y1="0" x2="28" y2="28">
+                <stop offset="0%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
           </svg>
         </div>
         <span class="brand-name">WorkSpace</span>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <button id="back-btn" onclick="goBack()" style="background:none;border:1px solid var(--border);color:var(--text-sub);font-size:0.85rem;padding:6px 12px;border-radius:6px;cursor:pointer;">← Dashboard</button>
+        <button id="back-btn" onclick="goBack()"
+          style="background:none;border:1px solid var(--border);color:var(--text-sub);font-size:0.85rem;padding:6px 12px;border-radius:6px;cursor:pointer;">←
+          Dashboard</button>
       </div>
     </header>
 
@@ -88,15 +313,19 @@
 
     <!-- Plans Section -->
     <section id="section-plans" class="content-section active">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <div>
           <h2 style="font-size:1.2rem;font-weight:700;">Choose Your Plan</h2>
           <p style="font-size:0.8rem;color:var(--text-muted);">Upgrade or downgrade your workspace at any time.</p>
         </div>
         <div class="billing-toggle">
           <span style="font-size:0.85rem;color:var(--text-muted);">Monthly</span>
-          <div class="toggle-switch" id="billing-toggle" onclick="toggleBillingCycle()"><div class="toggle-knob"></div></div>
-          <span style="font-size:0.85rem;color:var(--text-muted);">Yearly <span style="color:#4ade80;font-size:0.75rem;font-weight:700;">–17%</span></span>
+          <div class="toggle-switch" id="billing-toggle" onclick="toggleBillingCycle()">
+            <div class="toggle-knob"></div>
+          </div>
+          <span style="font-size:0.85rem;color:var(--text-muted);">Yearly <span
+              style="color:#4ade80;font-size:0.75rem;font-weight:700;">–17%</span></span>
         </div>
       </div>
       <div class="plans-grid" id="plans-grid">
@@ -106,7 +335,8 @@
 
     <!-- Subscription Section -->
     <section id="section-subscription" class="content-section">
-      <div id="sub-content" style="color:var(--text-muted);text-align:center;padding:40px;">Loading subscription...</div>
+      <div id="sub-content" style="color:var(--text-muted);text-align:center;padding:40px;">Loading subscription...
+      </div>
     </section>
 
     <!-- Invoices Section -->
@@ -114,16 +344,25 @@
       <div class="table-box">
         <table>
           <thead>
-            <tr><th>Invoice #</th><th>Plan / Period</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+            <tr>
+              <th>Invoice #</th>
+              <th>Plan / Period</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
           </thead>
           <tbody id="invoices-tbody">
-            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">Loading invoices...</td></tr>
+            <tr>
+              <td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">Loading invoices...</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </section>
   </div>
 
-  <script src="billing.js"></script>
+  <script src="js/billing.js"></script>
 </body>
+
 </html>

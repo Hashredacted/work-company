@@ -1,21 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Company Dashboard — Workspace</title>
-  <meta name="description" content="Tenant Company Admin dashboard with trial status, company profile, and team management." />
+  <meta name="description"
+    content="Tenant Company Admin dashboard with trial status, company profile, and team management." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="css/style.css" nts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
-    body { overflow-y: auto; display: block; padding: 0; }
-    .dashboard-container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; position: relative; z-index: 1; }
-    .top-nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+    body {
+      overflow-y: auto;
+      display: block;
+      padding: 0;
+    }
+
+    .dashboard-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
     .trial-banner {
-      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12));
-      border: 1px solid rgba(99,102,241,0.3);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12));
+      border: 1px solid rgba(99, 102, 241, 0.3);
       border-radius: var(--radius);
       padding: 18px 24px;
       display: flex;
@@ -25,26 +47,75 @@
       gap: 14px;
       margin-bottom: 28px;
     }
-    .trial-info { display: flex; align-items: center; gap: 14px; }
+
+    .trial-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
     .trial-days-badge {
       font-size: 1.6rem;
       font-weight: 700;
       color: #818cf8;
-      background: rgba(99,102,241,0.2);
+      background: rgba(99, 102, 241, 0.2);
       padding: 6px 16px;
       border-radius: 12px;
-      border: 1px solid rgba(99,102,241,0.4);
+      border: 1px solid rgba(99, 102, 241, 0.4);
     }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
-    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-    .card-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
-    .card-box-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-    .profile-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
-    .profile-item:last-child { border-bottom: none; }
-    .profile-label { color: var(--text-muted); }
-    .profile-val { font-weight: 500; color: var(--text); }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .card-box-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .profile-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+
+    .profile-item:last-child {
+      border-bottom: none;
+    }
+
+    .profile-label {
+      color: var(--text-muted);
+    }
+
+    .profile-val {
+      font-weight: 500;
+      color: var(--text);
+    }
   </style>
 </head>
+
 <body>
 
   <div class="bg-grid" aria-hidden="true"></div>
@@ -57,57 +128,81 @@
       <div class="brand">
         <div class="brand-logo">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect width="28" height="28" rx="8" fill="url(#brandGrad)"/>
-            <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9"/>
+            <rect width="28" height="28" rx="8" fill="url(#brandGrad)" />
+            <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
             <defs>
               <linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28">
-                <stop offset="0%" stop-color="#6366f1"/>
-                <stop offset="100%" stop-color="#8b5cf6"/>
+                <stop offset="0%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#8b5cf6" />
               </linearGradient>
             </defs>
           </svg>
         </div>
         <div>
           <span id="company-header-name" class="brand-name">My Company</span>
-          <span id="role-badge" style="font-size: 0.75rem; color: #4ade80; font-weight: 600; margin-left: 6px; background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 10px;">Company Admin</span>
+          <span id="role-badge"
+            style="font-size: 0.75rem; color: #4ade80; font-weight: 600; margin-left: 6px; background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 10px;">Company
+            Admin</span>
         </div>
       </div>
 
       <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-        <a href="users.html" style="color: var(--primary); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(99,102,241,0.1);">👥 Team</a>
-        <a href="inv-dashboard.html" style="color: #34d399; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(16,185,129,0.1);">📦 Inventory</a>
-        <a href="billing.html" style="color: #38bdf8; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(56,189,248,0.1);">💳 Billing</a>
-        <a href="audit.html" style="color: #a78bfa; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(167,139,250,0.1);">🔍 Audit</a>
-        <a href="profile.html" style="color: #4ade80; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(74,222,128,0.1);">👤 Profile</a>
-        <div style="display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px;">
+        <a href="users.html"
+          style="color: var(--primary); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(99,102,241,0.1);">👥
+          Team</a>
+        <a href="inv-dashboard.html"
+          style="color: #34d399; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(16,185,129,0.1);">📦
+          Inventory</a>
+        <a href="billing.html"
+          style="color: #38bdf8; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(56,189,248,0.1);">💳
+          Billing</a>
+        <a href="audit.html"
+          style="color: #a78bfa; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(167,139,250,0.1);">🔍
+          Audit</a>
+        <a href="profile.html"
+          style="color: #4ade80; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(74,222,128,0.1);">👤
+          Profile</a>
+        <div
+          style="display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px;">
           <span id="user-display-name" style="font-size: 0.85rem; font-weight: 500;">User</span>
         </div>
-        <button id="logout-btn" style="background: none; border: 1px solid var(--border); color: var(--text-sub); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem;">Sign Out</button>
+        <button id="logout-btn"
+          style="background: none; border: 1px solid var(--border); color: var(--text-sub); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem;">Sign
+          Out</button>
       </div>
     </header>
 
     <!-- Notification Banners -->
-    <div id="banner-trial-expiring" style="display:none;background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(245,158,11,0.1));border:1px solid rgba(251,191,36,0.35);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+    <div id="banner-trial-expiring"
+      style="display:none;background:linear-gradient(135deg,rgba(251,191,36,0.15),rgba(245,158,11,0.1));border:1px solid rgba(251,191,36,0.35);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px;">
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="font-size:1.4rem;">⏳</span>
         <div>
           <div style="font-size:0.9rem;font-weight:700;color:#fbbf24;">Trial Ending Soon!</div>
-          <div id="banner-trial-expiring-text" style="font-size:0.8rem;color:#a5b4fc;margin-top:2px;">Your trial expires soon. Upgrade to keep access.</div>
+          <div id="banner-trial-expiring-text" style="font-size:0.8rem;color:#a5b4fc;margin-top:2px;">Your trial expires
+            soon. Upgrade to keep access.</div>
         </div>
       </div>
-      <a href="billing.html" style="background:rgba(251,191,36,0.2);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;padding:7px 14px;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;white-space:nowrap;">Upgrade Now →</a>
+      <a href="billing.html"
+        style="background:rgba(251,191,36,0.2);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;padding:7px 14px;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;white-space:nowrap;">Upgrade
+        Now →</a>
     </div>
-    <div id="banner-expired" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+    <div id="banner-expired"
+      style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:12px;">
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="font-size:1.4rem;">🚫</span>
         <div>
           <div style="font-size:0.9rem;font-weight:700;color:#f87171;">Trial Expired</div>
-          <div style="font-size:0.8rem;color:#94a3b8;">Your free trial has ended. Subscribe to a plan to restore full access.</div>
+          <div style="font-size:0.8rem;color:#94a3b8;">Your free trial has ended. Subscribe to a plan to restore full
+            access.</div>
         </div>
       </div>
-      <a href="billing.html" style="background:rgba(248,113,113,0.2);border:1px solid rgba(248,113,113,0.4);color:#f87171;padding:7px 14px;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;white-space:nowrap;">Choose a Plan →</a>
+      <a href="billing.html"
+        style="background:rgba(248,113,113,0.2);border:1px solid rgba(248,113,113,0.4);color:#f87171;padding:7px 14px;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;white-space:nowrap;">Choose
+        a Plan →</a>
     </div>
-    <div id="banner-suspended" style="display:none;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.35);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;gap:12px;">
+    <div id="banner-suspended"
+      style="display:none;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.35);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:none;align-items:center;gap:12px;">
       <span style="font-size:1.4rem;">🔒</span>
       <div>
         <div style="font-size:0.9rem;font-weight:700;color:#f87171;">Account Suspended</div>
@@ -121,30 +216,37 @@
         <div class="trial-days-badge" id="trial-days-left">7</div>
         <div>
           <h3 style="font-size: 1.1rem; font-weight: 700; color: #fff;">Free Trial Active</h3>
-          <p id="trial-ends-text" style="font-size: 0.85rem; color: #a5b4fc; margin-top: 2px;">Your 7-day trial includes all enterprise features.</p>
+          <p id="trial-ends-text" style="font-size: 0.85rem; color: #a5b4fc; margin-top: 2px;">Your 7-day trial includes
+            all enterprise features.</p>
         </div>
       </div>
       <div>
-        <span style="display: inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; padding: 6px 12px; border-radius: 20px; background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.4);">Trial Plan</span>
+        <span
+          style="display: inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; padding: 6px 12px; border-radius: 20px; background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.4);">Trial
+          Plan</span>
       </div>
     </section>
 
     <!-- KPI Cards -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Team Members</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Team Members
+        </div>
         <div id="kpi-total-users" style="font-size:1.8rem;font-weight:800;margin-top:4px;">—</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Active Users</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Active Users
+        </div>
         <div id="kpi-active-users" style="font-size:1.8rem;font-weight:800;color:#4ade80;margin-top:4px;">—</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Custom Roles</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Custom Roles
+        </div>
         <div id="kpi-roles" style="font-size:1.8rem;font-weight:800;color:#a5b4fc;margin-top:4px;">—</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Current Plan</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Current Plan
+        </div>
         <div id="kpi-plan" style="font-size:1rem;font-weight:700;color:#38bdf8;margin-top:8px;">—</div>
       </div>
     </div>
@@ -155,8 +257,11 @@
         <div class="card-box-title">
           <span>Company Profile</span>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button onclick="openEditCompanyModal()" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">Edit Profile</button>
-            <span id="tenant-status" style="font-size: 0.75rem; text-transform: uppercase; padding: 3px 8px; border-radius: 8px; background: rgba(99,102,241,0.2); color: #a5b4fc;">TRIAL</span>
+            <button onclick="openEditCompanyModal()"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;">Edit
+              Profile</button>
+            <span id="tenant-status"
+              style="font-size: 0.75rem; text-transform: uppercase; padding: 3px 8px; border-radius: 8px; background: rgba(99,102,241,0.2); color: #a5b4fc;">TRIAL</span>
           </div>
         </div>
         <div class="profile-item">
@@ -194,15 +299,19 @@
           <p style="font-size: 0.875rem; color: var(--text-sub); line-height: 1.5; margin-bottom: 20px;">
             Manage team access, custom permissions, and invite colleagues to your tenant workspace.
           </p>
-          <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
+          <div
+            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
             <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Team Members</div>
-            <div style="font-size: 1.4rem; font-weight: 700; color: var(--text); margin-top: 4px;">Role-Based Access</div>
-            <div style="font-size: 0.78rem; color: var(--text-sub); margin-top: 2px;">Configured with granular resource permissions.</div>
+            <div style="font-size: 1.4rem; font-weight: 700; color: var(--text); margin-top: 4px;">Role-Based Access
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-sub); margin-top: 2px;">Configured with granular resource
+              permissions.</div>
           </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
-          <a href="users.html" class="btn-primary" style="text-decoration: none; text-align: center;">Manage Users &amp; Roles</a>
+          <a href="users.html" class="btn-primary" style="text-decoration: none; text-align: center;">Manage Users &amp;
+            Roles</a>
         </div>
       </div>
     </div>
@@ -210,8 +319,10 @@
   </div>
 
   <!-- Edit Company Profile Modal -->
-  <div id="edit-company-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100;">
-    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 500px; padding: 28px; box-shadow: var(--shadow);">
+  <div id="edit-company-modal"
+    style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100;">
+    <div
+      style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 500px; padding: 28px; box-shadow: var(--shadow);">
       <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;">Edit Company Profile</h3>
       <form id="edit-company-form" class="login-form" novalidate>
         <div class="field-group">
@@ -237,7 +348,8 @@
         <div id="edit-company-error" class="form-error" hidden></div>
         <div style="display: flex; gap: 10px; margin-top: 12px;">
           <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
-          <button type="button" onclick="closeEditModal()" style="background: none; border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer;">Cancel</button>
+          <button type="button" onclick="closeEditModal()"
+            style="background: none; border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer;">Cancel</button>
         </div>
       </form>
     </div>
@@ -254,7 +366,7 @@
 
     let currentCompany = null;
 
-    window.openEditCompanyModal = function() {
+    window.openEditCompanyModal = function () {
       if (!currentCompany) return;
       document.getElementById('edit-name').value = currentCompany.name || '';
       document.getElementById('edit-phone').value = currentCompany.phone || '';
@@ -265,7 +377,7 @@
       document.getElementById('edit-company-modal').style.display = 'flex';
     };
 
-    window.closeEditModal = function() {
+    window.closeEditModal = function () {
       document.getElementById('edit-company-modal').style.display = 'none';
     };
 
@@ -415,4 +527,5 @@
     initCompanyDashboard();
   </script>
 </body>
+
 </html>

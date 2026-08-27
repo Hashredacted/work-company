@@ -11,7 +11,7 @@ function authHeaders() {
   };
 }
 
-window.goBackDashboard = function() {
+window.goBackDashboard = function () {
   const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
   if (user.isSuperAdmin || !user.tenantId) {
     window.location.href = 'dashboard.html';

@@ -8,19 +8,19 @@ if (!token) {
 }
 
 // ─── DOM References ────────────────────────────────────────────────────────────
-const userNameEl        = document.getElementById('user-name');
-const avatarInitialEl   = document.getElementById('avatar-initial');
-const logoutBtn         = document.getElementById('logout-btn');
-const searchInput       = document.getElementById('search-input');
-const statusFilter      = document.getElementById('status-filter');
-const tableBody         = document.getElementById('company-table-body');
+const userNameEl = document.getElementById('user-name');
+const avatarInitialEl = document.getElementById('avatar-initial');
+const logoutBtn = document.getElementById('logout-btn');
+const searchInput = document.getElementById('search-input');
+const statusFilter = document.getElementById('status-filter');
+const tableBody = document.getElementById('company-table-body');
 
-const kpiTotalEl    = document.getElementById('kpi-total');
-const kpiActiveEl   = document.getElementById('kpi-active');
-const kpiTrialEl    = document.getElementById('kpi-trial');
+const kpiTotalEl = document.getElementById('kpi-total');
+const kpiActiveEl = document.getElementById('kpi-active');
+const kpiTrialEl = document.getElementById('kpi-trial');
 const kpiExpiringEl = document.getElementById('kpi-expiring');
-const kpiExpiredEl  = document.getElementById('kpi-expired');
-const kpiSuspendedEl= document.getElementById('kpi-suspended');
+const kpiExpiredEl = document.getElementById('kpi-expired');
+const kpiSuspendedEl = document.getElementById('kpi-suspended');
 
 // ─── Headers helper ────────────────────────────────────────────────────────────
 function authHeaders() {
@@ -75,11 +75,11 @@ async function loadKPIStats() {
     const json = await res.json();
     const { kpis } = json.data;
 
-    kpiTotalEl.textContent     = kpis.totalCompanies || 0;
-    kpiActiveEl.textContent    = kpis.activeCompanies || 0;
-    kpiTrialEl.textContent     = kpis.trialCompanies || 0;
-    kpiExpiringEl.textContent  = kpis.trialExpiringCompanies || 0;
-    kpiExpiredEl.textContent   = kpis.trialExpiredCompanies || 0;
+    kpiTotalEl.textContent = kpis.totalCompanies || 0;
+    kpiActiveEl.textContent = kpis.activeCompanies || 0;
+    kpiTrialEl.textContent = kpis.trialCompanies || 0;
+    kpiExpiringEl.textContent = kpis.trialExpiringCompanies || 0;
+    kpiExpiredEl.textContent = kpis.trialExpiredCompanies || 0;
     kpiSuspendedEl.textContent = kpis.suspendedCompanies || 0;
   } catch (err) {
     console.error('Error fetching KPI metrics:', err);
