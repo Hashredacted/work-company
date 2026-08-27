@@ -220,67 +220,156 @@
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
 
-  <div class="page">
-    <header class="top-nav">
-      <div>
-        <div class="brand" style="margin-bottom:6px;">
-          <div class="brand-logo"><svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="8" fill="url(#sG)" />
+  <div class="app-layout">
+    <!-- Left Vertical Navigation Sidebar -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="8" fill="url(#pG)" />
               <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
               <defs>
-                <linearGradient id="sG" x1="0" y1="0" x2="28" y2="28">
+                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
                   <stop offset="0%" stop-color="#6366f1" />
                   <stop offset="100%" stop-color="#8b5cf6" />
                 </linearGradient>
               </defs>
-            </svg></div><span class="brand-name">WorkSpace</span><span
-            style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">📦
-            INVENTORY</span>
-        </div>
-        <div class="inv-nav">
-          <a href="inv-dashboard.html">📊 Dashboard</a>
-          <a href="inv-products.html">📦 Products</a>
-          <a href="inv-suppliers.html" class="active">🏭 Suppliers</a>
-          <a href="inv-customers.html">👥 Customers</a>
-          <a href="inv-payments.html">💳 Payments</a>
-          <a href="inv-outstandings.html">💰 Outstandings</a>
-          <a href="inv-reports.html">📈 Reports</a>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">WorkSpace</span>
+            <span class="brand-badge">📦 INVENTORY</span>
+          </div>
         </div>
       </div>
-      <div style="display:flex;gap:10px;"><a id="main-nav-link" href="company-dashboard.html"
-          style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">←
-          Back</a><button id="logout-btn"
-          style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign
-          Out</button></div>
-    </header>
 
-    <div class="toolbar">
-      <input id="search" class="search-box" type="text" placeholder="🔍 Search name or GSTIN…" oninput="debounce()" />
-      <button onclick="openModal()"
-        style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
-        Add Supplier</button>
-    </div>
+      <!-- Navigation Groups -->
+      <nav class="sidebar-nav">
+        <!-- 1. Dashboard -->
+        <a href="inv-dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Supplier</th>
-            <th>GSTIN</th>
-            <th>State</th>
-            <th>Contact</th>
-            <th>Phone</th>
-            <th>Payment Terms</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="sup-tbody">
-          <tr>
-            <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        <!-- 2. Master -->
+        <div class="nav-group open">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Master</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-products.html" class="nav-subitem">
+              <span class="nav-bullet">📦</span> Products
+            </a>
+            <a href="inv-customers.html" class="nav-subitem">
+              <span class="nav-bullet">👥</span> Customers
+            </a>
+            <a href="inv-suppliers.html" class="nav-subitem active">
+              <span class="nav-bullet">🏭</span> Suppliers
+            </a>
+          </div>
+        </div>
+
+        <!-- 3. Transactions -->
+        <div class="nav-group">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">💼</span>
+            <span class="nav-label">Transactions</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+              <span class="nav-bullet">📈</span> Sales
+            </a>
+            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+              <span class="nav-bullet">📥</span> Purchases
+            </a>
+            <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
+              <span class="nav-bullet">💸</span> Payments
+            </a>
+            <a href="inv-payments.html?tab=customers" class="nav-subitem">
+              <span class="nav-bullet">💵</span> Received
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. Reports -->
+        <div class="nav-group">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Reports</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-reports.html?tab=ledger" class="nav-subitem">
+              <span class="nav-bullet">📋</span> Ledger
+            </a>
+            <a href="inv-outstandings.html" class="nav-subitem">
+              <span class="nav-bullet">💰</span> Outstandings
+            </a>
+            <a href="inv-reports.html?tab=stock" class="nav-subitem">
+              <span class="nav-bullet">📦</span> Stock
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link">
+          <span>←</span> <span>Back to Main</span>
+        </a>
+        <button id="logout-btn" class="sidebar-logout-btn">
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
+          <div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">🏭 Supplier Master</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Manage vendors, distributor profiles, GSTIN details, and credit terms</div>
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal()"
+            style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
+            Add Supplier</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" class="search-box" type="text" placeholder="🔍 Search name or GSTIN…" oninput="debounce()" />
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>GSTIN</th>
+              <th>State</th>
+              <th>Contact</th>
+              <th>Phone</th>
+              <th>Payment Terms</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sup-tbody">
+            <tr>
+              <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
 
   <!-- Modal -->
@@ -346,6 +435,17 @@
     const API = 'http://localhost:5000/api';
     const token = localStorage.getItem('auth_token');
     if (!token) window.location.href = 'index.html';
+
+    function toggleNavGroup(btn) {
+      const group = btn.closest('.nav-group');
+      if (group) {
+        group.classList.toggle('open');
+      }
+    }
+    function toggleSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      if (sidebar) sidebar.classList.toggle('show');
+    }
 
     const GST_STATE_CODES = {
       '01': 'Jammu and Kashmir', '02': 'Himachal Pradesh', '03': 'Punjab', '04': 'Chandigarh',

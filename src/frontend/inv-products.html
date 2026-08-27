@@ -390,11 +390,13 @@
       Cancel</button>
   </div>
 
-  <div class="page">
-    <header class="top-nav">
-      <div>
-        <div class="brand" style="margin-bottom:6px;">
-          <div class="brand-logo"><svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+  <div class="app-layout">
+    <!-- Left Vertical Navigation Sidebar -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
               <rect width="28" height="28" rx="8" fill="url(#pG)" />
               <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
               <defs>
@@ -403,54 +405,135 @@
                   <stop offset="100%" stop-color="#8b5cf6" />
                 </linearGradient>
               </defs>
-            </svg></div>
-          <span class="brand-name">WorkSpace</span>
-          <span
-            style="font-size:0.7rem;font-weight:700;background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;margin-left:4px;">📦
-            INVENTORY</span>
-        </div>
-        <div class="inv-nav">
-          <a href="inv-dashboard.html">📊 Dashboard</a>
-          <a href="inv-products.html" class="active">📦 Products</a>
-          <a href="inv-suppliers.html">🏭 Suppliers</a>
-          <a href="inv-customers.html">👥 Customers</a>
-          <a href="inv-payments.html">💳 Payments</a>
-          <a href="inv-outstandings.html">💰 Outstandings</a>
-          <a href="inv-reports.html">📈 Reports</a>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">WorkSpace</span>
+            <span class="brand-badge">📦 INVENTORY</span>
+          </div>
         </div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <a id="main-nav-link" href="company-dashboard.html"
-          style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border:1px solid var(--border);border-radius:6px;">←
-          Back</a>
-        <button id="logout-btn"
-          style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">Sign
-          Out</button>
-      </div>
-    </header>
 
-    <div class="toolbar">
-      <input id="search" class="search-box" type="text" placeholder="🔍 Search name, SKU, barcode…"
-        oninput="debounceLoad()" />
-      <select id="filter-cat" class="select-filter" onchange="loadProducts()">
-        <option value="">All Categories</option>
-      </select>
-      <select id="filter-tracking" class="select-filter" onchange="loadProducts()">
-        <option value="">All Tracking</option>
-        <option value="NONE">None</option>
-        <option value="BATCH">Batch</option>
-        <option value="SERIAL">Serial</option>
-      </select>
-      <button onclick="startScan()"
-        style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">📷
-        Scan</button>
-      <button onclick="openQuickStockModal()"
-        style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">⚡
-        Quick Stock In / Out</button>
-      <button onclick="openModal()"
-        style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
-        Add Product</button>
-    </div>
+      <!-- Navigation Groups -->
+      <nav class="sidebar-nav">
+        <!-- 1. Dashboard -->
+        <a href="inv-dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+
+        <!-- 2. Master -->
+        <div class="nav-group open">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Master</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-products.html" class="nav-subitem active">
+              <span class="nav-bullet">📦</span> Products
+            </a>
+            <a href="inv-customers.html" class="nav-subitem">
+              <span class="nav-bullet">👥</span> Customers
+            </a>
+            <a href="inv-suppliers.html" class="nav-subitem">
+              <span class="nav-bullet">🏭</span> Suppliers
+            </a>
+          </div>
+        </div>
+
+        <!-- 3. Transactions -->
+        <div class="nav-group">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">💼</span>
+            <span class="nav-label">Transactions</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+              <span class="nav-bullet">📈</span> Sales
+            </a>
+            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+              <span class="nav-bullet">📥</span> Purchases
+            </a>
+            <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
+              <span class="nav-bullet">💸</span> Payments
+            </a>
+            <a href="inv-payments.html?tab=customers" class="nav-subitem">
+              <span class="nav-bullet">💵</span> Received
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. Reports -->
+        <div class="nav-group">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Reports</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-reports.html?tab=ledger" class="nav-subitem">
+              <span class="nav-bullet">📋</span> Ledger
+            </a>
+            <a href="inv-outstandings.html" class="nav-subitem">
+              <span class="nav-bullet">💰</span> Outstandings
+            </a>
+            <a href="inv-reports.html?tab=stock" class="nav-subitem">
+              <span class="nav-bullet">📦</span> Stock
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link">
+          <span>←</span> <span>Back to Main</span>
+        </a>
+        <button id="logout-btn" class="sidebar-logout-btn">
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
+          <div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📦 Product Catalogue</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Manage inventory products, SKU codes, pricing, and stock balances</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="openQuickStockModal()"
+            style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">⚡
+            Quick Stock In / Out</button>
+          <button onclick="openModal()"
+            style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
+            Add Product</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" class="search-box" type="text" placeholder="🔍 Search name, SKU, barcode…"
+          oninput="debounceLoad()" />
+        <select id="filter-cat" class="select-filter" onchange="loadProducts()">
+          <option value="">All Categories</option>
+        </select>
+        <select id="filter-tracking" class="select-filter" onchange="loadProducts()">
+          <option value="">All Tracking</option>
+          <option value="NONE">None</option>
+          <option value="BATCH">Batch</option>
+          <option value="SERIAL">Serial</option>
+        </select>
+        <button onclick="startScan()"
+          style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">📷
+          Scan</button>
+      </div>
 
     <div class="table-wrap">
       <table>
@@ -475,6 +558,7 @@
       </table>
     </div>
     <div id="pagination" style="text-align:center;margin-top:16px;font-size:0.85rem;color:var(--text-muted);"></div>
+    </main>
   </div>
 
   <!-- Add/Edit Product Modal -->
@@ -764,6 +848,17 @@
     const API = 'http://localhost:5000/api';
     const token = localStorage.getItem('auth_token');
     if (!token) window.location.href = 'index.html';
+
+    function toggleNavGroup(btn) {
+      const group = btn.closest('.nav-group');
+      if (group) {
+        group.classList.toggle('open');
+      }
+    }
+    function toggleSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      if (sidebar) sidebar.classList.toggle('show');
+    }
 
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
     const mainNav = document.getElementById('main-nav-link');
@@ -1310,7 +1405,23 @@
       }
     }
 
-    async function openQuickStockModal(productId = null) {
+    async function openQuickStockModal(productOrType = null, explicitType = null) {
+      let productId = null;
+      let targetType = explicitType;
+      if (productOrType === 'IN' || productOrType === 'OUT') {
+        targetType = productOrType;
+      } else if (typeof productOrType === 'string' && productOrType.length > 5) {
+        productId = productOrType;
+      }
+
+      if (targetType) {
+        const typeEl = document.getElementById('qs-type');
+        if (typeEl) {
+          typeEl.value = targetType;
+          onQSTypeChange();
+        }
+      }
+
       // Ensure master datasets are loaded
       if (!masterProductsList.length) {
         await loadMasterProducts();
@@ -1646,7 +1757,14 @@
     window.onProductNameInput = onProductNameInput;
 
     // ─── Init ──────────────────────────────────────────────────────────────────
-    Promise.all([loadCategories(), loadWarehouses(), loadParties(), loadMasterProducts()]).then(loadProducts);
+    Promise.all([loadCategories(), loadWarehouses(), loadParties(), loadMasterProducts()]).then(() => {
+      loadProducts();
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'stock') {
+        const type = urlParams.get('type') || 'IN';
+        setTimeout(() => openQuickStockModal(type), 150);
+      }
+    });
   </script>
 </body>
 
