@@ -17,7 +17,7 @@ const router = Router();
 router.post('/register', registerCompany);
 
 // GET /api/companies/me — Company Admin view own tenant & trial status
-router.get('/me', authenticate, resolveTenant, authorize('company:read'), getMyCompany);
+router.get('/me', authenticate, authorize('company:read'), getMyCompany);
 
 // PATCH /api/companies/me — Company Admin update own tenant details
 router.patch('/me', authenticate, resolveTenant, authorize('company:update'), updateMyCompany);

@@ -30,7 +30,7 @@ Tenant (Company Workspace)
 
 | Collection | Model File | Scoped by `tenantId` | Key Indexes |
 |---|---|---|---|
-| `tenants` | `Tenant.js` | ❌ (Platform) | `email`, `status`, `createdAt` |
+| `tenants` | `Tenant.js` | ❌ (Platform) | `email`, `status`, `createdAt` (includes `initialWorkingCapital`) |
 | `users` | `User.js` | ✅ (`null` for SA) | `tenantId + email`, `tenantId + roleId` |
 | `roles` | `Role.js` | ✅ (`null` for system) | `tenantId + name` |
 | `plans` | `Plan.js` | ❌ (Platform) | `name` |
@@ -49,26 +49,48 @@ Tenant (Company Workspace)
 
 ---
 
-## 3. Bill-Wise Subdocument Schema
-Inside `inv_payment_transactions`:
-```json
+## 3. PaymentTransaction Schema & Subdocuments
+Collection: `inv_payment_transactions` (`src/backend/src/models/inv/PaymentTransaction.js`)
+
+```javascript
 {
-  "voucherNo": "REC-2627-0102",
-  "txnType": "PAYMENT_IN",
-  "partyType": "CUSTOMER",
-  "partyId": "6a8bf...",
-  "amount": 40000,
-  "settledAmount": 0,
-  "paymentStatus": "PAID",
-  "paymentMode": "NEFT_RTGS",
-  "allocatedBills": [
+  tenantId: ObjectId,           // Tenant workspace isolation (indexed)
+  voucherNo: String,            // Unique sequential voucher e.g. INV-2627-0101, REC-2627-0101, ADJ-IN-2627-0001
+  
+  partyType: String,            // 'CUSTOMER' | 'SUPPLIER' | 'OTHER' | 'EXTERNAL'
+  partyId: ObjectId,            // Reference to InvCustomer or InvSupplier (null for outside flows)
+  partyModel: String,           // 'InvCustomer' | 'InvSupplier' | null
+  partyName: String,            // Entity / Person Name for khata & outside flow
+
+  txnType: String,              // 'BILL' | 'INVOICE' | 'PAYMENT_OUT' | 'PAYMENT_IN' | 'OPENING_BAL' | 'ADJUSTMENT' | 'OUTSIDE_INFLOW' | 'OUTSIDE_OUTFLOW'
+  isOutsideCashflow: Boolean,   // true for non-trading adjustments, false for commercial trade
+  cashflowCategory: String,     // 'CAPITAL_INJECTION' | 'OWNER_DRAWINGS' | 'RENT_AND_UTILITIES' | 'SALARY_AND_WAGES' | 'OFFICE_EXPENSES' | 'LOAN_RECEIVED' | 'LOAN_REPAYMENT' | 'BANK_CHARGES_TAX' | 'OTHER_INFLOW' | 'OTHER_OUTFLOW'
+  
+  amount: Number,               // Transaction amount in INR (>= 0)
+  paymentMode: String,          // 'CASH' | 'UPI' | 'NEFT_RTGS' | 'CHEQUE' | 'NET_BANKING' | 'CARD'
+  paymentDate: Date,
+  dueDate: Date,                // Term expiration date for INVOICE / BILL
+
+  referenceNo: String,          // 12-digit UPI RRN / UTR / Cheque No
+  bankAccount: String,
+  notes: String,
+
+  // Bill-wise Knockoff Tracking (for BILL & INVOICE records)
+  settledAmount: Number,        // Total amount settled against this bill
+  paymentStatus: String,        // 'UNPAID' | 'PARTIALLY_PAID' | 'PAID'
+
+  // Linked Allocations (for PAYMENT_IN & PAYMENT_OUT records)
+  allocatedBills: [
     {
-      "billId": "6a8e9...",
-      "voucherNo": "INV-2627-0102",
-      "allocatedAmount": 40000,
-      "remainingBillBalance": 85000
+      billId: ObjectId,
+      voucherNo: String,
+      allocatedAmount: Number,
+      remainingBillBalance: Number
     }
-  ]
+  ],
+
+  stockLedgerId: ObjectId,      // Linked stock movement (if auto-generated from stock adjust)
+  createdBy: ObjectId
 }
 ```
 
@@ -78,3 +100,4 @@ Inside `inv_payment_transactions`:
 - Every database query for tenant resources must specify `{ tenantId: req.tenantId }`.
 - In atomic sequence operations (`nextSeq`), `{ returnDocument: 'after' }` is used to prevent race conditions.
 - Soft-deletes are handled using `deletedAt: { $eq: null }`.
+- Demo reseeds (`seed.js`) strictly scope cleanups to demo tenants (`Apex Retail`, `Nexus`, `Acme`), preserving all user-registered companies and customer data permanently.

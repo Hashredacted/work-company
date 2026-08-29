@@ -56,7 +56,14 @@ app.use(sanitizeInput); // NoSQL Injection sanitization
 
 // ─── Serve Frontend Static Files ─────────────────────────────────────────────
 const frontendPath = path.resolve(__dirname, '../../frontend');
+const htmlPath = path.join(frontendPath, 'html');
+const cssPath = path.join(frontendPath, 'css');
+const jsPath = path.join(frontendPath, 'js');
+
 app.use(express.static(frontendPath));
+app.use(express.static(htmlPath));
+app.use('/css', express.static(cssPath));
+app.use('/js', express.static(jsPath));
 
 // ─── Health check ────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -76,7 +83,7 @@ app.use('/api/inventory', inventoryRoutes);
 
 // ─── Root & Frontend HTML fallback ───────────────────────────────────────────
 app.get('/', (_req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  res.sendFile(path.join(htmlPath, 'index.html'));
 });
 
 // ─── 404 Handler for API and UI routes ─────────────────────────────────────────
@@ -84,7 +91,7 @@ app.use((req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ data: null, message: 'Route not found', errors: null });
   }
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  res.sendFile(path.join(htmlPath, 'index.html'));
 });
 
 // ─── Central Error Handler ────────────────────────────────────────────────────

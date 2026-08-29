@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -67,12 +67,18 @@
       display: block;
     }
 
-    /* Plan Cards */
+    /* Plan Cards - Fixed 3-column single row */
     .plans-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
       margin-bottom: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .plans-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .plan-card {
@@ -345,6 +351,7 @@
         <table>
           <thead>
             <tr>
+              <th style="width:45px;text-align:center;">#</th>
               <th>Invoice #</th>
               <th>Plan / Period</th>
               <th>Amount</th>
@@ -354,7 +361,7 @@
           </thead>
           <tbody id="invoices-tbody">
             <tr>
-              <td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">Loading invoices...</td>
+              <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">Loading invoices...</td>
             </tr>
           </tbody>
         </table>
@@ -362,7 +369,7 @@
     </section>
   </div>
 
-  <script src="js/billing.js"></script>
+  <script src="../js/billing.js"></script>
 </body>
 
 </html>

@@ -65,12 +65,13 @@ async function loadAuditLogs() {
     const logs = json.data.logs;
 
     if (!logs || logs.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">No audit logs found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">No audit logs found.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = logs.map(log => `
+    tbody.innerHTML = logs.map((log, idx) => `
       <tr>
+        <td style="text-align: center; color: var(--text-muted); font-weight: 700; font-size: 0.82rem;">${idx + 1}</td>
         <td>${actionBadge(log.action)}</td>
         <td style="color:var(--text-muted);">${log.resource || '—'}</td>
         <td style="font-weight:500;color:var(--text);">${log.userId ? (log.userId.name || log.userId) : '—'}</td>
@@ -80,7 +81,7 @@ async function loadAuditLogs() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error);padding:24px;">${err.message === 'Unauthorized' ? 'You do not have permission to view audit logs.' : 'Failed to load audit logs.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--error);padding:24px;">${err.message === 'Unauthorized' ? 'You do not have permission to view audit logs.' : 'Failed to load audit logs.'}</td></tr>`;
   }
 }
 
@@ -94,12 +95,13 @@ async function loadLoginHistory() {
     const history = json.data.history;
 
     if (!history || history.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">No login history found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">No login history found.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = history.map(h => `
+    tbody.innerHTML = history.map((h, idx) => `
       <tr>
+        <td style="text-align: center; color: var(--text-muted); font-weight: 700; font-size: 0.82rem;">${idx + 1}</td>
         <td style="font-weight:600;color:var(--text);">${h.userId ? h.userId.name : '—'}</td>
         <td>${h.userId ? h.userId.email : '—'}</td>
         <td style="font-family:monospace;font-size:0.78rem;">${h.ip || '—'}</td>
@@ -108,7 +110,7 @@ async function loadLoginHistory() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);padding:24px;">${err.message === 'Unauthorized' ? 'You do not have permission to view login history.' : 'Failed to load login history.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error);padding:24px;">${err.message === 'Unauthorized' ? 'You do not have permission to view login history.' : 'Failed to load login history.'}</td></tr>`;
   }
 }
 

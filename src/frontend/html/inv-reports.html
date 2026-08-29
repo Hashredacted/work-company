@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -483,6 +483,7 @@
             <table id="stock-table">
               <thead>
                 <tr>
+                  <th style="width:40px;text-align:center;">#</th>
                   <th>Product</th>
                   <th>SKU</th>
                   <th>Category</th>
@@ -498,7 +499,7 @@
               </thead>
               <tbody id="stock-tbody">
                 <tr>
-                  <td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+                  <td colspan="12" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
                 </tr>
               </tbody>
             </table>
@@ -514,6 +515,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:40px;text-align:center;">#</th>
                   <th>Product</th>
                   <th>SKU</th>
                   <th>Unit</th>
@@ -524,7 +526,7 @@
               </thead>
               <tbody id="val-tbody">
                 <tr>
-                  <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+                  <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
                 </tr>
               </tbody>
             </table>
@@ -548,6 +550,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:40px;text-align:center;">#</th>
                   <th>Product</th>
                   <th>Batch No</th>
                   <th>Expiry Date</th>
@@ -558,7 +561,7 @@
               </thead>
               <tbody id="expiry-tbody">
                 <tr>
-                  <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Click "Fetch Alerts"
+                  <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Click "Fetch Alerts"
                     to
                     load.</td>
                 </tr>
@@ -591,6 +594,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:40px;text-align:center;">#</th>
                   <th>Date</th>
                   <th>Movement Type</th>
                   <th>Godown</th>
@@ -602,7 +606,7 @@
               </thead>
               <tbody id="ledger-tbody">
                 <tr>
-                  <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to
+                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to
                     view
                     its stock ledger.</td>
                 </tr>
@@ -636,8 +640,19 @@
       mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
     }
 
-    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
-    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+    const H = () => {
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || '';
+      return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        ...(selectedTenant ? { 'X-Tenant-Id': selectedTenant } : {}),
+      };
+    };
+    function inr(n) {
+      const num = Number(n || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+      return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
+    }
     function escHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
@@ -944,13 +959,14 @@
           return;
         }
         if (r.status === 403) {
-          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view stock summary.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view stock summary.</td></tr>`;
           return;
         }
         const { data } = await r.json();
-        if (!data?.length) { tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">No products found in inventory.</td></tr>`; return; }
-        tbody.innerHTML = data.map(p => `
+        if (!data?.length) { tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text-muted);">No products found in inventory.</td></tr>`; return; }
+        tbody.innerHTML = data.map((p, idx) => `
           <tr>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
             <td style="font-weight:600;color:var(--text);">${p.name}</td>
             <td style="font-family:monospace;font-size:0.78rem;">${p.sku}</td>
             <td style="font-size:0.78rem;">${p.categoryId?.name || '—'}</td>
@@ -965,7 +981,7 @@
           </tr>`).join('');
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">Failed to load stock summary.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--error);">Failed to load stock summary.</td></tr>`;
       }
     }
 
@@ -976,9 +992,10 @@
         <div class="kpi"><div class="kpi-lbl">Total Stock Value</div><div class="kpi-val" style="color:#4ade80;">${inr(data.totalValue)}</div></div>
         <div class="kpi"><div class="kpi-lbl">Products</div><div class="kpi-val">${data.items?.length || 0}</div></div>`;
       const tbody = document.getElementById('val-tbody');
-      if (!data.items?.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">No data.</td></tr>`; return; }
-      tbody.innerHTML = data.items.map(i => `
+      if (!data.items?.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No data.</td></tr>`; return; }
+      tbody.innerHTML = data.items.map((i, idx) => `
         <tr>
+          <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
           <td style="font-weight:600;color:var(--text);">${i.name}</td>
           <td style="font-family:monospace;">${i.sku}</td>
           <td>${i.unit}</td>
@@ -1010,11 +1027,12 @@
       const r = await fetch(`${API}/inventory/reports/expiry-alerts?days=${days}`, { headers: H() });
       const { data } = await r.json();
       const tbody = document.getElementById('expiry-tbody');
-      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#4ade80;">✅ No batches expiring within ${days} days.</td></tr>`; return; }
-      tbody.innerHTML = data.map(a => {
+      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#4ade80;">✅ No batches expiring within ${days} days.</td></tr>`; return; }
+      tbody.innerHTML = data.map((a, idx) => {
         const expDate = new Date(a._id.expiryDate);
         const daysLeft = Math.ceil((expDate - Date.now()) / 86400000);
         return `<tr>
+          <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
           <td>${a._id.productId}</td>
           <td style="font-family:monospace;">${a._id.batchNo || '—'}</td>
           <td>${expDate.toLocaleDateString('en-IN')}</td>
@@ -1034,9 +1052,10 @@
       const r = await fetch(`${API}/inventory/reports/stock-ledger/${productId}?${params}`, { headers: H() });
       const { data } = await r.json();
       const tbody = document.getElementById('ledger-tbody');
-      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No movements found.</td></tr>`; return; }
-      tbody.innerHTML = data.map(e => `
+      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No movements found.</td></tr>`; return; }
+      tbody.innerHTML = data.map((e, idx) => `
         <tr>
+          <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
           <td>${new Date(e.date).toLocaleDateString('en-IN')}</td>
           <td><span class="txn-badge txn-${e.txnType}">${e.txnType.replace('_', ' ')}</span></td>
           <td>${e.warehouseId?.name || '—'}</td>

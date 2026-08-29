@@ -8,161 +8,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" nd\css\style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
-    :root {
-      --bg: #090d16;
-      --surface: #0f172a;
-      --surface-2: #1e293b;
-      --surface-3: #273549;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-focus: #6366f1;
-      --text: #f8fafc;
-      --text-sub: #94a3b8;
-      --text-muted: #64748b;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --error: #ef4444;
-      --info: #0ea5e9;
-      --receivable: #38bdf8;
-      --payable: #f43f5e;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
-
     body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: block;
-      overflow-x: hidden;
       overflow-y: auto;
+      display: block;
       padding: 0;
-    }
-
-    .bg-grid {
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 32px 32px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .blob {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      opacity: 0.15;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .blob-1 {
-      width: 500px;
-      height: 500px;
-      background: #6366f1;
-      top: -150px;
-      left: -150px;
-    }
-
-    .blob-2 {
-      width: 400px;
-      height: 400px;
-      background: #38bdf8;
-      bottom: -100px;
-      right: -100px;
     }
 
     .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
       position: relative;
       z-index: 1;
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 20px 28px 60px;
-      width: 100%;
-    }
-
-    /* Top Nav Header */
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 14px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .brand-name {
-      font-size: 1.15rem;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-
-    .inv-nav {
-      display: flex;
-      gap: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 4px;
-      border-radius: 10px;
-      flex-wrap: wrap;
-    }
-
-    .inv-nav a {
-      color: var(--text-sub);
-      text-decoration: none;
-      padding: 6px 14px;
-      border-radius: 7px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .inv-nav a:hover {
-      color: var(--text);
-      background: var(--surface-2);
-    }
-
-    .inv-nav a.active {
-      background: var(--primary);
-      color: #fff;
     }
 
     /* Company Selection & Context Header */
     .company-banner {
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: var(--radius);
       padding: 16px 20px;
       margin-bottom: 22px;
       display: flex;
@@ -170,7 +36,7 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 
     .company-info {
@@ -183,19 +49,19 @@
       width: 44px;
       height: 44px;
       border-radius: 10px;
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
       color: #a5b4fc;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       font-weight: 800;
     }
 
     .company-title {
       font-size: 1.05rem;
-      font-weight: 800;
+      font-weight: 700;
       color: var(--text);
     }
 
@@ -215,112 +81,182 @@
       background: var(--surface-2);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 600;
       outline: none;
       min-width: 220px;
       cursor: pointer;
+      transition: border-color 0.15s;
     }
 
     .company-select:focus {
       border-color: var(--primary);
     }
 
-    /* Executive KPI Grid */
+    /* Executive KPI Grid - Fixed 5-column single row */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 22px;
+      gap: 12px;
+      margin-bottom: 24px;
       width: 100%;
+    }
+
+    @media (max-width: 1100px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .kpi-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
+      border-radius: var(--radius);
+      padding: 14px 14px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       transition: transform 0.2s ease, border-color 0.2s ease;
+      min-width: 0;
     }
 
     .kpi-card:hover {
       transform: translateY(-2px);
-      border-color: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .kpi-lbl {
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-size: 0.7rem;
+      font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-lbl span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .kpi-val {
-      font-size: 1.45rem;
+      font-size: 1.35rem;
       font-weight: 800;
-      color: var(--text);
-      font-family: monospace;
-      letter-spacing: -0.5px;
+      margin: 4px 0 2px;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .kpi-sub {
-      font-size: 0.72rem;
-      color: var(--text-sub);
+      font-size: 0.7rem;
+      color: var(--text-muted);
       margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* Party Type Segmented Control & Filter Bar */
-    .controls-bar {
+    /* Party Type Tabs */
+    .pay-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 10px 18px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .tab-badge {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .tab-btn.active .tab-badge {
+      background: rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+    }
+
+    /* Controls & Search Toolbar */
+    .toolbar-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .party-toggle {
-      display: inline-flex;
-      background: var(--surface);
+    .search-box {
+      background: var(--surface-2);
       border: 1px solid var(--border);
-      padding: 3px;
-      border-radius: 10px;
-    }
-
-    .party-btn {
-      background: none;
-      border: none;
-      color: var(--text-sub);
-      padding: 8px 18px;
       border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.15s ease;
+      padding: 9px 14px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      min-width: 280px;
+      flex: 1;
+      max-width: 400px;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    .party-btn.active.receivables {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-    }
-
-    .party-btn.active.payables {
-      background: rgba(244, 63, 94, 0.15);
-      color: #f43f5e;
-      border: 1px solid rgba(244, 63, 94, 0.3);
+    .search-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
     }
 
     .filter-actions {
@@ -330,38 +266,24 @@
       flex-wrap: wrap;
     }
 
-    .search-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
-      color: var(--text);
-      font-size: 0.85rem;
-      outline: none;
-      min-width: 240px;
-    }
-
-    .search-box:focus {
-      border-color: var(--primary);
-    }
-
     .btn-action {
       background: var(--surface-2);
       border: 1px solid var(--border);
-      color: var(--text);
+      color: var(--text-sub);
       padding: 8px 14px;
       border-radius: 8px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.15s ease;
+      transition: all 0.15s ease;
     }
 
     .btn-action:hover {
-      background: var(--surface-3);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
     }
 
     /* Aging Bucket Quick Filter Pills */
@@ -370,15 +292,15 @@
       gap: 8px;
       overflow-x: auto;
       padding-bottom: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .aging-pill {
-      background: var(--surface);
+      background: var(--surface-2);
       border: 1px solid var(--border);
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: var(--text-sub);
       cursor: pointer;
@@ -386,61 +308,66 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s ease;
+      transition: all 0.2s;
     }
 
     .aging-pill:hover {
-      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .aging-pill.active {
       background: var(--primary);
       color: #fff;
       border-color: var(--primary);
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
     }
 
     /* Outstandings Table */
     .table-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       overflow: hidden;
+      margin-bottom: 24px;
     }
 
     .table-wrap {
       overflow-x: auto;
-      max-height: 560px;
+      max-height: 580px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.84rem;
+      font-size: 0.85rem;
     }
 
     thead th {
-      background: var(--surface-2);
+      background: rgba(255, 255, 255, 0.02);
       color: var(--text-muted);
       font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 12px 14px;
+      letter-spacing: 0.06em;
+      padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 5;
+      z-index: 2;
     }
 
     tbody td {
-      padding: 12px 14px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
+      color: var(--text);
     }
 
-    tbody tr:hover {
+    tbody tr:hover td {
       background: rgba(255, 255, 255, 0.02);
     }
 
@@ -488,15 +415,8 @@
     }
 
     @keyframes pulseCritical {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.75;
-      }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
     }
 
     .bill-pill {
@@ -539,13 +459,14 @@
     .modal {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: var(--radius);
       width: 100%;
       max-width: 780px;
       max-height: 90vh;
       overflow-y: auto;
       padding: 24px;
       position: relative;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
     }
 
     .modal-lg {
@@ -574,7 +495,7 @@
       color: var(--text);
     }
 
-    /* Action Icon Buttons */
+    /* Action Buttons in Table */
     .action-btn-group {
       display: flex;
       gap: 6px;
@@ -586,7 +507,7 @@
       background: var(--surface-2);
       border: 1px solid var(--border);
       color: var(--text-sub);
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 6px;
       font-size: 0.75rem;
       font-weight: 600;
@@ -594,29 +515,47 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.12s;
+      transition: all 0.15s;
     }
 
     .btn-table-action:hover {
-      background: var(--surface-3);
+      background: rgba(255, 255, 255, 0.08);
       color: var(--text);
       border-color: rgba(255, 255, 255, 0.2);
     }
 
-    .btn-table-action.pay {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: rgba(16, 185, 129, 0.3);
-      color: #34d399;
+    .btn-table-action.bills {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.28);
+      color: #a5b4fc;
     }
 
-    .btn-table-action.pay:hover {
-      background: rgba(16, 185, 129, 0.25);
+    .btn-table-action.bills:hover {
+      background: rgba(99, 102, 241, 0.22);
+      color: #fff;
+    }
+
+    .btn-table-action.settle {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+      font-weight: 700;
+    }
+
+    .btn-table-action.settle:hover {
+      background: rgba(34, 197, 94, 0.28);
+      color: #fff;
     }
 
     .btn-table-action.wa {
-      background: rgba(37, 211, 102, 0.1);
-      border-color: rgba(37, 211, 102, 0.3);
-      color: #25d366;
+      background: rgba(37, 211, 102, 0.12);
+      border-color: rgba(37, 211, 102, 0.28);
+      color: #4ade80;
+    }
+
+    .btn-table-action.wa:hover {
+      background: rgba(37, 211, 102, 0.22);
+      color: #fff;
     }
 
     /* Print Formatting */
@@ -629,11 +568,12 @@
       .bg-grid,
       .blob,
       .top-nav,
-      .controls-bar,
+      .toolbar-row,
       .aging-pills,
       .btn-action,
       .action-btn-group,
-      .modal-close {
+      .modal-close,
+      .sidebar {
         display: none !important;
       }
 
@@ -805,25 +745,25 @@
 
       <!-- Financial KPIs -->
       <div class="kpi-grid">
-        <div class="kpi-card" style="border-top:3px solid var(--receivable);">
+        <div class="kpi-card" style="border-top:3px solid #38bdf8;">
           <div class="kpi-lbl">
             <span>Customer Receivables (लेना)</span>
             <span>👥</span>
           </div>
-          <div class="kpi-val" id="kpi-receivables" style="color:var(--receivable);">₹0</div>
+          <div class="kpi-val" id="kpi-receivables" style="color:#38bdf8;">₹0</div>
           <div class="kpi-sub" id="kpi-debtors-count">0 active debtor accounts</div>
         </div>
 
-        <div class="kpi-card" style="border-top:3px solid var(--payable);">
+        <div class="kpi-card" style="border-top:3px solid #f87171;">
           <div class="kpi-lbl">
             <span>Supplier Payables (देना)</span>
             <span>🏭</span>
           </div>
-          <div class="kpi-val" id="kpi-payables" style="color:var(--payable);">₹0</div>
+          <div class="kpi-val" id="kpi-payables" style="color:#f87171;">₹0</div>
           <div class="kpi-sub" id="kpi-creditors-count">0 active creditor accounts</div>
         </div>
 
-        <div class="kpi-card" style="border-top:3px solid #6366f1;">
+        <div class="kpi-card" style="border-top:3px solid #4ade80;">
           <div class="kpi-lbl">
             <span>Net Position</span>
             <span>⚖️</span>
@@ -832,7 +772,7 @@
           <div class="kpi-sub">Receivables minus Payables</div>
         </div>
 
-        <div class="kpi-card" style="border-top:3px solid var(--warning);">
+        <div class="kpi-card" style="border-top:3px solid #fbbf24;">
           <div class="kpi-lbl">
             <span>Overdue Balance</span>
             <span>⏳</span>
@@ -841,7 +781,7 @@
           <div class="kpi-sub">Due date passed on invoices</div>
         </div>
 
-        <div class="kpi-card" style="border-top:3px solid var(--error);">
+        <div class="kpi-card" style="border-top:3px solid #f87171;">
           <div class="kpi-lbl">
             <span>Critical Risk (> 30 Days)</span>
             <span>🚨</span>
@@ -851,24 +791,23 @@
         </div>
       </div>
 
-      <!-- Controls Toolbar (Customer vs Supplier Toggle & Search) -->
-      <div class="controls-bar">
-        <div class="party-toggle">
-          <button id="btn-tab-customer" class="party-btn active receivables" onclick="switchPartyType('CUSTOMER')">
-            <span>👥 Customer Receivables (Lena)</span>
-            <span id="tab-cust-badge"
-              style="background:rgba(56,189,248,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
-          </button>
-          <button id="btn-tab-supplier" class="party-btn payables" onclick="switchPartyType('SUPPLIER')">
-            <span>🏭 Supplier Payables (Dena)</span>
-            <span id="tab-sup-badge"
-              style="background:rgba(244,63,94,0.2);padding:1px 6px;border-radius:10px;font-size:0.7rem;">0</span>
-          </button>
-        </div>
+      <!-- Party Type Tabs -->
+      <div class="pay-tabs">
+        <button id="btn-tab-customer" class="tab-btn active" onclick="switchPartyType('CUSTOMER')">
+          <span>👥 Customer Receivables (Lena)</span>
+          <span id="tab-cust-badge" class="tab-badge">0</span>
+        </button>
+        <button id="btn-tab-supplier" class="tab-btn" onclick="switchPartyType('SUPPLIER')">
+          <span>🏭 Supplier Payables (Dena)</span>
+          <span id="tab-sup-badge" class="tab-badge">0</span>
+        </button>
+      </div>
 
+      <!-- Controls & Search Toolbar -->
+      <div class="toolbar-row">
+        <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
+          oninput="debounceSearch()" />
         <div class="filter-actions">
-          <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
-            oninput="debounceSearch()" />
           <button class="btn-action" onclick="exportToCsv()">📥 Export CSV</button>
           <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
         </div>
@@ -898,6 +837,7 @@
           <table>
             <thead>
               <tr>
+                <th style="width:45px;text-align:center;">#</th>
                 <th>Party Name & Contact</th>
                 <th>GSTIN / State</th>
                 <th>Credit Terms</th>
@@ -909,13 +849,14 @@
             </thead>
             <tbody id="outstandings-tbody">
               <tr>
-                <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings
+                <td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Loading outstandings
                   data…
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+      </div>
     </main>
   </div>
 
@@ -1050,8 +991,20 @@
       mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
     }
 
-    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
-    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+    const H = () => {
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || activeCompanyId || '';
+      return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        ...(selectedTenant ? { 'X-Tenant-Id': selectedTenant } : {}),
+      };
+    };
+
+    function inr(n) {
+      const num = Number(n || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
+    }
     function fmtDate(d) {
       if (!d) return '—';
       const dt = new Date(d);
@@ -1068,7 +1021,7 @@
     });
 
     // State
-    let activeCompanyId = null;
+    let activeCompanyId = localStorage.getItem('selected_tenant_id') || null;
     let accessibleCompanies = [];
     let activePartyType = 'CUSTOMER'; // CUSTOMER (Receivables) or SUPPLIER (Payables)
     let rawOutstandings = [];
@@ -1102,10 +1055,17 @@
           return `<option value="${c._id}">${escHtml(c.name)} ${c.gst ? '(' + escHtml(c.gst) + ')' : ''}</option>`;
         }).join('');
 
-        // Default to first company
-        activeCompanyId = accessibleCompanies[0]._id;
-        sel.value = activeCompanyId;
-        updateCompanyBanner(accessibleCompanies[0]);
+        // Match stored active company or default to first
+        const matched = accessibleCompanies.find(c => c._id === activeCompanyId);
+        if (matched) {
+          sel.value = activeCompanyId;
+          updateCompanyBanner(matched);
+        } else {
+          activeCompanyId = accessibleCompanies[0]._id;
+          localStorage.setItem('selected_tenant_id', activeCompanyId);
+          sel.value = activeCompanyId;
+          updateCompanyBanner(accessibleCompanies[0]);
+        }
       } catch (err) {
         console.error('Error loading companies:', err);
       }
@@ -1121,6 +1081,7 @@
     function onCompanyFilterChange() {
       const sel = document.getElementById('company-filter');
       activeCompanyId = sel.value;
+      localStorage.setItem('selected_tenant_id', activeCompanyId);
       const comp = accessibleCompanies.find(c => c._id === activeCompanyId);
       if (comp) updateCompanyBanner(comp);
       loadKpisAndData();
@@ -1238,11 +1199,11 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} with active pending balance found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} with active pending balance found.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(p => {
+      tbody.innerHTML = filtered.map((p, idx) => {
         const isReceivable = activePartyType === 'CUSTOMER';
         const color = isReceivable ? 'var(--receivable)' : 'var(--payable)';
 
@@ -1265,6 +1226,7 @@
 
         return `
           <tr>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
             <td>
               <div style="font-weight:700;color:var(--text);font-size:0.9rem;">${escHtml(p.name)}</div>
               <div>${typeBadge}</div>
@@ -1291,9 +1253,9 @@
             <td>${openBillsHtml}</td>
             <td>
               <div class="action-btn-group" style="justify-content:center;">
-                <button class="btn-table-action" onclick="openBillsModal('${p._id}', event)" title="View all unpaid invoices/bills">📑 Bills</button>
-                <button class="btn-table-action pay" onclick="openRecordPayment('${p._id}', '${p.name}', ${p.outstanding})" title="Record Payment">💳 Settle</button>
-                <button class="btn-table-action" onclick="openStatement('${activePartyType}', '${p._id}', event)" title="View Khata Bahi Statement">📖 Khata</button>
+                <button class="btn-table-action bills" onclick="openBillsModal('${p._id}', event)" title="View all unpaid invoices/bills">📑 Bills</button>
+                <button class="btn-table-action settle" onclick="openRecordPayment('${p._id}', '${p.name}', ${p.outstanding})" title="Record Payment">${isReceivable ? '💵 Receive' : '💳 Settle'}</button>
+                <button class="btn-table-action" onclick="openStatement('${activePartyType}', '${p._id}', event)" title="View Khata Bahi Statement">📜 Statement</button>
                 <button class="btn-table-action wa" onclick="openWhatsAppModal('${p._id}', event)" title="WhatsApp Reminder">💬</button>
               </div>
             </td>
@@ -1364,6 +1326,7 @@
           <table>
             <thead>
               <tr>
+                <th style="width:40px;text-align:center;">#</th>
                 <th>Voucher / Invoice #</th>
                 <th>Type</th>
                 <th>Date</th>
@@ -1376,8 +1339,9 @@
               </tr>
             </thead>
             <tbody>
-              ${bills.map(b => `
+              ${bills.map((b, idx) => `
                 <tr>
+                  <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
                   <td>
                     <span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view full invoice">🔍 ${escHtml(b.voucherNo)}</span>
                   </td>
@@ -1448,14 +1412,6 @@
         const docIcon = isInvoice ? '🧾' : isBill ? '📦' : isReceipt ? '💵' : '💸';
 
         // Prominent Receivable / Payable nature badge
-        const accountNatureBadge = isInvoice
-          ? `<span style="background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.4);color:#38bdf8;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📥 RECEIVABLE · पैसा लेना है</span>`
-          : isBill
-            ? `<span style="background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.4);color:#fb7185;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📤 PAYABLE · पैसा देना है</span>`
-            : isReceipt
-              ? `<span style="background:rgba(74,222,128,0.18);border:1px solid rgba(74,222,128,0.4);color:#4ade80;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📥 RECEIPT SETTLEMENT · जमा</span>`
-              : `<span style="background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.4);color:#fb7185;padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">📤 PAYMENT SETTLEMENT · भुगतान</span>`;
-
         const statusBadge = (isInvoice || isBill)
           ? `<span class="status-badge status-${txn.paymentStatus || 'UNPAID'}">${txn.paymentStatus || 'UNPAID'}</span>`
           : `<span class="status-badge status-CLEARED">EXECUTED</span>`;
@@ -1477,6 +1433,7 @@
               <table style="font-size:0.8rem;">
                 <thead>
                   <tr>
+                    <th style="width:36px;text-align:center;">#</th>
                     <th>Item Description</th>
                     <th>SKU / HSN</th>
                     <th>Godown</th>
@@ -1488,6 +1445,7 @@
                 </thead>
                 <tbody>
                   <tr>
+                    <td style="text-align:center;color:var(--text-muted);font-weight:600;">1</td>
                     <td>
                       <div style="font-weight:700;color:var(--text);">${escHtml(product.name)}</div>
                       ${ledger.batchNo ? `<div style="font-size:0.7rem;color:var(--text-muted);">Batch: ${escHtml(ledger.batchNo)} ${ledger.expiryDate ? '· Exp: ' + fmtDate(ledger.expiryDate) : ''}</div>` : ''}
@@ -1513,6 +1471,7 @@
               <table style="font-size:0.78rem;background:transparent;">
                 <thead>
                   <tr>
+                    <th style="width:36px;text-align:center;">#</th>
                     <th>Date</th>
                     <th>Voucher #</th>
                     <th>Mode & Reference</th>
@@ -1521,8 +1480,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${settlements.map(s => `
+                  ${settlements.map((s, idx) => `
                     <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:600;">${idx + 1}</td>
                       <td style="font-family:monospace;">${fmtDate(s.date)}</td>
                       <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${s.voucherNo}', event)">${escHtml(s.voucherNo)}</td>
                       <td>${escHtml(s.paymentMode || '—')} ${s.referenceNo ? `· Ref: <code>${escHtml(s.referenceNo)}</code>` : ''}</td>
@@ -1534,145 +1494,173 @@
               </table>
             </div>
           `;
+        } else if ((isReceipt || isPayment) && txn.allocatedBills && txn.allocatedBills.length > 0) {
+          settlementsHtml = `
+            <div style="margin-top:16px;margin-bottom:16px;background:rgba(74,222,128,0.04);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:12px;">
+              <div style="font-size:0.75rem;font-weight:700;color:#4ade80;text-transform:uppercase;margin-bottom:8px;">📑 Invoices / Bills Settled By This Voucher</div>
+              <table style="font-size:0.78rem;background:transparent;">
+                <thead>
+                  <tr>
+                    <th style="width:36px;text-align:center;">#</th>
+                    <th>Bill / Invoice #</th>
+                    <th style="text-align:right;">Amount Allocated (₹)</th>
+                    <th style="text-align:right;">Remaining on Bill (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${txn.allocatedBills.map((b, idx) => `
+                    <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:600;">${idx + 1}</td>
+                      <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)">${escHtml(b.voucherNo)}</td>
+                      <td style="text-align:right;font-weight:700;color:#4ade80;">${inr(b.allocatedAmount)}</td>
+                      <td style="text-align:right;font-weight:700;color:${b.remainingBillBalance === 0 ? '#4ade80' : '#f87171'};">${inr(b.remainingBillBalance)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
         }
 
         const remainingPending = Math.max(0, txn.amount - (txn.settledAmount || 0));
 
+        const natureBanner = isInvoice
+          ? `<div style="padding:10px 14px;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <span style="font-weight:800;color:#38bdf8;font-size:0.88rem;">📥 CUSTOMER COMMERCIAL INVOICE · ग्राहक उधारी (RECEIVABLE)</span>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">This bill adds to Customer Outstanding (लेना है) until settled by payment receipts.</div>
+              </div>
+              <span class="status-badge" style="background:#38bdf8;color:#000;font-weight:800;">DUE: ${inr(remainingPending)}</span>
+             </div>`
+          : isBill
+            ? `<div style="padding:10px 14px;background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <span style="font-weight:800;color:#fb7185;font-size:0.88rem;">📤 SUPPLIER PURCHASE BILL · सप्लायर उधारी (PAYABLE)</span>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">This bill adds to Supplier Payable (देना है) until cleared via bank/cash payments.</div>
+              </div>
+              <span class="status-badge" style="background:#fb7185;color:#000;font-weight:800;">DUE: ${inr(remainingPending)}</span>
+             </div>`
+            : '';
+
         container.innerHTML = `
-          <div style="border:1px solid var(--border);border-radius:10px;padding:20px;background:var(--surface);">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:12px;">
-              <div>
-                <div style="font-size:1.15rem;font-weight:800;color:var(--text);letter-spacing:-0.3px;">${escHtml(company?.name || 'WorkSpace Enterprise')}</div>
-                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(company?.gstin || '—')}</strong> · Phone: ${escHtml(company?.phone || '—')}</div>
-                <div style="font-size:0.75rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
+          ${natureBanner}
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:14px;">
+            <div>
+              <div style="font-size:1.2rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;">
+                <span>${docIcon} ${docTitle}</span>
+                <span style="font-family:monospace;color:var(--primary);">${escHtml(txn.voucherNo)}</span>
               </div>
-              <div style="text-align:right;">
-                <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:4px;">
-                  <span style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.5px;">${docIcon} ${docTitle}</span>
-                  ${accountNatureBadge}
-                </div>
-                <div style="font-family:monospace;font-weight:800;font-size:0.95rem;color:var(--text);margin-top:2px;">${escHtml(txn.voucherNo)}</div>
-                <div style="margin-top:4px;">${statusBadge}</div>
-              </div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Date: <strong>${fmtDate(txn.paymentDate)}</strong> ${txn.dueDate ? `· Due: <strong style="color:${txn.paymentStatus === 'OVERDUE' ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}</div>
             </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;font-size:0.8rem;">
-              <div>
-                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">
-                  ${isInvoice || isReceipt ? '👤 CUSTOMER (BILLED TO) · RECEIVABLE PARTY' : '🏭 SUPPLIER (VENDOR) · PAYABLE PARTY'}
-                </div>
-                <div style="font-weight:800;font-size:0.92rem;color:var(--text);">${escHtml(party?.name || '—')}</div>
-                <div style="color:var(--text-muted);margin-top:2px;">GSTIN: <strong style="color:var(--text);">${escHtml(party?.gstin || 'Unregistered')}</strong></div>
-                <div style="color:var(--text-muted);">Phone: ${escHtml(party?.phone || '—')} · ${escHtml(party?.email || '')}</div>
-                <div style="color:var(--text-muted);font-size:0.75rem;margin-top:2px;">${escHtml(party?.billingAddress || party?.address || '')}</div>
-              </div>
-              <div style="border-left:1px solid var(--border);padding-left:16px;">
-                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">📅 VOUCHER DETAILS</div>
-                <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:0.78rem;">
-                  <span style="color:var(--text-muted);">Category:</span> <strong>${isInvoice ? '📥 Customer Receivable (Lena)' : isBill ? '📤 Supplier Payable (Dena)' : isReceipt ? '📥 Inflow Receipt' : '📤 Outflow Payment'}</strong>
-                  <span style="color:var(--text-muted);">Date:</span> <strong style="font-family:monospace;">${fmtDate(txn.paymentDate)}</strong>
-                  ${txn.dueDate ? `<span style="color:var(--text-muted);">Due Date:</span> <strong style="font-family:monospace;color:${new Date(txn.dueDate) < new Date() ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}
-                  <span style="color:var(--text-muted);">Payment Mode:</span> <strong>${escHtml(txn.paymentMode || 'CREDIT')}</strong>
-                  ${txn.referenceNo ? `<span style="color:var(--text-muted);">Ref / UTR:</span> <strong style="font-family:monospace;">${escHtml(txn.referenceNo)}</strong>` : ''}
-                  ${txn.notes ? `<span style="color:var(--text-muted);">Remarks:</span> <span style="color:var(--text);">${escHtml(txn.notes)}</span>` : ''}
-                </div>
-              </div>
+            <div style="text-align:right;">
+              ${statusBadge}
+              <div style="font-size:1.3rem;font-weight:800;color:var(--text);margin-top:6px;font-family:monospace;">${inr(txn.amount)}</div>
             </div>
+          </div>
 
-            ${itemRowHtml}
-            ${settlementsHtml}
-
-            <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-              <div style="min-width:320px;background:var(--surface-2);border-radius:8px;padding:12px;font-size:0.82rem;">
-                <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);">
-                  <span>Total Amount:</span>
-                  <strong style="color:var(--text);font-size:0.95rem;">${inr(txn.amount)}</strong>
-                </div>
-                ${(isInvoice || isBill) ? `
-                  <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;">
-                    <span>Settled / Paid:</span>
-                    <strong>${inr(txn.settledAmount || 0)}</strong>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border);margin-top:4px;font-size:0.95rem;color:${remainingPending === 0 ? '#4ade80' : (isInvoice ? '#38bdf8' : '#fb7185')};font-weight:800;">
-                    <span>${isInvoice ? 'Receivable Due (To Collect):' : 'Payable Due (To Pay):'}</span>
-                    <span>${inr(remainingPending)}</span>
-                  </div>
-                ` : `
-                  <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;font-weight:700;">
-                    <span>Status:</span>
-                    <span>COMPLETED</span>
-                  </div>
-                `}
-              </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;background:var(--surface-2);padding:12px;border-radius:8px;">
+            <div>
+              <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">From (Billed By)</div>
+              <div style="font-weight:700;color:var(--text);font-size:0.9rem;margin-top:2px;">${escHtml(company?.name || 'WorkSpace Business')}</div>
+              <div style="font-size:0.75rem;color:var(--text-sub);">${escHtml(company?.address || '')}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:2px;">GSTIN: ${escHtml(company?.gstin || 'Unregistered')}</div>
             </div>
+            <div>
+              <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">To Party (Billed To)</div>
+              <div style="font-weight:700;color:var(--text);font-size:0.9rem;margin-top:2px;">${escHtml(party?.name || 'Direct / Cash Party')}</div>
+              <div style="font-size:0.75rem;color:var(--text-sub);">${escHtml(party?.billingAddress || party?.address || '')} ${party?.phone ? '· 📞 ' + escHtml(party.phone) : ''}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:2px;">GSTIN: ${escHtml(party?.gstin || 'Unregistered / Consumer')}</div>
+            </div>
+          </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;padding-top:16px;border-top:1px dashed var(--border);font-size:0.75rem;color:var(--text-muted);">
-              <div>
-                <div>Thank you for doing business with us!</div>
-                <div style="font-size:0.7rem;margin-top:2px;">This is a computer-generated tax invoice/voucher issued via WorkSpace ERP.</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="margin-bottom:30px;">For <strong>${escHtml(company?.name || 'WorkSpace Business')}</strong></div>
-                <div>Authorized Signatory ___________________</div>
-              </div>
+          ${itemRowHtml}
+          ${settlementsHtml}
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <div>
+              <div style="font-size:0.68rem;color:var(--text-muted);">Payment Mode</div>
+              <div style="font-weight:700;font-size:0.85rem;margin-top:2px;">${escHtml(txn.paymentMode || 'CREDIT')}</div>
+            </div>
+            <div>
+              <div style="font-size:0.68rem;color:var(--text-muted);">Ref / UTR / Cheque</div>
+              <div style="font-family:monospace;font-size:0.8rem;margin-top:2px;">${escHtml(txn.referenceNo || '—')}</div>
+            </div>
+            <div>
+              <div style="font-size:0.68rem;color:var(--text-muted);">Total Amount</div>
+              <div style="font-weight:700;font-size:0.85rem;margin-top:2px;font-family:monospace;">${inr(txn.amount)}</div>
+            </div>
+            <div>
+              <div style="font-size:0.68rem;color:var(--text-muted);">Total Settled</div>
+              <div style="font-weight:700;font-size:0.85rem;color:#4ade80;margin-top:2px;font-family:monospace;">${inr(txn.settledAmount)}</div>
+            </div>
+            <div>
+              <div style="font-size:0.68rem;color:var(--text-muted);">Pending Due Balance</div>
+              <div style="font-weight:800;font-size:0.85rem;color:${remainingPending > 0 ? '#f87171' : '#4ade80'};margin-top:2px;font-family:monospace;">${inr(remainingPending)}</div>
+            </div>
+          </div>
+
+          ${txn.notes ? `<div style="font-size:0.78rem;color:var(--text-sub);background:var(--surface-2);padding:8px 12px;border-radius:6px;margin-bottom:16px;"><strong>Particulars / Notes:</strong> ${escHtml(txn.notes)}</div>` : ''}
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px dashed var(--border);">
+            <div style="font-size:0.72rem;color:var(--text-muted);">WorkSpace ERP · Double-Entry Verified Transaction</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-table-action" onclick="window.print()">🖨️ Print</button>
+              <button class="btn-table-action" style="background:var(--primary);color:#fff;" onclick="closeVoucherModal()">Close</button>
             </div>
           </div>
         `;
       } catch (err) {
-        if (container) container.innerHTML = '<div style="color:var(--error);padding:24px;text-align:center;">Server error loading voucher details.</div>';
+        if (container) container.innerHTML = '<div style="color:var(--error);padding:24px;text-align:center;">Server error loading document details.</div>';
       }
     }
 
     function closeVoucherModal() {
-      document.getElementById('voucher-modal').classList.remove('show');
+      const modal = document.getElementById('voucher-modal');
+      if (modal) modal.classList.remove('show');
     }
 
-    // ─── Khata Statement Modal ────────────────────────────────────────────────
+    // ─── Party Khata Statement Modal ──────────────────────────────────────────
     async function openStatement(partyType, partyId, e) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
       const modal = document.getElementById('statement-modal');
       const container = document.getElementById('stmt-content');
-      if (container) container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">Generating statement…</div>';
+      if (container) container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Loading Khata statement…</div>';
       if (modal) modal.classList.add('show');
 
       try {
-        const r = await fetch(`${API}/inventory/payments/statement/${partyType}/${partyId}`, { headers: H() });
+        const r = await fetch(`${API}/inventory/payments/statement?partyType=${partyType}&partyId=${partyId}`, { headers: H() });
         if (!r.ok) {
-          if (container) container.innerHTML = '<div style="color:var(--error);padding:20px;">Failed to load statement.</div>';
+          if (container) container.innerHTML = '<div style="color:var(--error);padding:20px;">Failed to generate statement.</div>';
           return;
         }
         const json = await r.json();
-        const { company, party, statement, summary } = json.data || {};
-        if (!party || !container) return;
+        const { party, company, statement, summary } = json.data || {};
+
+        if (!container) return;
 
         container.innerHTML = `
-          <div style="display:flex;justify-content:space-between;border-bottom:2px solid var(--border);padding-bottom:14px;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:12px;">
             <div>
-              <div style="font-size:0.75rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:4px;">ISSUED BY</div>
-              <div style="font-size:1.1rem;font-weight:800;color:var(--text);">${escHtml(company?.name || 'WorkSpace Business')}</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">GSTIN: <strong>${escHtml(company?.gstin || '—')}</strong> · Phone: ${escHtml(company?.phone || '—')}</div>
-              <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(company?.address || '')}</div>
+              <div style="font-size:1.1rem;font-weight:800;color:var(--text);">📜 Khata Statement (खाता बही)</div>
+              <div style="font-size:0.85rem;color:var(--primary);font-weight:700;margin-top:2px;">${escHtml(party?.name)}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${escHtml(party?.phone || 'No phone')} ${party?.gstin ? '· GSTIN: ' + escHtml(party.gstin) : ''}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">
-                PARTY ACCOUNT (खाता) · ${partyType === 'CUSTOMER' ? '<span style="color:#38bdf8;">📥 CUSTOMER (RECEIVABLE)</span>' : '<span style="color:#fb7185;">📤 SUPPLIER (PAYABLE)</span>'}
-              </div>
-              <div style="font-size:1.1rem;font-weight:800;color:var(--text);">${escHtml(party.name)}</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">GSTIN: <strong>${escHtml(party.gstin || 'Unregistered')}</strong> · Phone: ${escHtml(party.phone || '—')}</div>
-              <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(party.billingAddress || '')}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">Generated: ${fmtDate(new Date())}</div>
+              <div style="font-size:0.72rem;color:var(--text-sub);">${escHtml(company?.name || '')}</div>
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:16px;">
-            <div style="background:var(--surface-2);border-radius:8px;padding:12px;">
-              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Total Debits (Billed / Paid)</div>
-              <div style="font-size:1.2rem;font-weight:800;color:#f87171;font-family:monospace;margin-top:4px;">${inr(summary?.totalDebit)}</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:14px;">
+            <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:10px;">
+              <div style="font-size:0.7rem;color:#f87171;text-transform:uppercase;font-weight:700;">Total Debits (Billed/Paid)</div>
+              <div style="font-size:1.1rem;font-weight:800;color:#f87171;font-family:monospace;margin-top:4px;">${inr(summary?.totalDebit)}</div>
             </div>
-            <div style="background:var(--surface-2);border-radius:8px;padding:12px;">
-              <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Total Credits (Receipts / Settled)</div>
-              <div style="font-size:1.2rem;font-weight:800;color:#4ade80;font-family:monospace;margin-top:4px;">${inr(summary?.totalCredit)}</div>
+            <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:10px;">
+              <div style="font-size:0.7rem;color:#4ade80;text-transform:uppercase;font-weight:700;">Total Credits (Received)</div>
+              <div style="font-size:1.1rem;font-weight:800;color:#4ade80;font-family:monospace;margin-top:4px;">${inr(summary?.totalCredit)}</div>
             </div>
-            <div style="background:rgba(99,102,241,0.1);border:1px solid #6366f1;border-radius:8px;padding:12px;">
+            <div style="background:rgba(99,102,241,0.12);border:1px solid #6366f1;border-radius:8px;padding:10px;">
               <div style="font-size:0.7rem;color:#a5b4fc;text-transform:uppercase;font-weight:700;">Net Closing Outstanding</div>
               <div style="font-size:1.2rem;font-weight:800;color:#a5b4fc;font-family:monospace;margin-top:4px;">
                 ${inr(summary?.netOutstanding)} 
@@ -1687,6 +1675,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:45px;text-align:center;">#</th>
                   <th>Date</th>
                   <th>Voucher #</th>
                   <th>Particulars & Knockoff</th>
@@ -1697,13 +1686,14 @@
                 </tr>
               </thead>
               <tbody>
-                ${(statement && statement.length) ? statement.map(row => {
+                ${(statement && statement.length) ? statement.map((row, idx) => {
           const billLinks = (row.allocatedBills && row.allocatedBills.length)
             ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-pill" onclick="openVoucherModal('${b.voucherNo}', event)">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
             : '';
 
           return `
                     <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
                       <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
                       <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)">🔍 ${escHtml(row.voucherNo)}</td>
                       <td>
@@ -1721,7 +1711,7 @@
                       </td>
                     </tr>
                   `;
-        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+        }).join('') : '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
               </tbody>
             </table>
           </div>

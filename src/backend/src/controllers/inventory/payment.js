@@ -324,6 +324,85 @@ async function recordPayment(req, res, next) {
   }
 }
 
+// ─── POST /api/inventory/payments/outside-cashflow (Add / Subtract Account Balance via Outside Cashflow) ─
+async function recordOutsideCashflow(req, res, next) {
+  try {
+    const {
+      direction, // 'ADD' (Inflow) or 'SUBTRACT' (Outflow)
+      amount,
+      paymentMode = 'CASH',
+      category = 'OTHER_INFLOW',
+      partyName = '',
+      referenceNo = '',
+      bankAccount = '',
+      notes = '',
+      paymentDate,
+    } = req.body;
+
+    const rawTenant = req.query.tenantId || req.headers['x-tenant-id'];
+    const targetTenantId = (rawTenant && req.isSuperAdmin)
+      ? new mongoose.Types.ObjectId(rawTenant)
+      : (req.tenantId ? new mongoose.Types.ObjectId(req.tenantId) : null);
+
+    if (!targetTenantId) {
+      return res.status(400).json({ data: null, message: 'Tenant ID is required', errors: null });
+    }
+
+    const numAmount = Number(amount);
+    if (!numAmount || numAmount <= 0) {
+      return res.status(400).json({ data: null, message: 'Amount must be greater than 0', errors: null });
+    }
+
+    const isAdd = String(direction).toUpperCase() === 'ADD' || direction === 'INFLOW' || direction === '+';
+    const txnType = isAdd ? 'OUTSIDE_INFLOW' : 'OUTSIDE_OUTFLOW';
+    const prefix = isAdd ? 'ADJ-IN' : 'ADJ-OUT';
+
+    const voucherNo = await nextSeq(targetTenantId, prefix);
+
+    const validModes = ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD'];
+    const validMode = validModes.includes(paymentMode) ? paymentMode : 'CASH';
+
+    const txn = await PaymentTransaction.create({
+      tenantId: targetTenantId,
+      voucherNo,
+      partyType: 'OTHER',
+      partyId: null,
+      partyModel: null,
+      partyName: partyName ? partyName.trim() : (isAdd ? 'External Capital / Inflow' : 'Operating Expense / Outflow'),
+      txnType,
+      isOutsideCashflow: true,
+      cashflowCategory: category,
+      amount: numAmount,
+      paymentMode: validMode,
+      paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
+      referenceNo: referenceNo ? referenceNo.trim() : null,
+      bankAccount: bankAccount ? bankAccount.trim() : null,
+      notes: notes ? notes.trim() : (isAdd ? `Outside Cash Inflow: ${category}` : `Outside Cash Outflow: ${category}`),
+      createdBy: req.user?._id || req.userId,
+    });
+
+    if (AuditLog) {
+      await AuditLog.create({
+        tenantId: targetTenantId,
+        userId: req.user?._id || req.userId,
+        action: txnType,
+        resource: 'payments',
+        resourceId: txn._id.toString(),
+        details: { voucherNo, direction: isAdd ? 'ADD' : 'SUBTRACT', amount: numAmount, paymentMode: validMode, category, partyName },
+        ip: req.ip,
+      });
+    }
+
+    res.status(201).json({
+      data: txn,
+      message: `${isAdd ? 'Added' : 'Subtracted'} ₹${numAmount.toLocaleString('en-IN')} ${isAdd ? 'to' : 'from'} ${validMode === 'CASH' ? 'Cash in Hand' : 'Bank / UPI'} balance successfully (Voucher: ${voucherNo}).`,
+      errors: null,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
 // ─── GET /api/inventory/payments/daily-summary (Per-Day Payment & Inflow/Outflow)
 async function getDailySummary(req, res, next) {
   try {
@@ -338,7 +417,7 @@ async function getDailySummary(req, res, next) {
         $match: {
           tenantId: req.tenantId,
           paymentDate: { $gte: startDate },
-          txnType: { $in: ['PAYMENT_IN', 'PAYMENT_OUT'] },
+          txnType: { $in: ['PAYMENT_IN', 'PAYMENT_OUT', 'OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW'] },
         },
       },
       {
@@ -372,7 +451,7 @@ async function getDailySummary(req, res, next) {
           modes: {},
         };
       }
-      const isReceipt = item._id.txnType === 'PAYMENT_IN';
+      const isReceipt = item._id.txnType === 'PAYMENT_IN' || item._id.txnType === 'OUTSIDE_INFLOW';
       if (isReceipt) {
         dailyMap[d].totalInflow += item.totalAmount;
         dailyMap[d].inflowCount += item.count;
@@ -425,63 +504,122 @@ async function getAccessibleCompanies(req, res, next) {
   }
 }
 
-// ─── GET /api/inventory/payments/kpis (Overall Receivables & Payables & Aging) ─
+// ─── GET /api/inventory/payments/kpis (Overall Receivables & Payables & Account Balances) ─
 async function getPaymentKpis(req, res, next) {
   try {
+    const targetTenantId = (req.query.tenantId && req.isSuperAdmin) ? new mongoose.Types.ObjectId(req.query.tenantId) : req.tenantId;
     const now = new Date();
 
-    // True total receivables / payables = sum of unsettled amounts on open invoices / bills
-    const unpaidAgg = await PaymentTransaction.aggregate([
-      {
-        $match: {
-          tenantId: req.tenantId,
-          txnType: { $in: ['INVOICE', 'BILL', 'OPENING_BAL'] },
-          paymentStatus: { $in: ['UNPAID', 'PARTIALLY_PAID', null] },
-        },
-      },
-      {
-        $group: {
-          _id: '$partyType',
-          unpaidTotal: {
-            $sum: { $max: [0, { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }] },
+    // Parallel aggregate for unpaids, overdues, mode liquidity, and outside cashflows
+    const [unpaidAgg, overdueAgg, modeAgg, paymentsAgg, custPartiesCount, supPartiesCount] = await Promise.all([
+      PaymentTransaction.aggregate([
+        {
+          $match: {
+            tenantId: targetTenantId,
+            txnType: { $in: ['INVOICE', 'BILL', 'OPENING_BAL'] },
           },
-          count: { $sum: 1 },
         },
-      },
+        {
+          $group: {
+            _id: '$partyType',
+            unpaidTotal: {
+              $sum: {
+                $cond: [
+                  { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                  { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+                  0,
+                ],
+              },
+            },
+            totalBilled: { $sum: '$amount' },
+            totalSettled: { $sum: { $ifNull: ['$settledAmount', 0] } },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      PaymentTransaction.aggregate([
+        {
+          $match: {
+            tenantId: targetTenantId,
+            dueDate: { $ne: null, $lt: now },
+            txnType: { $in: ['INVOICE', 'BILL'] },
+          },
+        },
+        {
+          $group: {
+            _id: '$partyType',
+            overdueAmount: {
+              $sum: {
+                $cond: [
+                  { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                  { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+                  0,
+                ],
+              },
+            },
+            criticalAmount: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $lt: ['$dueDate', new Date(now.getTime() - 30 * 86400000)] },
+                      { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                    ],
+                  },
+                  { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+                  0,
+                ],
+              },
+            },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      PaymentTransaction.aggregate([
+        {
+          $match: {
+            tenantId: targetTenantId,
+            txnType: { $in: ['PAYMENT_IN', 'PAYMENT_OUT', 'OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW'] },
+          },
+        },
+        {
+          $group: {
+            _id: { txnType: '$txnType', paymentMode: '$paymentMode' },
+            total: { $sum: '$amount' },
+          },
+        },
+      ]),
+      PaymentTransaction.aggregate([
+        {
+          $match: {
+            tenantId: targetTenantId,
+            txnType: { $in: ['PAYMENT_IN', 'PAYMENT_OUT', 'OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW'] },
+          },
+        },
+        {
+          $group: {
+            _id: '$txnType',
+            totalAmount: { $sum: '$amount' },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      PaymentTransaction.distinct('partyId', {
+        tenantId: targetTenantId,
+        partyType: 'CUSTOMER',
+        txnType: { $in: ['INVOICE', 'OPENING_BAL'] },
+        $expr: { $gt: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+      }),
+      PaymentTransaction.distinct('partyId', {
+        tenantId: targetTenantId,
+        partyType: 'SUPPLIER',
+        txnType: { $in: ['BILL', 'OPENING_BAL'] },
+        $expr: { $gt: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+      }),
     ]);
 
     const totalReceivables = unpaidAgg.find(a => a._id === 'CUSTOMER')?.unpaidTotal || 0;
     const totalPayables    = unpaidAgg.find(a => a._id === 'SUPPLIER')?.unpaidTotal || 0;
-
-    // Overdue: based on actual dueDate and remaining unsettled amount on each bill/invoice
-    const overdueAgg = await PaymentTransaction.aggregate([
-      {
-        $match: {
-          tenantId: req.tenantId,
-          dueDate: { $ne: null, $lt: now },
-          txnType: { $in: ['INVOICE', 'BILL'] },
-          paymentStatus: { $ne: 'PAID' },
-        },
-      },
-      {
-        $group: {
-          _id: '$partyType',
-          overdueAmount: {
-            $sum: { $max: [0, { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }] },
-          },
-          criticalAmount: {
-            $sum: {
-              $cond: [
-                { $lt: ['$dueDate', new Date(now.getTime() - 30 * 86400000)] },
-                { $max: [0, { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }] },
-                0,
-              ],
-            },
-          },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
 
     const custOverdue = overdueAgg.find(a => a._id === 'CUSTOMER');
     const supOverdue  = overdueAgg.find(a => a._id === 'SUPPLIER');
@@ -491,21 +629,34 @@ async function getPaymentKpis(req, res, next) {
     const criticalReceivables = custOverdue?.criticalAmount || 0;
     const criticalPayables    = supOverdue?.criticalAmount || 0;
 
-    // Count distinct active parties with open dues
-    const [custPartiesCount, supPartiesCount] = await Promise.all([
-      PaymentTransaction.distinct('partyId', {
-        tenantId: req.tenantId,
-        partyType: 'CUSTOMER',
-        txnType: { $in: ['INVOICE', 'OPENING_BAL'] },
-        paymentStatus: { $in: ['UNPAID', 'PARTIALLY_PAID', null] },
-      }),
-      PaymentTransaction.distinct('partyId', {
-        tenantId: req.tenantId,
-        partyType: 'SUPPLIER',
-        txnType: { $in: ['BILL', 'OPENING_BAL'] },
-        paymentStatus: { $in: ['UNPAID', 'PARTIALLY_PAID', null] },
-      }),
-    ]);
+    const outsideInTotal = paymentsAgg.find(a => a._id === 'OUTSIDE_INFLOW')?.totalAmount || 0;
+    const outsideOutTotal = paymentsAgg.find(a => a._id === 'OUTSIDE_OUTFLOW')?.totalAmount || 0;
+
+    let cashIn = 0, cashOut = 0, bankIn = 0, bankOut = 0;
+    (modeAgg || []).forEach(m => {
+      const mode = m._id?.paymentMode || '';
+      const isCash = mode === 'CASH';
+      const isBank = ['UPI', 'NEFT_RTGS', 'CHEQUE', 'NET_BANKING', 'CARD', 'ONLINE', 'BANK_TRANSFER'].includes(mode);
+      const isInflow = m._id?.txnType === 'PAYMENT_IN' || m._id?.txnType === 'OUTSIDE_INFLOW';
+      const isOutflow = m._id?.txnType === 'PAYMENT_OUT' || m._id?.txnType === 'OUTSIDE_OUTFLOW';
+
+      if (isInflow) {
+        if (isCash) cashIn += m.total;
+        if (isBank) bankIn += m.total;
+      } else if (isOutflow) {
+        if (isCash) cashOut += m.total;
+        if (isBank) bankOut += m.total;
+      }
+    });
+
+    const cashBalance = cashIn - cashOut;
+    const bankBalance = bankIn - bankOut;
+    const totalLiquidCapital = cashBalance + bankBalance;
+
+    const tenant = await Tenant.findById(targetTenantId).select('initialWorkingCapital').lean();
+    const initialWorkingCapital = tenant?.initialWorkingCapital || 0;
+    const netTradeCapital = totalReceivables - totalPayables;
+    const netWorkingCapital = initialWorkingCapital + netTradeCapital;
 
     res.json({
       data: {
@@ -515,11 +666,93 @@ async function getPaymentKpis(req, res, next) {
         overduePayables: Math.min(totalPayables, overduePayables),
         criticalReceivables: Math.min(totalReceivables, criticalReceivables),
         criticalPayables: Math.min(totalPayables, criticalPayables),
-        netWorkingCapital: totalReceivables - totalPayables,
+        initialWorkingCapital,
+        netTradeCapital,
+        netWorkingCapital,
+        cashBalance,
+        bankBalance,
+        cashIn,
+        cashOut,
+        bankIn,
+        bankOut,
+        totalLiquidCapital,
+        outsideCashflow: {
+          inflow: outsideInTotal,
+          outflow: outsideOutTotal,
+          net: outsideInTotal - outsideOutTotal,
+        },
         activeDebtorsCount: custPartiesCount.length,
         activeCreditorsCount: supPartiesCount.length,
       },
       message: 'OK',
+      errors: null,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+// ─── PUT /api/inventory/payments/initial-working-capital (Set/Adjust Base Working Capital) ─
+async function updateInitialWorkingCapital(req, res, next) {
+  try {
+    const { amount, alsoInjectToAccounts, accountMode = 'CASH', notes = '' } = req.body;
+    const rawTenant = req.query.tenantId || req.headers['x-tenant-id'];
+    const targetTenantId = (rawTenant && req.isSuperAdmin)
+      ? new mongoose.Types.ObjectId(rawTenant)
+      : (req.tenantId ? new mongoose.Types.ObjectId(req.tenantId) : null);
+
+    if (!targetTenantId) {
+      return res.status(400).json({ data: null, message: 'Tenant ID is required', errors: null });
+    }
+
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount < 0) {
+      return res.status(400).json({ data: null, message: 'Amount must be a valid non-negative number', errors: null });
+    }
+
+    const tenant = await Tenant.findByIdAndUpdate(
+      targetTenantId,
+      { initialWorkingCapital: numAmount },
+      { new: true }
+    );
+
+    // If requested to also inject as cash/bank opening balance:
+    if (alsoInjectToAccounts && numAmount > 0) {
+      const validMode = ['CASH', 'UPI', 'NEFT_RTGS', 'CHEQUE'].includes(accountMode) ? accountMode : 'CASH';
+      const voucherNo = await nextSeq(targetTenantId, 'OPEN-CAP');
+      await PaymentTransaction.create({
+        tenantId: targetTenantId,
+        voucherNo,
+        partyType: 'OTHER',
+        partyName: 'Owner Initial Capital Fund',
+        txnType: 'OUTSIDE_INFLOW',
+        isOutsideCashflow: true,
+        cashflowCategory: 'CAPITAL_INJECTION',
+        amount: numAmount,
+        paymentMode: validMode,
+        paymentDate: new Date(),
+        notes: notes ? notes.trim() : 'Initial Working Capital & Capital Fund Injection',
+        createdBy: req.user?._id || req.userId,
+      });
+    }
+
+    if (AuditLog) {
+      await AuditLog.create({
+        tenantId: targetTenantId,
+        userId: req.user?._id || req.userId,
+        action: 'UPDATE_WORKING_CAPITAL',
+        resource: 'tenants',
+        resourceId: targetTenantId.toString(),
+        details: { initialWorkingCapital: numAmount, alsoInjectToAccounts, accountMode },
+        ip: req.ip,
+      });
+    }
+
+    res.json({
+      data: {
+        initialWorkingCapital: tenant.initialWorkingCapital,
+      },
+      message: `Initial Working Capital set to ₹${numAmount.toLocaleString('en-IN')} successfully.`,
       errors: null,
     });
   } catch (e) {
@@ -534,8 +767,9 @@ async function getOutstandings(req, res, next) {
       return res.status(400).json({ data: null, message: 'type must be CUSTOMER or SUPPLIER', errors: null });
     }
 
+    const targetTenantId = (req.query.tenantId && req.isSuperAdmin) ? new mongoose.Types.ObjectId(req.query.tenantId) : req.tenantId;
     const Model = type === 'CUSTOMER' ? Customer : Supplier;
-    const filter = { tenantId: req.tenantId, deletedAt: null, isActive: { $ne: false } };
+    const filter = { tenantId: targetTenantId, deletedAt: null, isActive: { $ne: false } };
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -557,27 +791,52 @@ async function getOutstandings(req, res, next) {
     const billAgg = await PaymentTransaction.aggregate([
       {
         $match: {
-          tenantId: req.tenantId,
+          tenantId: targetTenantId,
           partyId: { $in: partyIds },
           txnType: { $in: billTypes },
-          paymentStatus: { $in: ['UNPAID', 'PARTIALLY_PAID', null] },
         },
       },
       {
         $group: {
           _id: '$partyId',
           outstanding: {
-            $sum: { $max: [0, { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }] },
+            $sum: {
+              $cond: [
+                { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+                0,
+              ],
+            },
           },
           totalBilled: { $sum: '$amount' },
           lastBillDate: { $max: '$paymentDate' },
           earliestDueDate: { $min: '$dueDate' },
           latestDueDate:   { $max: '$dueDate' },
-          hasOverdue: { $sum: { $cond: [{ $and: [{ $ne: ['$dueDate', null] }, { $lt: ['$dueDate', now] }] }, 1, 0] } },
+          hasOverdue: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: ['$dueDate', null] },
+                    { $lt: ['$dueDate', now] },
+                    { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
           maxDaysOverdue: {
             $max: {
               $cond: [
-                { $and: [{ $ne: ['$dueDate', null] }, { $lt: ['$dueDate', now] }] },
+                {
+                  $and: [
+                    { $ne: ['$dueDate', null] },
+                    { $lt: ['$dueDate', now] },
+                    { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                  ],
+                },
                 { $ceil: { $divide: [{ $subtract: [now, '$dueDate'] }, 86400000] } },
                 0,
               ],
@@ -586,7 +845,13 @@ async function getOutstandings(req, res, next) {
           daysTillDue: {
             $min: {
               $cond: [
-                { $and: [{ $ne: ['$dueDate', null] }, { $gte: ['$dueDate', now] }] },
+                {
+                  $and: [
+                    { $ne: ['$dueDate', null] },
+                    { $gte: ['$dueDate', now] },
+                    { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                  ],
+                },
                 { $ceil: { $divide: [{ $subtract: ['$dueDate', now] }, 86400000] } },
                 999,
               ],
@@ -598,22 +863,21 @@ async function getOutstandings(req, res, next) {
 
     // Also get total paid (for display: "Total Settled" column)
     const payAgg = await PaymentTransaction.aggregate([
-      { $match: { tenantId: req.tenantId, partyId: { $in: partyIds }, txnType: { $in: payTypes } } },
+      { $match: { tenantId: targetTenantId, partyId: { $in: partyIds }, txnType: { $in: payTypes } } },
       { $group: { _id: '$partyId', totalPaid: { $sum: '$amount' }, lastPayDate: { $max: '$paymentDate' } } },
     ]);
 
     // Also get total gross billed (for "Total Invoiced" display column — all bills ever)
     const allBillAgg = await PaymentTransaction.aggregate([
-      { $match: { tenantId: req.tenantId, partyId: { $in: partyIds }, txnType: { $in: billTypes } } },
+      { $match: { tenantId: targetTenantId, partyId: { $in: partyIds }, txnType: { $in: billTypes } } },
       { $group: { _id: '$partyId', totalBilledAll: { $sum: '$amount' }, lastTxnDate: { $max: '$paymentDate' } } },
     ]);
 
     // Fetch open bills details for each party for quick drilldown
     const openBillsRaw = await PaymentTransaction.find({
-      tenantId: req.tenantId,
+      tenantId: targetTenantId,
       partyId: { $in: partyIds },
       txnType: { $in: billTypes },
-      paymentStatus: { $in: ['UNPAID', 'PARTIALLY_PAID', null] },
     }).sort({ paymentDate: -1, createdAt: -1 }).lean();
 
     const openBillsByParty = {};
@@ -845,12 +1109,24 @@ async function getPartyStatement(req, res, next) {
   }
 }
 
-// ─── GET /api/inventory/payments (List Payment Vouchers) ─────────────────────
+// ─── GET /api/inventory/payments (List Payment Vouchers & Invoices) ────────────
 async function listPayments(req, res, next) {
   try {
-    const { partyType, paymentMode, search, from, to, page = 1, limit = 50 } = req.query;
-    const filter = { tenantId: req.tenantId };
+    const { txnType, partyType, paymentMode, search, from, to, page = 1, limit = 100 } = req.query;
+    const rawTenant = req.query.tenantId || req.headers['x-tenant-id'];
+    const targetTenantId = (rawTenant && req.isSuperAdmin)
+      ? new mongoose.Types.ObjectId(rawTenant)
+      : (req.tenantId ? new mongoose.Types.ObjectId(req.tenantId) : null);
 
+    const filter = targetTenantId ? { tenantId: targetTenantId } : {};
+
+    if (txnType) {
+      if (txnType === 'OUTSIDE' || txnType === 'OUTSIDE_CASHFLOW') {
+        filter.txnType = { $in: ['OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW'] };
+      } else {
+        filter.txnType = txnType;
+      }
+    }
     if (partyType) filter.partyType = partyType;
     if (paymentMode) filter.paymentMode = paymentMode;
     if (search) {
@@ -858,6 +1134,7 @@ async function listPayments(req, res, next) {
         { voucherNo: { $regex: search, $options: 'i' } },
         { referenceNo: { $regex: search, $options: 'i' } },
         { notes: { $regex: search, $options: 'i' } },
+        { partyName: { $regex: search, $options: 'i' } },
       ];
     }
     if (from || to) {
@@ -871,19 +1148,36 @@ async function listPayments(req, res, next) {
     }
 
     const skip = (Number(page) - 1) * Number(limit);
-    const [payments, total] = await Promise.all([
+    const [payments, total, typeCountsAgg] = await Promise.all([
       PaymentTransaction.find(filter)
-        .populate('partyId', 'name phone gstin')
+        .populate('partyId', 'name phone gstin contactName')
         .sort({ paymentDate: -1, createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
         .lean(),
       PaymentTransaction.countDocuments(filter),
+      PaymentTransaction.aggregate([
+        { $match: targetTenantId ? { tenantId: targetTenantId } : {} },
+        { $group: { _id: '$txnType', count: { $sum: 1 } } },
+      ]),
     ]);
+
+    const countsMap = Object.fromEntries(typeCountsAgg.map(t => [t._id, t.count]));
 
     res.json({
       data: {
         payments,
+        counts: {
+          total: Object.values(countsMap).reduce((a, b) => a + b, 0),
+          invoices: countsMap.INVOICE || 0,
+          bills: countsMap.BILL || 0,
+          receipts: countsMap.PAYMENT_IN || 0,
+          payments: countsMap.PAYMENT_OUT || 0,
+          opening: countsMap.OPENING_BAL || 0,
+          outside: (countsMap.OUTSIDE_INFLOW || 0) + (countsMap.OUTSIDE_OUTFLOW || 0),
+          outsideInflow: countsMap.OUTSIDE_INFLOW || 0,
+          outsideOutflow: countsMap.OUTSIDE_OUTFLOW || 0,
+        },
         pagination: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / Number(limit)) },
       },
       message: 'OK',
@@ -921,9 +1215,9 @@ async function getVoucherDetail(req, res, next) {
     }
 
     // Populate party
-    const Model = txn.partyType === 'CUSTOMER' ? Customer : Supplier;
+    const Model = txn.partyType === 'CUSTOMER' ? Customer : (txn.partyType === 'SUPPLIER' ? Supplier : null);
     const [party, tenant] = await Promise.all([
-      Model.findOne({ _id: txn.partyId, tenantId: req.tenantId }).lean(),
+      (Model && txn.partyId) ? Model.findOne({ _id: txn.partyId, tenantId: req.tenantId }).lean() : null,
       Tenant.findById(req.tenantId).lean(),
     ]);
 
@@ -961,7 +1255,7 @@ async function getVoucherDetail(req, res, next) {
     res.json({
       data: {
         txn,
-        party: party || { _id: txn.partyId, name: 'Unknown Party' },
+        party: party || { _id: txn.partyId, name: txn.partyName || (txn.isOutsideCashflow ? 'Outside Entity' : 'Unknown Party') },
         company: tenant ? {
           name: tenant.name,
           gstin: tenant.gst || '—',
@@ -981,6 +1275,8 @@ async function getVoucherDetail(req, res, next) {
 
 module.exports = {
   recordPayment,
+  recordOutsideCashflow,
+  updateInitialWorkingCapital,
   getPendingBills,
   getDailySummary,
   getPaymentKpis,

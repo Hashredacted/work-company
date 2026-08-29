@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { z } = require('zod');
 const User = require('../models/User');
+const Tenant = require('../models/Tenant');
 const Role = require('../models/Role');
 const LoginHistory = require('../models/LoginHistory');
 const AuditLog = require('../models/AuditLog');
@@ -12,7 +13,10 @@ const PasswordResetToken = require('../models/PasswordResetToken');
 // ─── Validation Schemas ───────────────────────────────────────────────────────
 
 const loginSchema = z.object({
-  email:    z.string().email('Invalid email'),
+  email: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().toLowerCase() : val),
+    z.string().email('Invalid email')
+  ),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -39,8 +43,18 @@ async function login(req, res, next) {
       });
     }
     const { email, password } = parsed.data;
+    const cleanEmail = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email, isActive: true, deletedAt: null });
+    let user = await User.findOne({ email: cleanEmail, isActive: true, deletedAt: null });
+
+    // Fallback: Check if user entered Company Email instead of personal Admin Email
+    if (!user) {
+      const tenant = await Tenant.findOne({ email: cleanEmail });
+      if (tenant) {
+        user = await User.findOne({ tenantId: tenant._id, isActive: true, deletedAt: null });
+      }
+    }
+
     if (!user) {
       return res.status(401).json({ data: null, message: 'Invalid email or password', errors: null });
     }

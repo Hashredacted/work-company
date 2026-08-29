@@ -4,13 +4,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In — SaaS Platform</title>
+  <title>Sign In — WorkSpace SaaS Platform</title>
   <meta name="description"
-    content="Sign in to your SaaS platform account. Secure multi-tenant login with role-based access control." />
+    content="Sign in to your WorkSpace account. Secure multi-tenant login with role-based access control." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="css/style.css" nts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .auth-tab-switch {
+      display: flex;
+      width: 100%;
+      background: var(--surface-2, #18181c);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm, 8px);
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .auth-tab-btn.active {
+      background: var(--primary, #6366f1);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    }
+
+    .auth-tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+  </style>
 </head>
 
 <body>
@@ -42,9 +77,15 @@
     <!-- Card -->
     <div class="card" role="region" aria-label="Login form">
 
-      <div class="card-header">
+      <!-- Top Switcher: Sign In vs Register Company -->
+      <div class="auth-tab-switch" role="tablist">
+        <a href="index.html" class="auth-tab-btn active" role="tab" aria-selected="true">Sign In</a>
+        <a href="register.html" class="auth-tab-btn" role="tab" aria-selected="false">Register Company</a>
+      </div>
+
+      <div class="card-header" style="margin-bottom: 20px;">
         <h1 class="card-title">Welcome back</h1>
-        <p class="card-subtitle">Sign in to your account to continue</p>
+        <p class="card-subtitle">Sign in to your company ERP & Khata workspace</p>
       </div>
 
       <!-- Previous login notice -->
@@ -101,8 +142,8 @@
         <!-- General error -->
         <div id="form-error" class="form-error" role="alert" aria-live="assertive" hidden></div>
 
-        <button type="submit" id="submit-btn" class="btn-primary">
-          <span id="btn-text">Sign in</span>
+        <button type="submit" id="submit-btn" class="btn-primary" style="margin-top: 4px;">
+          <span id="btn-text">Sign in to WorkSpace</span>
           <span id="btn-spinner" class="spinner" hidden aria-hidden="true"></span>
         </button>
 
@@ -121,7 +162,7 @@
           <button type="button" onclick="fillCreds('admin@acme.com', 'Password@123')"
             style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
             <div style="font-weight: 600; color: #38bdf8;">Company Admin</div>
-            <div style="color: var(--text-muted); font-size: 0.68rem;">Trial Tenant</div>
+            <div style="color: var(--text-muted); font-size: 0.68rem;">Acme Retail Store</div>
           </button>
           <button type="button" onclick="fillCreds('user@acme.com', 'Password@123')"
             style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
@@ -131,19 +172,20 @@
           <button type="button" onclick="fillCreds('admin@nexus.com', 'Password@123')"
             style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
             <div style="font-weight: 600; color: #fbbf24;">Active Admin</div>
-            <div style="color: var(--text-muted); font-size: 0.68rem;">Subscribed Tenant</div>
+            <div style="color: var(--text-muted); font-size: 0.68rem;">Nexus Digital Labs</div>
           </button>
         </div>
       </div>
 
-      <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
-        Need to onboard your organization? <a href="register.html" class="forgot-link">Start 7-day free trial</a>
+      <p style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+        Need to onboard your organization? <a href="register.html" class="forgot-link"
+          style="color: #818cf8; font-weight: 600;">Start 7-Day Free Trial →</a>
       </p>
 
     </div>
 
     <p class="footer-note">
-      Protected by end-to-end encryption &amp; RBAC.
+      Protected by end-to-end encryption &amp; multi-tenant isolation.
     </p>
 
   </main>
@@ -158,7 +200,7 @@
       document.getElementById('password').classList.remove('invalid');
     }
   </script>
-  <script src="js/auth.js"></script>
+  <script src="../js/auth.js"></script>
 </body>
 
 </html>

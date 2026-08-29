@@ -177,16 +177,15 @@ async function loadInvoices() {
   try {
     const res = await fetch(`${API_BASE}/billing/invoices`, { headers: authHeaders() });
     const json = await res.json();
-    const invoices = json.data.invoices;
-
     if (!invoices || invoices.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No invoices yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No invoices yet.</td></tr>';
       return;
     }
 
     const statusColor = { PAID: '#4ade80', UNPAID: '#fbbf24', VOID: '#94a3b8', DRAFT: '#94a3b8' };
-    tbody.innerHTML = invoices.map(inv => `
+    tbody.innerHTML = invoices.map((inv, idx) => `
       <tr>
+        <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
         <td style="font-family:monospace;font-size:0.8rem;">${inv.invoiceNumber}</td>
         <td>${inv.lineItems && inv.lineItems[0] ? inv.lineItems[0].description : '—'}</td>
         <td style="font-weight:600;">$${inv.total?.toFixed(2)} <span style="font-size:0.7rem;color:var(--text-muted);">(incl. tax)</span></td>
@@ -195,7 +194,7 @@ async function loadInvoices() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--error);">Failed to load invoices.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--error);">Failed to load invoices.</td></tr>';
   }
 }
 

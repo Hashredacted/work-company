@@ -8,9 +8,9 @@
   <meta name="description"
     content="Tenant Company Admin dashboard with trial status, company profile, and team management." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="css/style.css" nts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -62,6 +62,34 @@
       padding: 6px 16px;
       border-radius: 12px;
       border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-width: 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
 
     .grid-2 {
@@ -124,9 +152,9 @@
 
   <div class="dashboard-container">
 
-    <header class="top-nav">
-      <div class="brand">
-        <div class="brand-logo">
+    <header class="top-nav" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap;">
+      <div class="brand" style="display:flex;align-items:center;gap:12px;min-width:0;">
+        <div class="brand-logo" style="flex-shrink:0;">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <rect width="28" height="28" rx="8" fill="url(#brandGrad)" />
             <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
@@ -138,37 +166,27 @@
             </defs>
           </svg>
         </div>
-        <div>
-          <span id="company-header-name" class="brand-name">My Company</span>
-          <span id="role-badge"
-            style="font-size: 0.75rem; color: #4ade80; font-weight: 600; margin-left: 6px; background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 10px;">Company
-            Admin</span>
+        <div style="min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="company-header-name" class="brand-name" style="font-size:1.15rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My Company</span>
+          <span id="role-badge" style="font-size:0.72rem;color:#4ade80;font-weight:700;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);padding:2px 8px;border-radius:12px;font-family:monospace;">company_admin</span>
         </div>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-        <a href="users.html"
-          style="color: var(--primary); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(99,102,241,0.1);">👥
-          Team</a>
-        <a href="inv-dashboard.html"
-          style="color: #34d399; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(16,185,129,0.1);">📦
-          Inventory</a>
-        <a href="billing.html"
-          style="color: #38bdf8; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(56,189,248,0.1);">💳
-          Billing</a>
-        <a href="audit.html"
-          style="color: #a78bfa; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(167,139,250,0.1);">🔍
-          Audit</a>
-        <a href="profile.html"
-          style="color: #4ade80; font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: rgba(74,222,128,0.1);">👤
-          Profile</a>
-        <div
-          style="display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px;">
-          <span id="user-display-name" style="font-size: 0.85rem; font-weight: 500;">User</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <nav style="display:flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--border);padding:4px;border-radius:10px;">
+          <a href="users.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">👥 Team</a>
+          <a href="inv-dashboard.html" style="color:#ffffff;background:var(--primary);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;box-shadow:0 2px 8px rgba(99,102,241,0.35);display:inline-flex;align-items:center;gap:5px;">📦 Inventory</a>
+          <a href="billing.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">💳 Billing</a>
+          <a href="audit.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">🔍 Audit</a>
+          <a href="profile.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">👤 Profile</a>
+        </nav>
+        
+        <div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:5px 12px 5px 8px;border-radius:20px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">👤</div>
+          <span id="user-display-name" style="font-size:0.82rem;font-weight:600;color:var(--text);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">User</span>
         </div>
-        <button id="logout-btn"
-          style="background: none; border: 1px solid var(--border); color: var(--text-sub); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem;">Sign
-          Out</button>
+
+        <button id="logout-btn" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;">Sign Out</button>
       </div>
     </header>
 
@@ -228,23 +246,23 @@
     </section>
 
     <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+    <div class="kpi-grid">
+      <div class="kpi-card">
         <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Team Members
         </div>
         <div id="kpi-total-users" style="font-size:1.8rem;font-weight:800;margin-top:4px;">—</div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+      <div class="kpi-card">
         <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Active Users
         </div>
         <div id="kpi-active-users" style="font-size:1.8rem;font-weight:800;color:#4ade80;margin-top:4px;">—</div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+      <div class="kpi-card">
         <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Custom Roles
         </div>
         <div id="kpi-roles" style="font-size:1.8rem;font-weight:800;color:#a5b4fc;margin-top:4px;">—</div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+      <div class="kpi-card">
         <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Current Plan
         </div>
         <div id="kpi-plan" style="font-size:1rem;font-weight:700;color:#38bdf8;margin-top:8px;">—</div>

@@ -67,18 +67,48 @@
 ---
 
 ## 6. Payments, Bill-Wise Knockoff & Khata Bahi (`/api/inventory/payments`)
-- `GET /api/inventory/payments/kpis`: Get total receivables, payables, overdue amounts, and net working capital.
+- `GET /api/inventory/payments/kpis`: Get total receivables, payables, overdue amounts, and net working capital. Supports `X-Tenant-Id` header and `?tenantId=`.
 - `GET /api/inventory/payments/outstandings?type=CUSTOMER|SUPPLIER`: Party-wise aging, outstanding dues, and terms.
 - `GET /api/inventory/payments/pending-bills?partyType=...&partyId=...`: Get open unpaid bills/invoices with pending balances and overdue days.
-- `GET /api/inventory/payments/daily-summary?days=30`: Per-day inflow, outflow, net cashflow, and payment mode breakdown.
+- `GET /api/inventory/payments/daily-summary?days=30`: Per-day inflow, outflow, net cashflow, and payment mode breakdown (including trade collections and outside cash flows).
 - `GET /api/inventory/payments/statement/:partyType/:partyId`: Double-entry Khata Bahi statement with running balances and knockoff tags.
-- `GET /api/inventory/payments`: Paginated list of payment vouchers with linked knockoff tags.
-- `POST /api/inventory/payments`: Record payment voucher with manual allocations or FIFO auto-knockoff (`allocations: [{ billId, amount }]`).
+- `GET /api/inventory/payments/voucher/:voucherNoOrId`: Detailed view of individual invoice, bill, payment voucher, or outside adjustment with line items and settlement history.
+- `GET /api/inventory/payments?txnType=...&partyType=...&paymentMode=...&search=...&page=1&limit=100`: Paginated list of vouchers with multi-type filters (`INVOICE`, `BILL`, `PAYMENT_IN`, `PAYMENT_OUT`, `OUTSIDE`, `OUTSIDE_INFLOW`, `OUTSIDE_OUTFLOW`, `OPENING_BAL`) and category counts.
+- `POST /api/inventory/payments`: Record commercial payment voucher against customer/supplier with manual allocations or FIFO auto-knockoff (`allocations: [{ billId, amount }]`).
+- `POST /api/inventory/payments/outside-cashflow`: Record non-trading cash flow adjustment to add to (+ Inflow) or subtract from (- Outflow) Cash in Hand or Bank/UPI balance:
+```json
+{
+  "direction": "ADD" | "SUBTRACT",
+  "amount": 50000,
+  "paymentMode": "CASH" | "UPI" | "NEFT_RTGS" | "CHEQUE" | "NET_BANKING" | "CARD",
+  "category": "CAPITAL_INJECTION" | "OWNER_DRAWINGS" | "RENT_AND_UTILITIES" | "SALARY_AND_WAGES" | "OFFICE_EXPENSES" | "LOAN_RECEIVED" | "LOAN_REPAYMENT" | "BANK_CHARGES_TAX" | "OTHER_INFLOW" | "OTHER_OUTFLOW",
+  "partyName": "Store Owner / Landlord / Bank",
+  "referenceNo": "UPI/12345678",
+  "notes": "August Store Rent",
+  "paymentDate": "2026-08-29T12:00:00.000Z"
+}
+```
+- `PUT /api/inventory/payments/initial-working-capital`: Set or adjust company baseline initial working capital.
+```json
+{
+  "amount": 500000,
+  "alsoInjectToAccounts": false,
+  "accountMode": "CASH" | "UPI" | "NEFT_RTGS" | "CHEQUE",
+  "notes": "Initial Seed Capital Fund"
+}
+```
 
 ---
 
 ## 7. Reports & Analytics (`/api/inventory/reports`)
-- `GET /api/inventory/reports/dashboard-kpis`: Inventory valuation, low-stock count, fast-moving items.
+- `GET /api/inventory/reports/dashboard-kpis`: Executive trading and liquidity overview. Returns:
+  - `total`: `{ items, suppliers, customers }`
+  - `outstanding`: `{ suppliers: { payed, due }, customers: { recieved, due } }`
+  - `retail`: `{ sales: { bills, totalAmount }, purchased: { bills, totalAmount } }` (Pure commercial trading turnover)
+  - `account`: `{ cashBalance, bankBalance, cashIn, cashOut, bankIn, bankOut, outsideCashflow: { inflow, outflow, net } }`
+  - `stockValue`: Total inventory valuation in INR.
+  - `lowStockProducts`: Deficit count.
+  - `overdueAlerts`: Critical overdue invoices and bills.
 - `GET /api/inventory/reports/valuation`: Stock valuation summary (FIFO & Weighted Average).
 - `GET /api/inventory/reports/stock-ledger/:productId`: Chronological stock ledger movement for SKU.
 - `GET /api/inventory/reports/expiry-alerts`: Batches nearing expiration within 30/60/90 days.

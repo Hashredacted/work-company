@@ -8,9 +8,9 @@
   <meta name="description"
     content="Super Admin platform analytics, KPI metrics, and company tenant lifecycle management." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="css/style.css" nts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -75,24 +75,37 @@
       border-color: var(--error);
     }
 
-    /* KPI Metrics Grid */
+    /* KPI Metrics Grid - Fixed 4-column single row */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
       margin-bottom: 36px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .kpi-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 24px;
+      padding: 16px 20px;
       display: flex;
       flex-direction: column;
       gap: 8px;
       position: relative;
       overflow: hidden;
+      min-width: 0;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
 
@@ -378,6 +391,7 @@
         <table>
           <thead>
             <tr>
+              <th style="width: 45px; text-align: center;">#</th>
               <th>Company Name</th>
               <th>Contact Email</th>
               <th>Status</th>
@@ -387,7 +401,7 @@
           </thead>
           <tbody id="company-table-body">
             <tr>
-              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px;">Loading companies...
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">Loading companies...
               </td>
             </tr>
           </tbody>
@@ -397,7 +411,7 @@
 
   </div>
 
-  <script src="js/dashboard.js"></script>
+  <script src="../js/dashboard.js"></script>
 </body>
 
 </html>

@@ -13,6 +13,7 @@ const adjCtrl  = require('../controllers/inventory/adjustment');
 const repCtrl  = require('../controllers/inventory/reports');
 const payCtrl  = require('../controllers/inventory/payment');
 
+const mongoose = require('mongoose');
 const Tenant = require('../models/Tenant');
 
 const READ   = authorize('inventory:read');
@@ -20,16 +21,21 @@ const MANAGE = authorize('inventory:manage');
 
 // Resolve tenant context for inventory requests
 async function resolveInventoryTenant(req, res, next) {
-  if (!req.tenantId && req.isSuperAdmin) {
-    if (req.query.tenantId) {
-      req.tenantId = req.query.tenantId;
-    } else {
-      const activeTenant = await Tenant.findOne({ deletedAt: null }).sort({ createdAt: 1 }).lean();
+  const requestedTenant = req.headers['x-tenant-id'] || req.query.tenantId;
+  if (req.isSuperAdmin) {
+    if (requestedTenant && mongoose.Types.ObjectId.isValid(requestedTenant)) {
+      req.tenantId = new mongoose.Types.ObjectId(requestedTenant);
+    } else if (!req.tenantId) {
+      // Find the most recently active tenant or tenant with data
+      const activeTenant = await Tenant.findOne({ deletedAt: null }).sort({ updatedAt: -1, createdAt: -1 }).lean();
       if (activeTenant) {
         req.tenantId = activeTenant._id;
       }
     }
+  } else if (!req.tenantId && requestedTenant && mongoose.Types.ObjectId.isValid(requestedTenant)) {
+    req.tenantId = new mongoose.Types.ObjectId(requestedTenant);
   }
+
   if (!req.tenantId) {
     return res.status(400).json({ data: null, message: 'No active company found for inventory. Please register a company first.', errors: null });
   }
@@ -91,6 +97,8 @@ router.get   ('/payments/statement/:partyType/:partyId', validateObjectId('party
 router.get   ('/payments/voucher/:voucherNoOrId',                                              READ,   payCtrl.getVoucherDetail);
 router.get   ('/payments',                                                                     READ,   payCtrl.listPayments);
 router.post  ('/payments', financialLimiter, validateCashLimit,                                MANAGE, payCtrl.recordPayment);
+router.post  ('/payments/outside-cashflow', financialLimiter, validateCashLimit,               MANAGE, payCtrl.recordOutsideCashflow);
+router.put   ('/payments/initial-working-capital', financialLimiter,                            MANAGE, payCtrl.updateInitialWorkingCapital);
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 router.get('/reports/dashboard-kpis',                          READ, repCtrl.dashboardKpis);

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -184,6 +184,7 @@
         <table>
           <thead>
             <tr>
+              <th style="width: 45px; text-align: center;">#</th>
               <th>Action</th>
               <th>Resource</th>
               <th>User</th>
@@ -194,7 +195,7 @@
           </thead>
           <tbody id="audit-tbody">
             <tr>
-              <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">Loading...</td>
+              <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -207,6 +208,7 @@
         <table>
           <thead>
             <tr>
+              <th style="width: 45px; text-align: center;">#</th>
               <th>User</th>
               <th>Email</th>
               <th>IP Address</th>
@@ -216,7 +218,7 @@
           </thead>
           <tbody id="logins-tbody">
             <tr>
-              <td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">Loading...</td>
+              <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -224,7 +226,7 @@
     </section>
   </div>
 
-  <script src="js/audit.js"></script>
+  <script src="../js/audit.js"></script>
 </body>
 
 </html>

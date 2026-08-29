@@ -4,6 +4,10 @@ const mongoose    = require('mongoose');
 const Product     = require('../../models/inv/Product');
 const StockLedger = require('../../models/inv/StockLedger');
 const Warehouse   = require('../../models/inv/Warehouse');
+const Supplier    = require('../../models/inv/Supplier');
+const Customer    = require('../../models/inv/Customer');
+const Tenant      = require('../../models/Tenant');
+const PaymentTransaction = require('../../models/inv/PaymentTransaction');
 
 // ─── GET /api/inventory/reports/stock-summary ─────────────────────────────────
 // Current stock per product (all warehouses combined or filtered by warehouse/category)
@@ -32,10 +36,11 @@ async function stockSummary(req, res, next) {
 
     const result = products.map(p => {
       const s = stockMap[p._id.toString()] || { currentStock: 0, totalCost: 0 };
+      const price = p.purchasePrice || p.mrp || p.sellingPrice || 0;
       return {
         ...p,
         currentStock: s.currentStock,
-        stockValue: Math.round(s.currentStock * p.purchasePrice),
+        stockValue: Math.round(s.currentStock * price),
         isLowStock: s.currentStock <= p.reorderLevel,
       };
     });
@@ -88,13 +93,14 @@ async function valuation(req, res, next) {
 
     const result = stockAgg.map(s => {
       const p = prodMap[s._id.toString()] || {};
-      const stockVal = Math.round(s.currentStock * (p.purchasePrice || 0));
+      const unitPrice = p.purchasePrice || p.mrp || p.sellingPrice || 0;
+      const stockVal = Math.round(s.currentStock * unitPrice);
       return {
         productId: s._id,
         name: p.name,
         sku: p.sku,
         unit: p.unit,
-        purchasePrice: p.purchasePrice || 0,
+        purchasePrice: p.purchasePrice || unitPrice,
         currentStock: s.currentStock,
         stockValue: stockVal,
       };
@@ -148,25 +154,71 @@ async function expiryAlerts(req, res, next) {
 // ─── GET /api/inventory/reports/dashboard-kpis ────────────────────────────────
 async function dashboardKpis(req, res, next) {
   try {
-    const [totalProducts, lowStockCount, totalWarehouses, stockValAgg, recentActivity] = await Promise.all([
-      Product.countDocuments({ tenantId: req.tenantId, deletedAt: null, isActive: true }),
+    const rawTenant = req.query.tenantId || req.headers['x-tenant-id'];
+    const targetTenantId = (rawTenant && req.isSuperAdmin)
+      ? new mongoose.Types.ObjectId(rawTenant)
+      : (req.tenantId ? new mongoose.Types.ObjectId(req.tenantId) : null);
+
+    if (!targetTenantId) {
+      return res.json({
+        data: {
+          total: { items: 0, suppliers: 0, customers: 0 },
+          outstanding: {
+            suppliers: { payed: 0, due: 0 },
+            customers: { recieved: 0, due: 0 },
+          },
+          retail: {
+            sales: { bills: 0, totalAmount: 0 },
+            purchased: { bills: 0, totalAmount: 0 },
+          },
+          account: { cashBalance: 0, bankBalance: 0 },
+          totalProducts: 0,
+          lowStockProducts: 0,
+          totalWarehouses: 0,
+          stockValue: 0,
+          recentActivity: [],
+          overdueAlerts: [],
+        },
+        message: 'OK',
+        errors: null,
+      });
+    }
+
+    const [
+      totalProducts,
+      totalSuppliers,
+      totalCustomers,
+      lowStockCount,
+      totalWarehouses,
+      stockValAgg,
+      recentActivity,
+      outstandingAgg,
+      retailTradingAgg,
+      paymentsAgg,
+      modeAgg,
+      rawOverdue,
+      rawTenantInfo,
+    ] = await Promise.all([
+      Product.countDocuments({ tenantId: targetTenantId, deletedAt: null, isActive: true }),
+      Supplier.countDocuments({ tenantId: targetTenantId, deletedAt: null }),
+      Customer.countDocuments({ tenantId: targetTenantId, deletedAt: null }),
       (async () => {
-        const products = await Product.find({ tenantId: req.tenantId, deletedAt: null, isActive: true, reorderLevel: { $gt: 0 } }).lean();
+        const products = await Product.find({ tenantId: targetTenantId, deletedAt: null, isActive: true, reorderLevel: { $gt: 0 } }).lean();
         if (!products.length) return 0;
         const ids = products.map(p => p._id);
         const agg = await StockLedger.aggregate([
-          { $match: { tenantId: req.tenantId, productId: { $in: ids } } },
+          { $match: { tenantId: targetTenantId, productId: { $in: ids } } },
           { $group: { _id: '$productId', qty: { $sum: '$qty' } } },
         ]);
         const map = Object.fromEntries(agg.map(a => [a._id.toString(), a.qty]));
         return products.filter(p => (map[p._id.toString()] || 0) <= p.reorderLevel).length;
       })(),
-      Warehouse.countDocuments({ tenantId: req.tenantId, deletedAt: null, isActive: true }),
+      Warehouse.countDocuments({ tenantId: targetTenantId, deletedAt: null, isActive: true }),
       (async () => {
-        const products = await Product.find({ tenantId: req.tenantId, deletedAt: null, isActive: true }).select('purchasePrice').lean();
-        const prodMap = Object.fromEntries(products.map(p => [p._id.toString(), p.purchasePrice || 0]));
+        const products = await Product.find({ tenantId: targetTenantId, deletedAt: null }).select('purchasePrice mrp sellingPrice').lean();
+        const prodMap = Object.fromEntries(products.map(p => [p._id.toString(), p.purchasePrice || p.mrp || p.sellingPrice || 0]));
         const agg = await StockLedger.aggregate([
-          { $match: { tenantId: req.tenantId } },
+          { $match: { tenantId: targetTenantId } },
           { $group: { _id: '$productId', qty: { $sum: '$qty' } } },
         ]);
         let sum = 0;
@@ -177,21 +229,146 @@ async function dashboardKpis(req, res, next) {
         }
         return Math.round(sum);
       })(),
-      StockLedger.find({ tenantId: req.tenantId })
+      StockLedger.find({ tenantId: targetTenantId })
         .sort({ createdAt: -1 })
         .limit(10)
         .populate('productId', 'name sku unit')
         .populate('warehouseId', 'name')
         .lean(),
+      PaymentTransaction.aggregate([
+        { $match: { tenantId: targetTenantId, txnType: { $in: ['INVOICE', 'BILL', 'OPENING_BAL'] } } },
+        {
+          $group: {
+            _id: '$partyType',
+            totalBilled: { $sum: '$amount' },
+            totalSettled: { $sum: { $ifNull: ['$settledAmount', 0] } },
+            totalDue: {
+              $sum: {
+                $cond: [
+                  { $gt: [{ $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] }, 0] },
+                  { $subtract: ['$amount', { $ifNull: ['$settledAmount', 0] }] },
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ]),
+      PaymentTransaction.aggregate([
+        { $match: { tenantId: targetTenantId, txnType: { $in: ['INVOICE', 'BILL'] } } },
+        {
+          $group: {
+            _id: '$txnType',
+            totalAmount: { $sum: '$amount' },
+            billsCount: { $sum: 1 },
+          },
+        },
+      ]),
+      PaymentTransaction.aggregate([
+        { $match: { tenantId: targetTenantId, txnType: { $in: ['PAYMENT_IN', 'PAYMENT_OUT', 'OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW'] } } },
+        { $group: { _id: '$txnType', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
+      ]),
+      PaymentTransaction.aggregate([
+        { $match: { tenantId: targetTenantId, txnType: { $in: ['PAYMENT_IN', 'PAYMENT_OUT', 'OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW'] } } },
+        { $group: { _id: { txnType: '$txnType', paymentMode: '$paymentMode' }, total: { $sum: '$amount' } } },
+      ]),
+      PaymentTransaction.find({
+        tenantId: targetTenantId,
+        dueDate: { $ne: null, $lt: new Date() },
+        txnType: { $in: ['INVOICE', 'BILL'] },
+        paymentStatus: { $ne: 'PAID' },
+      })
+        .sort({ dueDate: 1 })
+        .limit(10)
+        .populate('partyId', 'name phone contactName')
+        .lean(),
+      Tenant.findById(targetTenantId).select('initialWorkingCapital').lean(),
     ]);
+
+    const tenantInfo = rawTenantInfo || {};
+    const initialWorkingCapital = tenantInfo.initialWorkingCapital || 0;
+
+    const supBillData = outstandingAgg.find(a => a._id === 'SUPPLIER');
+    const custBillData = outstandingAgg.find(a => a._id === 'CUSTOMER');
+    const salesBillData = retailTradingAgg.find(a => a._id === 'INVOICE');
+    const purchBillData = retailTradingAgg.find(a => a._id === 'BILL');
+
+    const payInTotal = paymentsAgg.find(a => a._id === 'PAYMENT_IN')?.totalAmount || 0;
+    const payOutTotal = paymentsAgg.find(a => a._id === 'PAYMENT_OUT')?.totalAmount || 0;
+    const outsideInTotal = paymentsAgg.find(a => a._id === 'OUTSIDE_INFLOW')?.totalAmount || 0;
+    const outsideOutTotal = paymentsAgg.find(a => a._id === 'OUTSIDE_OUTFLOW')?.totalAmount || 0;
+
+    let cashIn = 0, cashOut = 0, bankIn = 0, bankOut = 0;
+    (modeAgg || []).forEach(m => {
+      const mode = m._id?.paymentMode || '';
+      const isCash = mode === 'CASH';
+      const isBank = ['UPI', 'NEFT_RTGS', 'CHEQUE', 'NET_BANKING', 'CARD', 'ONLINE', 'BANK_TRANSFER'].includes(mode);
+      const isInflow = m._id?.txnType === 'PAYMENT_IN' || m._id?.txnType === 'OUTSIDE_INFLOW';
+      const isOutflow = m._id?.txnType === 'PAYMENT_OUT' || m._id?.txnType === 'OUTSIDE_OUTFLOW';
+
+      if (isInflow) {
+        if (isCash) cashIn += m.total;
+        if (isBank) bankIn += m.total;
+      } else if (isOutflow) {
+        if (isCash) cashOut += m.total;
+        if (isBank) bankOut += m.total;
+      }
+    });
+
+    const overdueAlerts = (rawOverdue || []).map(b => ({
+      _id: b._id,
+      voucherNo: b.voucherNo,
+      partyId: b.partyId?._id || b.partyId,
+      partyName: b.partyId?.name || (b.partyType === 'CUSTOMER' ? 'Customer' : 'Supplier'),
+      partyPhone: b.partyId?.phone || '',
+      partyType: b.partyType,
+      totalAmount: b.amount,
+      pendingAmount: Math.max(0, b.amount - (b.settledAmount || 0)),
+      daysOverdue: Math.max(1, Math.floor((Date.now() - new Date(b.dueDate)) / 86400000)),
+      dueDate: b.dueDate,
+    })).filter(b => b.pendingAmount > 0);
+
+    const custDue = custBillData?.totalDue || 0;
+    const supDue = supBillData?.totalDue || 0;
 
     res.json({
       data: {
+        total: { items: totalProducts, suppliers: totalSuppliers, customers: totalCustomers },
+        initialWorkingCapital,
+        netWorkingCapital: initialWorkingCapital + custDue - supDue,
+        outstanding: {
+          suppliers: {
+            payed: payOutTotal || (supBillData?.totalSettled || 0),
+            due: supDue,
+          },
+          customers: {
+            recieved: payInTotal || (custBillData?.totalSettled || 0),
+            due: custDue,
+          },
+        },
+        retail: {
+          sales: { bills: salesBillData?.billsCount || 0, totalAmount: salesBillData?.totalAmount || 0 },
+          purchased: { bills: purchBillData?.billsCount || 0, totalAmount: purchBillData?.totalAmount || 0 },
+        },
+        account: {
+          cashBalance: cashIn - cashOut,
+          bankBalance: bankIn - bankOut,
+          cashIn,
+          cashOut,
+          bankIn,
+          bankOut,
+          outsideCashflow: {
+            inflow: outsideInTotal,
+            outflow: outsideOutTotal,
+            net: outsideInTotal - outsideOutTotal,
+          },
+        },
         totalProducts,
         lowStockProducts: lowStockCount,
         totalWarehouses,
         stockValue: stockValAgg,
         recentActivity,
+        overdueAlerts,
       },
       message: 'OK',
       errors: null,

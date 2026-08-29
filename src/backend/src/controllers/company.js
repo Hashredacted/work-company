@@ -8,29 +8,56 @@ const Role = require('../models/Role');
 const LoginHistory = require('../models/LoginHistory');
 const AuditLog = require('../models/AuditLog');
 
+const Plan = require('../models/Plan');
+const Subscription = require('../models/Subscription');
+
+const COMPANY_ADMIN_PERMISSIONS = [
+  'company:read', 'company:update',
+  'user:read', 'user:create', 'user:update', 'user:delete',
+  'role:read', 'role:create', 'role:update', 'role:delete',
+  'billing:read', 'subscription:read',
+  'inventory:read', 'inventory:manage', 'inventory:orders', 'inventory:approve', 'inventory:reports', 'inventory:admin',
+];
+
 // ─── Validation Schemas ──────────────────────────────────────────────────────
 
 const registerCompanySchema = z.object({
   // Company fields
-  name:     z.string().min(2, 'Company name must be at least 2 characters'),
-  email:    z.string().email('Invalid company email'),
-  phone:    z.string().optional(),
-  address:  z.string().optional(),
-  gst:      z.string().optional(),
-  license:  z.string().optional(),
+  name:         z.string().min(2, 'Company name must be at least 2 characters'),
+  email:        z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().toLowerCase() : val),
+    z.string().email('Invalid company email')
+  ),
+  phone:        z.string().optional(),
+  address:      z.string().optional(),
+  city:         z.string().optional(),
+  state:        z.string().optional(),
+  stateCode:    z.string().optional(),
+  pincode:      z.string().optional(),
+  businessType: z.string().optional(),
+  gst:          z.string().optional(),
+  license:      z.string().optional(),
 
   // Initial Admin User fields
   adminName:     z.string().min(2, 'Admin name must be at least 2 characters'),
-  adminEmail:    z.string().email('Invalid admin email'),
+  adminEmail:    z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().toLowerCase() : val),
+    z.string().email('Invalid admin email')
+  ),
   adminPassword: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const updateCompanySchema = z.object({
-  name:     z.string().min(2).optional(),
-  phone:    z.string().optional(),
-  address:  z.string().optional(),
-  gst:      z.string().optional(),
-  license:  z.string().optional(),
+  name:         z.string().min(2).optional(),
+  phone:        z.string().optional(),
+  address:      z.string().optional(),
+  city:         z.string().optional(),
+  state:        z.string().optional(),
+  stateCode:    z.string().optional(),
+  pincode:      z.string().optional(),
+  businessType: z.string().optional(),
+  gst:          z.string().optional(),
+  license:      z.string().optional(),
 });
 
 // ─── Helper: sign JWT ────────────────────────────────────────────────────────
@@ -57,7 +84,7 @@ async function registerCompany(req, res, next) {
     }
 
     const {
-      name, email, phone, address, gst, license,
+      name, email, phone, address, city, state, stateCode, pincode, businessType, gst, license,
       adminName, adminEmail, adminPassword,
     } = parsed.data;
 
@@ -83,13 +110,32 @@ async function registerCompany(req, res, next) {
       });
     }
 
-    // Resolve default company_admin system role
-    const companyAdminRole = await Role.findOne({ name: 'company_admin', isSystemRole: true });
+    // Resolve or provision default company_admin system role
+    let companyAdminRole = await Role.findOne({ name: 'company_admin', isSystemRole: true });
     if (!companyAdminRole) {
-      return res.status(500).json({
-        data: null,
-        message: 'Default company_admin role not found. Please run seed script first.',
-        errors: null,
+      companyAdminRole = await Role.create({
+        tenantId: null,
+        name: 'company_admin',
+        permissions: COMPANY_ADMIN_PERMISSIONS,
+        isSystemRole: true,
+      });
+    }
+
+    // Resolve or provision default trial plan
+    let plan = await Plan.findOne({ isFree: true, isActive: true });
+    if (!plan) {
+      plan = await Plan.findOne({ isActive: true }).sort({ sortOrder: 1 });
+    }
+    if (!plan) {
+      plan = await Plan.create({
+        name: 'free',
+        displayName: 'Free Trial',
+        description: '7-Day Full Access Trial Plan',
+        sortOrder: 0,
+        isFree: true,
+        price: { monthly: 0, yearly: 0 },
+        limits: { maxUsers: 5, maxStorage: 5, apiAccess: true, auditLogs: true, customRoles: true, prioritySupport: false },
+        features: ['7-Day Full Feature Free Trial', 'Inventory & Godowns', 'Khata Bahi & Payments', 'Up to 5 users'],
       });
     }
 
@@ -97,20 +143,49 @@ async function registerCompany(req, res, next) {
     const trialStartedAt = new Date();
     const trialEndsAt = new Date(trialStartedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
 
+    const derivedStateCode = stateCode || (gst && gst.length >= 2 && /^\d{2}/.test(gst) ? gst.substring(0, 2) : '27');
+    const derivedCity = city || (address ? address.split(',')[0].trim() : 'Mumbai');
+    const derivedState = state || 'Maharashtra';
+    const derivedPincode = pincode || '400001';
+
     // 1. Create Tenant
     const tenant = await Tenant.create({
       name,
       email: email.toLowerCase(),
       phone: phone || '',
       address: address || '',
-      gst: gst || '',
+      city: derivedCity,
+      state: derivedState,
+      stateCode: derivedStateCode,
+      pincode: derivedPincode,
+      businessType: businessType || 'Retail & Wholesale',
+      gst: gst ? gst.toUpperCase() : '',
       license: license || '',
       status: 'TRIAL',
       trialStartedAt,
       trialEndsAt,
+      planId: plan ? plan._id : null,
     });
 
-    // 2. Create Company Admin User linked to Tenant
+    // 2. Create Trial Subscription
+    let subscription = null;
+    if (plan) {
+      subscription = await Subscription.create({
+        tenantId: tenant._id,
+        planId: plan._id,
+        status: 'TRIALING',
+        billingCycle: 'monthly',
+        currentPeriodStart: trialStartedAt,
+        currentPeriodEnd: trialEndsAt,
+        trialEnd: trialEndsAt,
+        autoRenew: true,
+      });
+
+      tenant.subscriptionId = subscription._id;
+      await tenant.save();
+    }
+
+    // 3. Create Company Admin User linked to Tenant
     const user = await User.create({
       tenantId: tenant._id,
       name: adminName,
@@ -121,9 +196,8 @@ async function registerCompany(req, res, next) {
       lastLoginAt: new Date(),
     });
 
-    // 3. Record initial LoginHistory & AuditLog & Provision default Inventory (Warehouse & Category)
+    // 4. Record initial LoginHistory, AuditLog & Provision default Warehouse
     const Warehouse = require('../models/inv/Warehouse');
-    const InvCategory = require('../models/inv/Category');
     const codePrefix = (name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4) || 'WH').toUpperCase();
 
     await Promise.all([
@@ -140,7 +214,7 @@ async function registerCompany(req, res, next) {
         action: 'COMPANY_REGISTER',
         resource: 'company',
         resourceId: tenant._id.toString(),
-        details: { name: tenant.name, email: tenant.email, status: tenant.status },
+        details: { name: tenant.name, email: tenant.email, status: tenant.status, plan: plan ? plan.name : 'free' },
         ip: req.ip,
         userAgent: req.headers['user-agent'] || null,
       }),
@@ -149,19 +223,19 @@ async function registerCompany(req, res, next) {
         name: 'Main Godown',
         code: `WH-${codePrefix}-01`,
         type: 'OWNED',
-        city: address ? address.split(',')[0].trim() : 'Mumbai',
-        state: 'Maharashtra',
-        stateCode: '27',
-        pincode: '400001',
+        city: derivedCity,
+        state: derivedState,
+        stateCode: derivedStateCode,
+        pincode: derivedPincode,
         isDefault: true,
       }),
     ]);
 
-    // Seed Indian Category Presets
+    // 5. Seed Indian Category Presets
     const { seedIndianPresetsForTenant } = require('./inventory/category');
     await seedIndianPresetsForTenant(tenant._id);
 
-    // 4. Sign JWT
+    // 6. Sign JWT
     const token = signToken(user);
 
     return res.status(201).json({
@@ -173,12 +247,18 @@ async function registerCompany(req, res, next) {
           email: tenant.email,
           phone: tenant.phone,
           address: tenant.address,
+          city: tenant.city,
+          state: tenant.state,
+          stateCode: tenant.stateCode,
+          pincode: tenant.pincode,
+          businessType: tenant.businessType,
           gst: tenant.gst,
           license: tenant.license,
           status: tenant.status,
           trialStartedAt: tenant.trialStartedAt,
           trialEndsAt: tenant.trialEndsAt,
           daysRemainingInTrial: 7,
+          plan: plan ? { id: plan._id, name: plan.name, displayName: plan.displayName } : null,
         },
         user: {
           id: user._id,

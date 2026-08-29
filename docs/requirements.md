@@ -60,18 +60,25 @@ Super Admin KPIs:
 - Suspended
 - Outstanding
 
-## Billing
+## Inventory & Trade ERP Requirements
 
-Track:
-- Plans
-- Subscriptions
-- Invoices
-- Payments
-- Outstanding
-- Due dates
+### Catalog & Warehouses
+- Multi-warehouse/godown inventory tracking with inter-warehouse transfers.
+- Product catalog supporting Barcode, SKU, HSN codes, and GST rates (0%, 5%, 12%, 18%, 28%).
+- Reorder point thresholds and low-stock warning banners.
 
-## Important
+### Commercial Trading & Bill-Wise Payments
+- Customer directory (Receivables / Lena) & Supplier directory (Payables / Dena).
+- Atomic stock movements linked to automatic sales invoice (`INVOICE`) and purchase bill (`BILL`) creation.
+- Bill-wise knockoff matching (`allocatedBills: [{ billId, amount }]`) with FIFO auto-allocation.
+- Double-entry Khata Bahi statements with running balances and printable statements.
+- Direct WhatsApp payment reminder launcher with customizable templates.
+- Section 269ST compliance guard enforcing a ₹2,00,000 cash statutory ceiling.
 
-No website builder/hosting.
+### Outside Cash Flow & Liquidity Management
+- Segregated non-trading cashflow adjustments (`OUTSIDE_INFLOW` and `OUTSIDE_OUTFLOW`) updating store Cash in Hand and Bank/UPI balances.
+- Real-time liquidity reporting on dashboard KPIs (`cashBalance`, `bankBalance`, `outsideCashflow`).
+- Document-type filtering on vouchers history (`Sales Invoices`, `Purchase Bills`, `Collections In`, `Payments Out`, `Outside Cashflow`, `Opening Balance`).
 
-Do not assume unspecified business rules.
+### Data Persistence
+- Scoped seed script operations ensuring user-registered tenants, custom users, and transactions remain permanently persisted in MongoDB Atlas across server reloads.

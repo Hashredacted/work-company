@@ -18,7 +18,7 @@ const files = [
 let hasError = false;
 
 for (const f of files) {
-  const filePath = path.join(__dirname, '../../frontend', f);
+  const filePath = path.join(__dirname, '../../frontend/html', f);
   if (!fs.existsSync(filePath)) continue;
 
   const content = fs.readFileSync(filePath, 'utf8');

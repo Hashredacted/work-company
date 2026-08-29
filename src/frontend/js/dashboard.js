@@ -112,12 +112,13 @@ async function loadCompanies() {
 // ─── Render Table Rows ─────────────────────────────────────────────────────────
 function renderTable(companies) {
   if (!companies || companies.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px;">No companies found matching criteria.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No companies found matching criteria.</td></tr>`;
     return;
   }
 
-  tableBody.innerHTML = companies.map((c) => `
+  tableBody.innerHTML = companies.map((c, idx) => `
     <tr>
+      <td style="text-align: center; color: var(--text-muted); font-weight: 700; font-size: 0.82rem;">${idx + 1}</td>
       <td>
         <div class="company-name">${c.name}</div>
         <div style="font-size: 0.75rem; color: var(--text-muted);">${c.gst ? 'GST: ' + c.gst : 'No GST'}</div>

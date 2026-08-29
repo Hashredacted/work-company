@@ -267,6 +267,8 @@ An authentic digital replica of the traditional Indian **खाता बही 
 
 ---
 
+---
+
 ## 11. Executive Financial KPIs & Daily Cashflow Analytics
 
 ### 📈 What It Is
@@ -278,27 +280,60 @@ Real-time dashboard cards providing immediate visibility into company liquidity,
 * **Total Payables (₹)**: Total money your company owes to suppliers across all open purchase bills.
 * **Overdue Receivables (₹)**: Value of customer invoices that have passed their credit terms / due date.
 * **Net Working Capital (₹)**: Net operational balance (`Total Receivables − Total Payables`).
+* **Cash in Hand (₹)**: Store physical cash drawer net position (`Cash Inflows − Cash Outflows`).
+* **Bank / UPI Balance (₹)**: Net liquid capital in corporate bank accounts, UPI VPAs, and digital gateways.
 
 ### 📅 Daily Payment & Cashflow Tracker
 * Aggregates collections (Inflow) and vendor disbursements (Outflow) per day for the last 30 days.
 * Displays mode-wise distribution (UPI vs NEFT vs Cash vs Cheque).
-* Displays Net Daily Cashflow (`Inflow − Outflow`).
+* Displays Net Daily Cashflow (`Inflow − Outflow`), incorporating both commercial trading and outside cashflow entries.
 
 ---
 
-## 12. Vouchers History & Audit Trail
+## 12. Outside Cash Flow & Account Balance Adjustments
 
-### 📑 What It Is
-A chronological log of all commercial documents (`INVOICE`, `BILL`, `PAYMENT_IN`, `PAYMENT_OUT`, `OPENING_BAL`).
+### ⚡ What It Is
+Allows merchants, store managers, and admins to **add to (+ Inflow)** or **subtract from (- Outflow)** store cash and bank balances without distorting commercial trade sales or purchase ledger outstandings.
+
+### 📂 Supported Non-Trading Categories
+
+| Flow Direction | Purpose | Supported Categories | Target Liquidity Impact |
+| :--- | :--- | :--- | :--- |
+| ➕ **Add to Balance** <br>*(Outside Inflow)* | Capital injection or non-commercial cash in | • **Owner / Partner Capital Injection** (`CAPITAL_INJECTION`)<br>• **Loan / Borrowing Inflow** (`LOAN_RECEIVED`)<br>• **Other Income / Inflow** (`OTHER_INFLOW`) | Increases **Cash in Hand** or **Bank / UPI** balance |
+| ➖ **Subtract from Balance** <br>*(Outside Outflow)* | Drawings, overheads, or non-commercial cash out | • **Owner Drawings / Personal Drawings** (`OWNER_DRAWINGS`)<br>• **Store / Office Rent & Utilities** (`RENT_AND_UTILITIES`)<br>• **Staff Salary & Wages** (`SALARY_AND_WAGES`)<br>• **Office & Store Expenses** (`OFFICE_EXPENSES`)<br>• **Loan Repayment / EMI** (`LOAN_REPAYMENT`)<br>• **Bank Charges & Processing Fee** (`BANK_CHARGES_TAX`)<br>• **Other Outflow** (`OTHER_OUTFLOW`) | Decreases **Cash in Hand** or **Bank / UPI** balance |
 
 ### 📋 How to Use
-1. Open [`inv-payments.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-payments.html) and click the **📑 Vouchers History** tab.
-2. Filter by **Transaction Type** (e.g. `Receipts`, `Payments`, `Invoices`, `Bills`) or **Payment Mode**.
-3. View the full settlement notes (e.g. `Settled: INV-2627-0011 (₹5,000)`).
+1. On the **Inventory Dashboard** ([`inv-dashboard.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-dashboard.html)) or **Payments Screen** ([`inv-payments.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-payments.html)), click **`⚡ Outside Cash Flow / Adjust Balance`**.
+2. Select **➕ Add to Balance** (green) or **➖ Subtract from Balance** (red).
+3. Choose the target account: **💵 Cash in Hand** or **🏛️ Bank / UPI**.
+4. Enter the amount to view the **Live Impact Preview** (e.g., `+₹50,000 will be ADDED to Cash in Hand as Outside Inflow`).
+5. Select category, transaction date, particulars / entity name, and reference/UTR number.
+6. Click **✓ Record Outside Flow**. The account balances and daily cashflow will update immediately.
 
 ---
 
-## 13. End-to-End Practical How-To Guides
+## 13. Vouchers History & Multi-Type Filtering
+
+### 📑 What It Is
+A comprehensive chronological log of all commercial documents (`INVOICE`, `BILL`, `PAYMENT_IN`, `PAYMENT_OUT`, `OUTSIDE_INFLOW`, `OUTSIDE_OUTFLOW`, `OPENING_BAL`).
+
+### 🔍 Quick-Filter Pills
+* ⭐ **All Records (41)**: Complete unified ledger of all issued documents and payment entries.
+* 📄 **Sales Invoices (12)**: Tax invoices issued to commercial and retail customers.
+* 🧾 **Purchase Bills (10)**: Inward inventory purchase bills from distributors.
+* ➕ **Collections In (11)**: Customer payment receipts.
+* ➖ **Payments Out (8)**: Supplier payment vouchers.
+* ⚡ **Outside Cashflow**: Capital injections, drawings, rent, and overhead expenses.
+* ⚖️ **Opening / Capital**: Initial carry-forward balances.
+
+### 📋 How to Use
+1. Open [`inv-payments.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-payments.html) and click the **📑 All Vouchers & Bills** tab (or click **`📈 Sales Invoices →`** / **`📥 Purchase Bills →`** directly from the dashboard Retail Trading card).
+2. Click any quick-filter pill or select from the **Document Type** dropdown.
+3. Click **🔍 Voucher #** or **🧾 View** on any row to open the complete printable document with line items, tax breakdown, and linked settlement history.
+
+---
+
+## 14. End-to-End Practical How-To Guides
 
 ### 🛍️ Workflow A: Complete Customer Sales & Receipt Flow
 
@@ -354,11 +389,31 @@ Step 4: View Khata Statement
 
 ---
 
+## 14. Initial Working Capital & Baseline Capital Fund
+
+### 💼 What It Is
+Allows businesses to configure an initial capital baseline (e.g. ₹5,00,000 owner equity or seed fund) so Net Working Capital calculations accurately reflect total financial capacity:
+
+$$\text{Net Working Capital} = \text{Initial Capital Baseline} + \text{Total Customer Receivables} - \text{Total Supplier Payables}$$
+
+### 📋 How to Set / Adjust
+1. On **Payments & Khata** ([`inv-payments.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-payments.html)), click the **Net Working Capital** card (or click **💼 Set Initial Working Capital** on the Dashboard).
+2. Enter the **Initial Capital Amount (₹)** (e.g., `500000`).
+3. *(Optional)* Check **"Also record as Cash / Bank Capital Inflow Voucher"** if this capital was physically deposited into Cash in Hand or Bank/UPI.
+4. Review the **Live Working Capital Formula Preview**:
+   `Base Capital (₹5,00,000) + Receivables (₹99,970) − Payables (₹5,20,000) = +₹79,970`
+5. Click **✓ Save Working Capital**. All KPI cards and dashboard summaries update instantly.
+
+---
+
 ## 🎯 Summary
 
 All modules operate under a **single source of truth** with automated synchronization:
 * Adding stock on credit immediately registers in **Receivables / Payables**.
 * Recording payments knocks off specific bills using **FIFO or custom allocation**.
+* Outside cash flows allow adjusting **Cash in Hand** and **Bank Liquidity** cleanly without affecting trade debts.
+* Initial Working Capital allows businesses to establish **baseline capital funds** for accurate solvency metrics.
 * Partial payments maintain exact pending amounts and **prevent premature clearing**.
 * Financial safety barriers prevent **overpayment or paying more than total due**.
 * Khata statements provide an **audit-ready financial history** for every business party.
+* User-registered tenant accounts and custom transactions are **100% permanently retained** across demo reseeds.

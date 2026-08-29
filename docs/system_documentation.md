@@ -277,13 +277,15 @@ All responses follow standard JSON structure: `{ "data": ..., "message": "OK", "
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/api/inventory/payments/kpis` | `inventory:read` | Overall Receivables, Payables, Overdue, Working Capital |
+| `GET` | `/api/inventory/payments/kpis` | `inventory:read` | Overall Receivables, Payables, Overdue, Working Capital (supports `X-Tenant-Id`) |
 | `GET` | `/api/inventory/payments/outstandings` | `inventory:read` | Party-wise outstandings (`type=CUSTOMER\|SUPPLIER`) |
 | `GET` | `/api/inventory/payments/pending-bills` | `inventory:read` | Fetch open unpaid bills/invoices for a party with remaining balances |
 | `GET` | `/api/inventory/payments/daily-summary` | `inventory:read` | Per-day inflow, outflow, net cashflow, and payment mode breakdown |
 | `GET` | `/api/inventory/payments/statement/:type/:id` | `inventory:read` | Double-entry Khata Bahi with running balances and knockoffs |
-| `GET` | `/api/inventory/payments` | `inventory:read` | Paginated voucher history with settled bill tags |
+| `GET` | `/api/inventory/payments/voucher/:voucherNoOrId` | `inventory:read` | Full document view for invoices, bills, receipts, payments, and adjustments |
+| `GET` | `/api/inventory/payments` | `inventory:read` | Paginated voucher list with multi-type filters (`INVOICE`, `BILL`, `PAYMENT_IN`, `PAYMENT_OUT`, `OUTSIDE`, `OPENING_BAL`) |
 | `POST` | `/api/inventory/payments` | `inventory:manage` | Record Payment Voucher with manual or FIFO bill knockoff (Section 269ST guarded) |
+| `POST` | `/api/inventory/payments/outside-cashflow` | `inventory:manage` | Add (+ Inflow) or Subtract (- Outflow) non-trading funds from Cash in Hand or Bank/UPI |
 
 ---
 
@@ -291,22 +293,22 @@ All responses follow standard JSON structure: `{ "data": ..., "message": "OK", "
 
 | Page | URL | Purpose |
 |---|---|---|
-| **Login** | `index.html` | Authentication with quick-fill demo roles |
-| **Registration** | `register.html` | 7-day trial company signup |
+| **Login** | `index.html` | Authentication with top tab switcher and demo role quick-fill |
+| **Registration** | `register.html` | 7-day trial company signup with instant workspace provisioning |
 | **Super Admin** | `dashboard.html` | Platform-level tenant & revenue controls |
-| **Company Admin** | `company-dashboard.html` | Workspace hub with quick navigation |
-| **Inventory Dashboard** | `inv-dashboard.html` | Real-time stock alerts, low stock, expiry metrics |
+| **Company Admin** | `company-dashboard.html` | Workspace hub with grouped pill navigation and profile badge |
+| **Inventory Dashboard** | `inv-dashboard.html` | Stock valuation, Retail Trading bills, Liquidity cards, Outside Cash Flow modal |
 | **Products** | `inv-products.html` | Product catalog, barcode, HSN, Quick Stock modal |
 | **Suppliers** | `inv-suppliers.html` | Vendor directory, bank details, outstanding payables |
 | **Customers** | `inv-customers.html` | Customer directory, credit terms, outstanding receivables |
-| **Payments & Khata** | `inv-payments.html` | Bill-wise knockoff modal, per-day payments tab, party statements, WhatsApp reminders |
+| **Payments & Khata** | `inv-payments.html` | Bill-wise knockoff, Outside Cash Flow modal, multi-type voucher pills, party statements, WhatsApp reminders |
 | **Reports** | `inv-reports.html` | Valuation summary (FIFO/Average) and stock ledgers |
 
 ---
 
-## 8. Bill-Wise Payment & Khata Ledger System
+## 8. Bill-Wise Payment & Liquidity Management System
 
-### 1. Knockoff Settlement Flow
+### 1. Commercial Knockoff Settlement Flow
 ```
 User Records Payment In (₹40,000) for Customer Apex Tech
   ├── System fetches open INVOICE vouchers (e.g. INV-2627-0102: ₹1,25,000 total, ₹1,25,000 pending)
@@ -320,12 +322,26 @@ User Records Payment In (₹40,000) for Customer Apex Tech
   └── Khata Statement and Outstandings update atomically.
 ```
 
-### 2. Live Remaining Balance Preview
+### 2. Outside Cash Flow & Liquidity Adjustments
+```
+User Injects Capital or Records Business Overhead
+  ├── User opens "⚡ Outside Cash Flow / Adjust Balance" Modal
+  ├── Selects Direction: ➕ Add (Inflow) or ➖ Subtract (Outflow)
+  ├── Selects Target Account: 💵 Cash in Hand (CASH) or 🏛️ Bank / UPI (UPI, NEFT, Cheque)
+  ├── Selects Category: Capital Injection, Owner Drawings, Rent & Utilities, Salary/Wages, Loan, Bank Charges
+  ├── Backend saves ADJ-IN-2627-XXXX or ADJ-OUT-2627-XXXX:
+  │     • Marks isOutsideCashflow = true
+  │     • Adjusts real-time Cash in Hand or Bank/UPI balance
+  │     • Leaves commercial sales/purchase trading turnover completely pure
+  └── Daily cashflow summary reflects total operating liquidity.
+```
+
+### 3. Live Remaining Balance Preview
 When the user types an amount or changes allocations in the payment modal, the system dynamically calculates:
 $$\text{Remaining Party Due} = \max(0, \text{Current Outstanding} - \text{Total Payment})$$
 $$\text{Remaining Bill Balance} = \max(0, \text{Bill Pending Amount} - \text{Current Allocation})$$
 
-### 3. Per-Day Analytics (`/payments/daily-summary`)
+### 4. Per-Day Analytics (`/payments/daily-summary`)
 Provides daily financial monitoring:
 - **Today's Inflow**: Total receipts from customers today.
 - **Today's Outflow**: Total payments to suppliers today.

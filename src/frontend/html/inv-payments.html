@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -61,21 +61,34 @@
       border: 1px solid var(--border);
     }
 
-    /* KPI Summary Row */
+    /* KPI Summary Row - Fixed 4-column single row */
     .kpi-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
       margin-bottom: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
     }
 
     .kpi {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px 18px;
+      padding: 14px 16px;
       position: relative;
       overflow: hidden;
+      min-width: 0;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 
@@ -90,23 +103,32 @@
     }
 
     .kpi-lbl {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .kpi-val {
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       font-weight: 800;
       margin: 4px 0 2px;
       letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .kpi-sub {
       font-size: 0.72rem;
       color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Tabs system */
@@ -751,6 +773,10 @@
               class="nav-subitem active">
               <span class="nav-bullet">💵</span> Received
             </a>
+            <a href="javascript:void(0)" onclick="switchTab('vouchers')" id="nav-sub-vouchers"
+              class="nav-subitem">
+              <span class="nav-bullet">📑</span> All Vouchers & Bills
+            </a>
           </div>
         </div>
 
@@ -800,7 +826,11 @@
               settlements, and download khata statements</div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" onclick="openOutsideCashflowModal()"
+            style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:6px;font-family:inherit;">
+            <span>⚡</span> Outside Cash Flow / Balance
+          </button>
           <button id="btn-open-record-modal" onclick="openPaymentModal(event)"
             style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px;">
             <span>+ Record Payment Voucher</span>
@@ -808,27 +838,33 @@
         </div>
       </div>
 
-      <!-- KPI Summary Row -->
+      <!-- KPI Summary Row - Clean 4-Card Overview -->
       <div class="kpi-row">
         <div class="kpi" style="--accent:#4ade80;">
           <div class="kpi-lbl">Total Receivables (लेना है)</div>
           <div class="kpi-val" id="kpi-receivables" style="color:#4ade80;">—</div>
-          <div class="kpi-sub">👥 Customer Credit Dues</div>
+          <div class="kpi-sub" id="kpi-receivables-sub">👥 Customer Credit Dues</div>
         </div>
         <div class="kpi" style="--accent:#f87171;">
           <div class="kpi-lbl">Total Payables (देना है)</div>
           <div class="kpi-val" id="kpi-payables" style="color:#f87171;">—</div>
-          <div class="kpi-sub">🏭 Supplier Credit Purchases</div>
+          <div class="kpi-sub" id="kpi-payables-sub">🏭 Supplier Credit Purchases</div>
         </div>
-        <div class="kpi" style="--accent:#fbbf24;">
-          <div class="kpi-lbl">Overdue Receivables</div>
-          <div class="kpi-val" id="kpi-overdue-rec" style="color:#fbbf24;">—</div>
-          <div class="kpi-sub">⏰ Past Payment Terms</div>
+        <div class="kpi" style="--accent:#34d399;cursor:pointer;" onclick="openOutsideCashflowModal()" title="Click to adjust Cash or Bank balance">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="kpi-lbl">Total Account Balances</div>
+            <span style="font-size:0.7rem;padding:2px 6px;border-radius:4px;background:rgba(52,211,153,0.15);color:#34d399;font-weight:700;">⚡ Adjust</span>
+          </div>
+          <div class="kpi-val" id="kpi-account-bal" style="color:#34d399;">—</div>
+          <div class="kpi-sub" id="kpi-account-sub">💵 Cash: — · 🏛️ Bank: —</div>
         </div>
-        <div class="kpi" style="--accent:#38bdf8;">
-          <div class="kpi-lbl">Net Working Capital</div>
+        <div class="kpi" style="--accent:#38bdf8;cursor:pointer;" onclick="openWorkingCapitalModal()" title="Click to set or adjust Initial Working Capital">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="kpi-lbl">Net Working Capital</div>
+            <span style="font-size:0.7rem;padding:2px 6px;border-radius:4px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:700;">⚡ Set Base</span>
+          </div>
           <div class="kpi-val" id="kpi-working-cap" style="color:#38bdf8;">—</div>
-          <div class="kpi-sub">💼 Receivables - Payables</div>
+          <div class="kpi-sub" id="kpi-working-cap-sub">Base: ₹0 + Receivables − Payables</div>
         </div>
       </div>
 
@@ -866,6 +902,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:45px;text-align:center;">#</th>
                   <th>Customer</th>
                   <th>Phone / GSTIN</th>
                   <th style="text-align:right;">Total Invoiced (₹)</th>
@@ -878,13 +915,13 @@
               </thead>
               <tbody id="cust-tbody">
                 <tr>
-                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…
+                  <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading customers…
                   </td>
                 </tr>
               </tbody>
               <tfoot id="cust-tfoot" style="display:none;">
                 <tr>
-                  <td colspan="2">Total Summary</td>
+                  <td colspan="3">Total Summary</td>
                   <td style="text-align:right;" id="cust-foot-inv">—</td>
                   <td style="text-align:right;color:#4ade80;" id="cust-foot-coll">—</td>
                   <td style="text-align:right;color:#38bdf8;font-weight:800;font-size:0.95rem;" id="cust-foot-out">—
@@ -919,6 +956,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:45px;text-align:center;">#</th>
                   <th>Supplier</th>
                   <th>Phone / GSTIN</th>
                   <th style="text-align:right;">Total Purchased (₹)</th>
@@ -931,13 +969,13 @@
               </thead>
               <tbody id="supp-tbody">
                 <tr>
-                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…
+                  <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading suppliers…
                   </td>
                 </tr>
               </tbody>
               <tfoot id="supp-tfoot" style="display:none;">
                 <tr>
-                  <td colspan="2">Total Summary</td>
+                  <td colspan="3">Total Summary</td>
                   <td style="text-align:right;" id="supp-foot-pur">—</td>
                   <td style="text-align:right;color:#4ade80;" id="supp-foot-paid">—</td>
                   <td style="text-align:right;color:#fb7185;font-weight:800;font-size:0.95rem;" id="supp-foot-out">—
@@ -955,7 +993,7 @@
         <div class="card">
           <!-- Today's Collection Highlights -->
           <div
-            style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:20px;">
+            style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:20px;">
             <div
               style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:14px;">
               <div style="font-size:0.75rem;font-weight:700;color:#4ade80;text-transform:uppercase;">Today Inflow
@@ -1003,6 +1041,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:45px;text-align:center;">#</th>
                   <th>Date</th>
                   <th>Day</th>
                   <th style="text-align:right;">Inflow Received (₹)</th>
@@ -1014,7 +1053,7 @@
               </thead>
               <tbody id="daily-tbody">
                 <tr>
-                  <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading daily summary…
+                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading daily summary…
                   </td>
                 </tr>
               </tbody>
@@ -1026,12 +1065,37 @@
       <!-- Payment Vouchers History Panel -->
       <div id="panel-vouchers" class="pay-panel">
         <div class="card">
-          <div class="filter-row">
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-              <select id="voucher-party-type" class="form-select" onchange="loadVouchers()" style="width:auto;">
+          <!-- Quick Filter Pills Row -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+            <div class="pill-group" style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="filter-pill active" id="vpill-all" onclick="setVoucherTypeFilter('', this)">⭐ All Records (<span id="count-voucher-all">0</span>)</button>
+              <button class="filter-pill" id="vpill-invoices" onclick="setVoucherTypeFilter('INVOICE', this)" style="border-left:3px solid #38bdf8;">📄 Sales Invoices (<span id="count-voucher-invoices">0</span>)</button>
+              <button class="filter-pill" id="vpill-bills" onclick="setVoucherTypeFilter('BILL', this)" style="border-left:3px solid #fbbf24;">🧾 Purchase Bills (<span id="count-voucher-bills">0</span>)</button>
+              <button class="filter-pill" id="vpill-receipts" onclick="setVoucherTypeFilter('PAYMENT_IN', this)" style="border-left:3px solid #4ade80;">➕ Collections In (<span id="count-voucher-receipts">0</span>)</button>
+              <button class="filter-pill" id="vpill-payments" onclick="setVoucherTypeFilter('PAYMENT_OUT', this)" style="border-left:3px solid #f87171;">➖ Payments Out (<span id="count-voucher-payments">0</span>)</button>
+              <button class="filter-pill" id="vpill-outside" onclick="setVoucherTypeFilter('OUTSIDE', this)" style="border-left:3px solid #ec4899;">⚡ Outside Cashflow (<span id="count-voucher-outside">0</span>)</button>
+              <button class="filter-pill" id="vpill-opening" onclick="setVoucherTypeFilter('OPENING_BAL', this)" style="border-left:3px solid #a78bfa;">⚖️ Opening / Capital (<span id="count-voucher-opening">0</span>)</button>
+            </div>
+          </div>
+
+          <!-- Filter & Search Row -->
+          <div class="filter-row" style="margin-bottom:16px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <select id="voucher-txn-type" class="form-select" onchange="onVoucherFilterSelectChange()" style="width:auto;font-weight:600;">
+                <option value="">All Document Types</option>
+                <option value="INVOICE">📄 Sales Invoices (12)</option>
+                <option value="BILL">🧾 Purchase Bills (10)</option>
+                <option value="PAYMENT_IN">➕ Customer Collections (Receipts)</option>
+                <option value="PAYMENT_OUT">➖ Supplier Payments (Out)</option>
+                <option value="OUTSIDE">⚡ All Outside Cashflow (In & Out)</option>
+                <option value="OUTSIDE_INFLOW">➕ Outside Inflow (Capital / Loan In)</option>
+                <option value="OUTSIDE_OUTFLOW">➖ Outside Outflow (Drawings / Expense)</option>
+                <option value="OPENING_BAL">⚖️ Opening Balance / Capital</option>
+              </select>
+              <select id="voucher-party-type" class="form-select" onchange="loadVouchers()" style="width:auto;font-weight:600;">
                 <option value="">All Parties</option>
-                <option value="CUSTOMER">Customer Receipts (Payment In)</option>
-                <option value="SUPPLIER">Supplier Payments (Payment Out)</option>
+                <option value="CUSTOMER">👥 Customers</option>
+                <option value="SUPPLIER">🏭 Suppliers</option>
               </select>
               <select id="voucher-mode" class="form-select" onchange="loadVouchers()" style="width:auto;">
                 <option value="">All Payment Modes</option>
@@ -1039,9 +1103,11 @@
                 <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
                 <option value="CHEQUE">📝 Cheque</option>
                 <option value="CASH">💵 Cash</option>
+                <option value="CARD">💳 Card / POS</option>
+                <option value="CREDIT">📑 Credit (Unsettled)</option>
               </select>
-              <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Notes…"
-                oninput="loadVouchers()" style="min-width:220px;width:auto;" />
+              <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Party, Notes…"
+                oninput="loadVouchers()" style="min-width:240px;width:auto;" />
             </div>
             <button onclick="loadVouchers()"
               style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
@@ -1051,21 +1117,22 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:45px;text-align:center;">#</th>
                   <th>Date</th>
-                  <th>Voucher #</th>
+                  <th>Voucher / Bill #</th>
                   <th>Party Name</th>
-                  <th>Voucher Type</th>
+                  <th>Document Type</th>
                   <th>Mode</th>
                   <th>Reference / UTR</th>
                   <th style="text-align:right;">Amount (₹)</th>
-                  <th>Settled Bills (Knockoff)</th>
+                  <th>Settlement Status / Knockoff</th>
                   <th>Notes / Particulars</th>
-                  <th>Statement</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="vouchers-tbody">
                 <tr>
-                  <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…
+                  <td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">Loading vouchers…
                   </td>
                 </tr>
               </tbody>
@@ -1159,6 +1226,7 @@
             <table style="font-size:0.78rem;">
               <thead>
                 <tr>
+                  <th style="width:36px;text-align:center;">#</th>
                   <th>Voucher #</th>
                   <th>Date & Due</th>
                   <th style="text-align:right;">Total (₹)</th>
@@ -1169,7 +1237,7 @@
               </thead>
               <tbody id="pm-bills-tbody">
                 <tr>
-                  <td colspan="6" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…
+                  <td colspan="7" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…
                   </td>
                 </tr>
               </tbody>
@@ -1294,6 +1362,178 @@
     </div>
   </div>
 
+  <!-- Outside Cashflow / Balance Adjustment Modal -->
+  <div id="outside-cashflow-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ocf-modal-title">
+    <div class="modal" style="max-width:560px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.4rem;">⚡</span>
+          <div>
+            <h2 id="ocf-modal-title" class="modal-title" style="margin:0;font-size:1.15rem;">Outside Cash Flow & Balance Adjustment</h2>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Inject capital, record owner drawings, or adjust cash & bank balances</div>
+          </div>
+        </div>
+        <button type="button" onclick="closeOutsideCashflowModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;">✕</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Flow Direction Switcher -->
+        <div>
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Flow Direction</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button type="button" id="ocf-dir-add" onclick="setOcfDirection('ADD')" class="ocf-dir-btn active" style="padding:12px;border-radius:8px;border:1.5px solid #4ade80;background:rgba(74,222,128,0.15);color:#4ade80;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.9rem;font-family:inherit;">
+              <span>➕ Add to Balance</span>
+              <span style="font-size:0.72rem;opacity:0.85;">(Inflow)</span>
+            </button>
+            <button type="button" id="ocf-dir-sub" onclick="setOcfDirection('SUBTRACT')" class="ocf-dir-btn" style="padding:12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text-muted);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.9rem;font-family:inherit;">
+              <span>➖ Subtract from Balance</span>
+              <span style="font-size:0.72rem;opacity:0.85;">(Outflow)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Account / Payment Mode & Amount Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Account / Mode <span style="color:#f87171;">*</span></label>
+            <select id="ocf-mode" class="form-input" style="width:100%;font-weight:600;" onchange="onOcfModeChange()">
+              <option value="CASH">💵 Cash in Hand (Store Cash Drawer)</option>
+              <option value="UPI">🏛️ Bank / UPI (Digital Payment)</option>
+              <option value="NEFT_RTGS">🏛️ Bank / NEFT & RTGS</option>
+              <option value="NET_BANKING">🏛️ Bank / Net Banking</option>
+              <option value="CHEQUE">🏛️ Bank / Cheque</option>
+              <option value="CARD">💳 Debit / Credit Card</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Amount (₹) <span style="color:#f87171;">*</span></label>
+            <input type="number" id="ocf-amount" class="form-input" placeholder="e.g. 50000" min="1" step="1" style="width:100%;font-size:1.1rem;font-weight:800;color:var(--primary);" oninput="updateOcfPreview()">
+          </div>
+        </div>
+
+        <!-- Category & Date Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Category <span style="color:#f87171;">*</span></label>
+            <select id="ocf-category" class="form-input" style="width:100%;">
+              <optgroup label="➕ Inflow Categories" id="ocf-cat-group-in">
+                <option value="CAPITAL_INJECTION">💼 Owner / Partner Capital Injection</option>
+                <option value="LOAN_RECEIVED">🏦 Loan / Borrowing Inflow</option>
+                <option value="OTHER_INFLOW">➕ Other Non-Trading Income / Inflow</option>
+              </optgroup>
+              <optgroup label="➖ Outflow Categories" id="ocf-cat-group-out">
+                <option value="OWNER_DRAWINGS">👤 Owner Drawings / Personal Withdrawal</option>
+                <option value="RENT_AND_UTILITIES">🏢 Store / Office Rent & Utilities</option>
+                <option value="SALARY_AND_WAGES">👥 Staff Salary & Overtime Wages</option>
+                <option value="OFFICE_EXPENSES">📦 General Office & Store Expenses</option>
+                <option value="LOAN_REPAYMENT">🏦 Loan EMI / Repayment</option>
+                <option value="BANK_CHARGES_TAX">⚖️ Bank Charges / Processing Fee</option>
+                <option value="OTHER_OUTFLOW">➖ Other Non-Trading Outflow</option>
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Transaction Date</label>
+            <input type="date" id="ocf-date" class="form-input" style="width:100%;">
+          </div>
+        </div>
+
+        <!-- Party / Particulars & Ref No Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Entity / Person Name</label>
+            <input type="text" id="ocf-party-name" class="form-input" placeholder="e.g. Store Owner, Landlord, Bank..." style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Ref / UTR / Cheque #</label>
+            <input type="text" id="ocf-reference" class="form-input" placeholder="e.g. UPI/12345678, CHQ-00123" style="width:100%;">
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Notes / Particulars</label>
+          <input type="text" id="ocf-notes" class="form-input" placeholder="Optional description for khata & audit logs" style="width:100%;">
+        </div>
+
+        <!-- Live Impact Preview Box -->
+        <div id="ocf-preview-box" style="padding:10px 14px;border-radius:8px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);font-size:0.82rem;display:flex;align-items:center;justify-content:space-between;">
+          <span id="ocf-preview-text" style="color:#4ade80;font-weight:600;">➕ Enter amount to see balance preview</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);">Non-Trading Cashflow</span>
+        </div>
+
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+        <button type="button" onclick="closeOutsideCashflowModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+        <button type="button" id="ocf-submit-btn" class="btn-primary" onclick="submitOutsideCashflow()" style="background:linear-gradient(135deg,#10b981,#059669);font-weight:700;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;color:#fff;">✓ Record Outside Flow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial Working Capital Adjustment Modal -->
+  <div id="working-capital-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wc-modal-title">
+    <div class="modal" style="max-width:520px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.4rem;">💼</span>
+          <div>
+            <h2 id="wc-modal-title" class="modal-title" style="margin:0;font-size:1.15rem;">Set Initial Working Capital / Base Fund</h2>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Adjust baseline initial capital for working capital calculations</div>
+          </div>
+        </div>
+        <button type="button" onclick="closeWorkingCapitalModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;">✕</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Current Status Banner -->
+        <div style="padding:10px 14px;border-radius:8px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);font-size:0.82rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:var(--text-sub);">Current Initial Capital Setting:</span>
+          <strong id="wc-current-val" style="color:#38bdf8;font-size:0.95rem;">₹0</strong>
+        </div>
+
+        <!-- Amount Input -->
+        <div>
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Initial Capital Amount (₹) <span style="color:#f87171;">*</span></label>
+          <input type="number" id="wc-amount-input" class="form-input" placeholder="e.g. 500000" min="0" step="1000" style="width:100%;font-size:1.15rem;font-weight:800;color:var(--primary);" oninput="updateWcPreview()">
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">Enter the baseline seed capital or opening working capital for your company.</div>
+        </div>
+
+        <!-- Optional checkbox to inject into Cash or Bank -->
+        <div style="background:var(--surface-2);border-radius:8px;padding:12px;border:1px solid var(--border);">
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:0.82rem;">
+            <input type="checkbox" id="wc-also-inject" style="margin-top:2px;" onchange="onWcInjectToggle()">
+            <div>
+              <strong style="color:var(--text);">Also record as Cash / Bank Capital Inflow Voucher</strong>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">If checked, creates an `OPEN-CAP` voucher adding this amount to your store account balance.</div>
+            </div>
+          </label>
+          <div id="wc-mode-row" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+            <label style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;display:block;">Target Account</label>
+            <select id="wc-target-mode" class="form-input" style="width:100%;font-size:0.85rem;">
+              <option value="CASH">💵 Cash in Hand (Store Cash Drawer)</option>
+              <option value="UPI">🏛️ Bank / UPI (Digital Bank Account)</option>
+              <option value="NEFT_RTGS">🏛️ Bank / NEFT & RTGS</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Formula Preview Box -->
+        <div id="wc-preview-box" style="padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);font-size:0.8rem;line-height:1.5;">
+          <div style="font-weight:700;color:var(--text);margin-bottom:4px;">📊 Live Working Capital Calculation:</div>
+          <div id="wc-formula-text" style="color:var(--text-muted);font-family:monospace;font-size:0.78rem;">
+            Initial Capital (₹0) + Receivables (₹0) − Payables (₹0) = ₹0
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+        <button type="button" onclick="closeWorkingCapitalModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+        <button type="button" id="wc-submit-btn" class="btn-primary" onclick="submitInitialWorkingCapital()" style="background:linear-gradient(135deg,#38bdf8,#0284c7);font-weight:700;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;color:#fff;">✓ Save Working Capital</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     'use strict';
     const API = 'http://localhost:5000/api';
@@ -1319,8 +1559,20 @@
       mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
     }
 
-    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
-    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+    const H = () => {
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || '';
+      return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        ...(selectedTenant ? { 'X-Tenant-Id': selectedTenant } : {}),
+      };
+    };
+
+    function inr(n) {
+      const num = Number(n || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
+    }
     function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
 
     function escHtml(str) {
@@ -1564,8 +1816,10 @@
 
       const navRec = document.getElementById('nav-sub-received');
       const navPay = document.getElementById('nav-sub-payments');
+      const navVouch = document.getElementById('nav-sub-vouchers');
       if (navRec) navRec.classList.toggle('active', name === 'customers');
       if (navPay) navPay.classList.toggle('active', name === 'suppliers');
+      if (navVouch) navVouch.classList.toggle('active', name === 'vouchers');
 
       if (name === 'customers') loadCustomerOutstandings();
       if (name === 'suppliers') loadSupplierOutstandings();
@@ -1574,6 +1828,10 @@
     }
 
     // ─── Load KPI Overview ─────────────────────────────────────────────────────
+    let cachedInitialWc = 0;
+    let cachedTotalRec = 0;
+    let cachedTotalPay = 0;
+
     async function loadKpis() {
       try {
         const r = await fetch(`${API}/inventory/payments/kpis`, { headers: H() });
@@ -1583,17 +1841,43 @@
 
         const recEl = document.getElementById('kpi-receivables');
         const payEl = document.getElementById('kpi-payables');
-        const odEl = document.getElementById('kpi-overdue-rec');
+        const accEl = document.getElementById('kpi-account-bal');
+        const accSubEl = document.getElementById('kpi-account-sub');
         const wcEl = document.getElementById('kpi-working-cap');
+        const wcSubEl = document.getElementById('kpi-working-cap-sub');
+
+        cachedInitialWc = data.initialWorkingCapital || 0;
+        cachedTotalRec = data.totalReceivables || 0;
+        cachedTotalPay = data.totalPayables || 0;
 
         if (recEl) recEl.textContent = inr(data.totalReceivables);
         if (payEl) payEl.textContent = inr(data.totalPayables);
-        if (odEl) odEl.textContent = inr(data.overdueReceivables);
+
+        if (accEl) {
+          const totalLiquidity = data.totalLiquidCapital ?? ((data.cashBalance || 0) + (data.bankBalance || 0));
+          accEl.textContent = inr(totalLiquidity);
+          accEl.style.color = totalLiquidity >= 0 ? '#34d399' : '#f87171';
+        }
+
+        if (accSubEl) {
+          const cashStr = inr(data.cashBalance || 0);
+          const bankStr = inr(data.bankBalance || 0);
+          const oNet = data.outsideCashflow?.net || 0;
+          const outBadge = oNet !== 0 ? ` · ⚡ Flow: ${oNet > 0 ? '+' : ''}${inr(oNet)}` : '';
+          accSubEl.textContent = `💵 Cash: ${cashStr} · 🏛️ Bank: ${bankStr}${outBadge}`;
+        }
 
         if (wcEl) {
-          const workingCap = (data.totalReceivables || 0) - (data.totalPayables || 0);
+          const initCap = data.initialWorkingCapital || 0;
+          const workingCap = data.netWorkingCapital ?? (initCap + (data.totalReceivables || 0) - (data.totalPayables || 0));
           wcEl.textContent = (workingCap >= 0 ? '+' : '') + inr(workingCap);
           wcEl.style.color = workingCap >= 0 ? '#38bdf8' : '#f87171';
+        }
+
+        if (wcSubEl) {
+          const initCap = data.initialWorkingCapital || 0;
+          const tradeCap = (data.totalReceivables || 0) - (data.totalPayables || 0);
+          wcSubEl.textContent = `Base: ${inr(initCap)} · Trade: ${tradeCap >= 0 ? '+' : ''}${inr(tradeCap)}`;
         }
       } catch (err) {
         console.error('Error loading KPIs:', err);
@@ -1646,20 +1930,21 @@
       });
 
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No customers found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No customers found.</td></tr>';
         if (tfoot) tfoot.style.display = 'none';
         return;
       }
 
       let totInv = 0, totColl = 0, totOut = 0;
 
-      tbody.innerHTML = list.map(c => {
+      tbody.innerHTML = list.map((c, idx) => {
         totInv += c.totalAmount || 0;
         totColl += c.totalSettled || 0;
         totOut += c.outstanding || 0;
 
         return `
           <tr>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
             <td>
               <div style="font-weight:700;color:var(--text);">${escHtml(c.name)}</div>
               <div><span style="background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📥 RECEIVABLE · लेना</span></div>
@@ -1701,7 +1986,7 @@
       try {
         const r = await fetch(`${API}/inventory/payments/outstandings?type=SUPPLIER`, { headers: H() });
         if (!r.ok) {
-          if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load suppliers.</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load suppliers.</td></tr>';
           return;
         }
         const json = await r.json();
@@ -1741,20 +2026,21 @@
       });
 
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found.</td></tr>';
         if (tfoot) tfoot.style.display = 'none';
         return;
       }
 
       let totPur = 0, totPaid = 0, totOut = 0;
 
-      tbody.innerHTML = list.map(s => {
+      tbody.innerHTML = list.map((s, idx) => {
         totPur += s.totalAmount || 0;
         totPaid += s.totalSettled || 0;
         totOut += s.outstanding || 0;
 
         return `
           <tr>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
             <td>
               <div style="font-weight:700;color:var(--text);">${escHtml(s.name)}</div>
               <div><span style="background:rgba(244,63,94,0.14);border:1px solid rgba(244,63,94,0.3);color:#fb7185;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📤 PAYABLE · देना</span></div>
@@ -1798,7 +2084,7 @@
       try {
         const r = await fetch(`${API}/inventory/payments/daily-summary?days=${days}`, { headers: H() });
         if (!r.ok) {
-          if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--error);">Failed to load daily payment summary.</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load daily payment summary.</td></tr>';
           return;
         }
         const json = await r.json();
@@ -1822,18 +2108,19 @@
         }
 
         if (!daily.length) {
-          if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No payment activity in selected timeframe.</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No payment activity in selected timeframe.</td></tr>';
           return;
         }
 
         if (tbody) {
-          tbody.innerHTML = daily.map(d => {
+          tbody.innerHTML = daily.map((d, idx) => {
             const dateObj = new Date(d.date + 'T00:00:00');
             const dayName = dateObj.toLocaleDateString('en-IN', { weekday: 'short' });
             const modesArr = Object.entries(d.modes || {}).map(([m, amt]) => `<span class="mode-badge mode-${m}">${m}: ${inr(amt)}</span>`).join(' ');
 
             return `
               <tr>
+                <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
                 <td style="font-family:monospace;font-weight:700;color:var(--text);">${fmtDate(dateObj)}</td>
                 <td style="color:var(--text-muted);font-weight:600;">${dayName}</td>
                 <td style="text-align:right;font-weight:700;color:#4ade80;">${d.totalInflow ? inr(d.totalInflow) : '—'}</td>
@@ -1850,7 +2137,43 @@
       }
     }
 
-    // ─── Payment Vouchers History ──────────────────────────────────────────────
+    // ─── Payment Vouchers History & All Bills System ──────────────────────────
+    let activeVoucherTypeFilter = '';
+
+    function setVoucherTypeFilter(type, btn) {
+      activeVoucherTypeFilter = type;
+      const sel = document.getElementById('voucher-txn-type');
+      if (sel) sel.value = type;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      loadVouchers();
+    }
+
+    function onVoucherFilterSelectChange() {
+      const sel = document.getElementById('voucher-txn-type');
+      activeVoucherTypeFilter = sel ? sel.value : '';
+      const pillMap = {
+        '': 'vpill-all',
+        'INVOICE': 'vpill-invoices',
+        'BILL': 'vpill-bills',
+        'PAYMENT_IN': 'vpill-receipts',
+        'PAYMENT_OUT': 'vpill-payments',
+        'OUTSIDE': 'vpill-outside',
+        'OUTSIDE_INFLOW': 'vpill-outside',
+        'OUTSIDE_OUTFLOW': 'vpill-outside',
+        'OPENING_BAL': 'vpill-opening',
+      };
+      const pillId = pillMap[activeVoucherTypeFilter] || 'vpill-all';
+      const pill = document.getElementById(pillId);
+      if (pill && pill.parentElement) {
+        pill.parentElement.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        pill.classList.add('active');
+      }
+      loadVouchers();
+    }
+
     async function loadVouchers() {
       const tbody = document.getElementById('vouchers-tbody');
       if (!tbody) return;
@@ -1863,8 +2186,10 @@
         const partyType = partyTypeEl ? partyTypeEl.value : '';
         const paymentMode = paymentModeEl ? paymentModeEl.value : '';
         const search = searchEl ? searchEl.value : '';
+        const txnType = activeVoucherTypeFilter || '';
 
         const params = new URLSearchParams({
+          ...(txnType && { txnType }),
           ...(partyType && { partyType }),
           ...(paymentMode && { paymentMode }),
           ...(search && { search }),
@@ -1872,32 +2197,75 @@
         });
 
         const r = await fetch(`${API}/inventory/payments?${params}`, { headers: H() });
-        if (!r.ok) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--error);">Failed to load vouchers.</td></tr>'; return; }
+        if (!r.ok) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">Failed to load vouchers.</td></tr>'; return; }
         const json = await r.json();
         const payments = json.data?.payments || [];
+        const counts = json.data?.counts || {};
+
+        // Update counts badges
+        const countAll = document.getElementById('count-voucher-all');
+        const countInv = document.getElementById('count-voucher-invoices');
+        const countBills = document.getElementById('count-voucher-bills');
+        const countRec = document.getElementById('count-voucher-receipts');
+        const countPay = document.getElementById('count-voucher-payments');
+        const countOut = document.getElementById('count-voucher-outside');
+        const countOp = document.getElementById('count-voucher-opening');
+
+        if (countAll) countAll.textContent = counts.total ?? payments.length;
+        if (countInv) countInv.textContent = counts.invoices ?? 0;
+        if (countBills) countBills.textContent = counts.bills ?? 0;
+        if (countRec) countRec.textContent = counts.receipts ?? 0;
+        if (countPay) countPay.textContent = counts.payments ?? 0;
+        if (countOut) countOut.textContent = counts.outside ?? 0;
+        if (countOp) countOp.textContent = counts.opening ?? 0;
 
         if (!payments.length) {
-          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">No payment vouchers found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">No payment vouchers or bills found matching the selected filter.</td></tr>';
           return;
         }
 
-        tbody.innerHTML = payments.map(p => {
+        tbody.innerHTML = payments.map((p, idx) => {
+          const isInvoiceOrBill = p.txnType === 'INVOICE' || p.txnType === 'BILL';
+          const isOutside = p.txnType === 'OUTSIDE_INFLOW' || p.txnType === 'OUTSIDE_OUTFLOW';
           const settledTags = (p.allocatedBills && p.allocatedBills.length)
             ? p.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ')
-            : '<span style="color:var(--text-muted);font-size:0.75rem;">On-Account / Direct</span>';
+            : isInvoiceOrBill
+              ? `<span style="font-size:0.75rem;font-weight:700;color:${(p.settledAmount || 0) >= p.amount ? '#4ade80' : '#fbbf24'};">${(p.settledAmount || 0) >= p.amount ? '✓ Fully Settled' : 'Pending: ' + inr(p.amount - (p.settledAmount || 0))}</span>`
+              : isOutside
+                ? `<span style="font-size:0.72rem;padding:2px 6px;border-radius:4px;background:rgba(236,72,153,0.12);color:#f472b6;font-weight:600;">⚡ Outside Cashflow</span>`
+                : '<span style="color:var(--text-muted);font-size:0.75rem;">On-Account / Direct</span>';
+
+          const partyName = p.partyId?.name || p.partyName || (p.partyType === 'CUSTOMER' ? 'Retail / Cash Customer' : (p.partyType === 'SUPPLIER' ? 'Trade Supplier' : 'External Entity / Partner'));
 
           return `
             <tr>
+              <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
               <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(p.paymentDate)}</td>
               <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${p.voucherNo}', event)" title="Click to view voucher / invoice details">🔍 ${escHtml(p.voucherNo)}</td>
               <td>
-                <div style="font-weight:600;">${escHtml(p.partyId?.name || '—')}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(p.partyType)}</div>
+                <div style="font-weight:600;color:var(--text);">${escHtml(partyName)}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(p.partyType || (p.isOutsideCashflow ? 'OUTSIDE FLOW' : '—'))}</div>
               </td>
-              <td><span class="status-badge ${p.txnType === 'PAYMENT_IN' ? 'status-CLEARED' : 'status-OVERDUE'}">${p.txnType === 'PAYMENT_IN' ? '➕ RECEIPT' : '➖ PAYMENT'}</span></td>
+              <td>
+                ${
+                  p.txnType === 'INVOICE'
+                    ? '<span class="status-badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.35);font-weight:700;">📄 INVOICE</span>'
+                    : p.txnType === 'BILL'
+                    ? '<span class="status-badge" style="background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);font-weight:700;">🧾 BILL</span>'
+                    : p.txnType === 'PAYMENT_IN'
+                    ? '<span class="status-badge status-CLEARED" style="font-weight:700;">➕ RECEIPT</span>'
+                    : p.txnType === 'OUTSIDE_INFLOW'
+                    ? '<span class="status-badge" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);font-weight:700;">⚡ OUTSIDE IN (+)</span>'
+                    : p.txnType === 'OUTSIDE_OUTFLOW'
+                    ? '<span class="status-badge" style="background:rgba(244,114,182,0.15);color:#f472b6;border:1px solid rgba(244,114,182,0.35);font-weight:700;">⚡ OUTSIDE OUT (-)</span>'
+                    : p.txnType === 'OPENING_BAL'
+                    ? '<span class="status-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.35);font-weight:700;">⚖️ OPENING</span>'
+                    : '<span class="status-badge status-OVERDUE" style="font-weight:700;">➖ PAYMENT</span>'
+                }
+              </td>
               <td><span class="mode-badge mode-${p.paymentMode}">${escHtml(p.paymentMode)}</span></td>
               <td style="font-family:monospace;font-size:0.78rem;">${escHtml(p.referenceNo || '—')}</td>
-              <td style="text-align:right;font-weight:800;font-size:0.9rem;color:${p.txnType === 'PAYMENT_IN' ? '#4ade80' : '#f87171'};">${inr(p.amount)}</td>
+              <td style="text-align:right;font-weight:800;font-size:0.9rem;color:${(p.txnType === 'PAYMENT_IN' || p.txnType === 'INVOICE' || p.txnType === 'OUTSIDE_INFLOW') ? '#34d399' : '#f87171'};">${inr(p.amount)}</td>
               <td>${settledTags}</td>
               <td style="font-size:0.78rem;color:var(--text-muted);max-width:200px;">${escHtml(p.notes || '—')}</td>
               <td>
@@ -2063,9 +2431,10 @@
       const tbody = document.getElementById('pm-bills-tbody');
       if (!tbody) return;
 
-      tbody.innerHTML = cachedPendingBills.map(b => {
+      tbody.innerHTML = cachedPendingBills.map((b, idx) => {
         return `
           <tr id="bill-row-${b._id}">
+            <td style="text-align:center;color:var(--text-muted);font-weight:600;font-size:0.75rem;">${idx + 1}</td>
             <td>
               <span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view invoice details">📑 ${escHtml(b.voucherNo)}</span>
             </td>
@@ -2410,6 +2779,7 @@
             <table>
               <thead>
                 <tr>
+                  <th style="width:45px;text-align:center;">#</th>
                   <th>Date</th>
                   <th>Voucher #</th>
                   <th>Particulars & Knockoff Details</th>
@@ -2420,13 +2790,14 @@
                 </tr>
               </thead>
               <tbody>
-                ${(statement && statement.length) ? statement.map(row => {
+                ${(statement && statement.length) ? statement.map((row, idx) => {
           const billLinks = (row.allocatedBills && row.allocatedBills.length)
             ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
             : '';
 
           return `
                     <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
                       <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
                       <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)" title="Click to view full invoice / voucher details">🔍 ${escHtml(row.voucherNo)}</td>
                       <td>
@@ -2439,7 +2810,7 @@
                       <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
                     </tr>
                   `;
-        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
+        }).join('') : '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No transaction history recorded for this party.</td></tr>'}
               </tbody>
             </table>
           </div>
@@ -2512,6 +2883,7 @@
               <table style="font-size:0.8rem;">
                 <thead>
                   <tr>
+                    <th style="width:36px;text-align:center;">#</th>
                     <th>Item Description</th>
                     <th>SKU / HSN</th>
                     <th>Godown</th>
@@ -2523,6 +2895,7 @@
                 </thead>
                 <tbody>
                   <tr>
+                    <td style="text-align:center;color:var(--text-muted);font-weight:600;">1</td>
                     <td>
                       <div style="font-weight:700;color:var(--text);">${escHtml(product.name)}</div>
                       ${ledger.batchNo ? `<div style="font-size:0.7rem;color:var(--text-muted);">Batch: ${escHtml(ledger.batchNo)} ${ledger.expiryDate ? '· Exp: ' + fmtDate(ledger.expiryDate) : ''}</div>` : ''}
@@ -2549,6 +2922,7 @@
               <table style="font-size:0.78rem;background:transparent;">
                 <thead>
                   <tr>
+                    <th style="width:36px;text-align:center;">#</th>
                     <th>Date</th>
                     <th>Voucher #</th>
                     <th>Mode & Reference</th>
@@ -2557,8 +2931,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${settlements.map(s => `
+                  ${settlements.map((s, idx) => `
                     <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:600;">${idx + 1}</td>
                       <td style="font-family:monospace;">${fmtDate(s.date)}</td>
                       <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${s.voucherNo}', event)">${escHtml(s.voucherNo)}</td>
                       <td>${escHtml(s.paymentMode || '—')} ${s.referenceNo ? `· Ref: <code>${escHtml(s.referenceNo)}</code>` : ''}</td>
@@ -2577,14 +2952,16 @@
               <table style="font-size:0.78rem;background:transparent;">
                 <thead>
                   <tr>
+                    <th style="width:36px;text-align:center;">#</th>
                     <th>Bill / Invoice #</th>
                     <th style="text-align:right;">Amount Allocated (₹)</th>
                     <th style="text-align:right;">Remaining on Bill (₹)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${txn.allocatedBills.map(b => `
+                  ${txn.allocatedBills.map((b, idx) => `
                     <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:600;">${idx + 1}</td>
                       <td style="font-weight:700;font-family:monospace;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)">${escHtml(b.voucherNo)}</td>
                       <td style="text-align:right;font-weight:700;color:#4ade80;">${inr(b.allocatedAmount)}</td>
                       <td style="text-align:right;font-weight:700;color:${b.remainingBillBalance === 0 ? '#4ade80' : '#f87171'};">${inr(b.remainingBillBalance)}</td>
@@ -2792,10 +3169,289 @@
       }
     });
 
+    // ─── Outside Cashflow & Balance Adjustment Modal Handlers ──────────────────
+    let ocfDirection = 'ADD';
+
+    function setOcfDirection(dir) {
+      ocfDirection = dir;
+      const btnAdd = document.getElementById('ocf-dir-add');
+      const btnSub = document.getElementById('ocf-dir-sub');
+      const catSelect = document.getElementById('ocf-category');
+      const submitBtn = document.getElementById('ocf-submit-btn');
+
+      if (dir === 'ADD') {
+        if (btnAdd) {
+          btnAdd.classList.add('active');
+          btnAdd.style.borderColor = '#4ade80';
+          btnAdd.style.background = 'rgba(74,222,128,0.15)';
+          btnAdd.style.color = '#4ade80';
+        }
+        if (btnSub) {
+          btnSub.classList.remove('active');
+          btnSub.style.borderColor = 'rgba(255,255,255,0.1)';
+          btnSub.style.background = 'rgba(255,255,255,0.03)';
+          btnSub.style.color = 'var(--text-muted)';
+        }
+        if (catSelect) catSelect.value = 'CAPITAL_INJECTION';
+        if (submitBtn) {
+          submitBtn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+          submitBtn.textContent = '✓ Record Outside Inflow (+)';
+        }
+      } else {
+        if (btnSub) {
+          btnSub.classList.add('active');
+          btnSub.style.borderColor = '#f87171';
+          btnSub.style.background = 'rgba(248,113,113,0.15)';
+          btnSub.style.color = '#f87171';
+        }
+        if (btnAdd) {
+          btnAdd.classList.remove('active');
+          btnAdd.style.borderColor = 'rgba(255,255,255,0.1)';
+          btnAdd.style.background = 'rgba(255,255,255,0.03)';
+          btnAdd.style.color = 'var(--text-muted)';
+        }
+        if (catSelect) catSelect.value = 'OWNER_DRAWINGS';
+        if (submitBtn) {
+          submitBtn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+          submitBtn.textContent = '✓ Record Outside Outflow (-)';
+        }
+      }
+      updateOcfPreview();
+    }
+
+    function onOcfModeChange() {
+      updateOcfPreview();
+    }
+
+    function updateOcfPreview() {
+      const amtEl = document.getElementById('ocf-amount');
+      const modeEl = document.getElementById('ocf-mode');
+      const prevBox = document.getElementById('ocf-preview-box');
+      const prevText = document.getElementById('ocf-preview-text');
+      if (!prevText || !amtEl || !modeEl) return;
+
+      const amt = Number(amtEl.value) || 0;
+      const mode = modeEl.value;
+      const isCash = mode === 'CASH';
+      const targetName = isCash ? '💵 Cash in Hand' : `🏛️ Bank Account (${mode})`;
+
+      if (amt <= 0) {
+        prevText.textContent = `➕ Enter amount to see balance impact`;
+        prevText.style.color = 'var(--text-muted)';
+        if (prevBox) prevBox.style.background = 'rgba(255,255,255,0.02)';
+        return;
+      }
+
+      if (ocfDirection === 'ADD') {
+        prevText.textContent = `➕ +₹${amt.toLocaleString('en-IN')} will be ADDED to ${targetName} as Outside Inflow.`;
+        prevText.style.color = '#4ade80';
+        if (prevBox) {
+          prevBox.style.background = 'rgba(74,222,128,0.08)';
+          prevBox.style.borderColor = 'rgba(74,222,128,0.25)';
+        }
+      } else {
+        prevText.textContent = `➖ -₹${amt.toLocaleString('en-IN')} will be DEDUCTED from ${targetName} as Outside Outflow.`;
+        prevText.style.color = '#f87171';
+        if (prevBox) {
+          prevBox.style.background = 'rgba(239,68,68,0.08)';
+          prevBox.style.borderColor = 'rgba(239,68,68,0.25)';
+        }
+      }
+    }
+
+    function openOutsideCashflowModal() {
+      const modal = document.getElementById('outside-cashflow-modal');
+      if (modal) {
+        modal.classList.add('show');
+        const dateInput = document.getElementById('ocf-date');
+        if (dateInput && !dateInput.value) {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        setOcfDirection('ADD');
+      }
+    }
+
+    function closeOutsideCashflowModal() {
+      const modal = document.getElementById('outside-cashflow-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function submitOutsideCashflow() {
+      const amtEl = document.getElementById('ocf-amount');
+      const modeEl = document.getElementById('ocf-mode');
+      const catEl = document.getElementById('ocf-category');
+      const dateEl = document.getElementById('ocf-date');
+      const partyEl = document.getElementById('ocf-party-name');
+      const refEl = document.getElementById('ocf-reference');
+      const notesEl = document.getElementById('ocf-notes');
+      const submitBtn = document.getElementById('ocf-submit-btn');
+
+      const amount = Number(amtEl ? amtEl.value : 0);
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid amount greater than 0.');
+        if (amtEl) amtEl.focus();
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const payload = {
+          direction: ocfDirection,
+          amount,
+          paymentMode: modeEl ? modeEl.value : 'CASH',
+          category: catEl ? catEl.value : 'OTHER_INFLOW',
+          paymentDate: dateEl && dateEl.value ? dateEl.value : new Date().toISOString(),
+          partyName: partyEl ? partyEl.value : '',
+          referenceNo: refEl ? refEl.value : '',
+          notes: notesEl ? notesEl.value : '',
+        };
+
+        const res = await fetch(`${API}/inventory/payments/outside-cashflow`, {
+          method: 'POST',
+          headers: H(),
+          body: JSON.stringify(payload),
+        });
+
+        const json = await res.json();
+        if (!res.ok) {
+          alert(json.message || 'Failed to record outside cash flow.');
+          return;
+        }
+
+        alert(json.message || 'Outside cashflow recorded successfully!');
+        closeOutsideCashflowModal();
+
+        // Reset inputs
+        if (amtEl) amtEl.value = '';
+        if (partyEl) partyEl.value = '';
+        if (refEl) refEl.value = '';
+        if (notesEl) notesEl.value = '';
+
+        // Reload vouchers & KPIs
+        await loadKpis();
+        await loadVouchers();
+        await loadDailySummary();
+      } catch (err) {
+        console.error('Error recording outside cashflow:', err);
+        alert('An unexpected error occurred while saving.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          setOcfDirection(ocfDirection);
+        }
+      }
+    }
+
+    // ─── Initial Working Capital Modal Handlers ────────────────────────────────
+    function openWorkingCapitalModal() {
+      const modal = document.getElementById('working-capital-modal');
+      const inputEl = document.getElementById('wc-amount-input');
+      const curEl = document.getElementById('wc-current-val');
+
+      if (curEl) curEl.textContent = inr(cachedInitialWc);
+      if (inputEl) inputEl.value = cachedInitialWc || '';
+      updateWcPreview();
+
+      if (modal) modal.classList.add('show');
+    }
+
+    function closeWorkingCapitalModal() {
+      const modal = document.getElementById('working-capital-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    function onWcInjectToggle() {
+      const chk = document.getElementById('wc-also-inject');
+      const modeRow = document.getElementById('wc-mode-row');
+      if (modeRow) modeRow.style.display = (chk && chk.checked) ? 'block' : 'none';
+    }
+
+    function updateWcPreview() {
+      const inputEl = document.getElementById('wc-amount-input');
+      const formText = document.getElementById('wc-formula-text');
+      if (!formText) return;
+
+      const baseAmount = Number(inputEl ? inputEl.value : 0) || 0;
+      const netWorking = baseAmount + cachedTotalRec - cachedTotalPay;
+
+      formText.innerHTML = `Initial Capital (<strong>${inr(baseAmount)}</strong>) + Receivables (<strong>${inr(cachedTotalRec)}</strong>) − Payables (<strong>${inr(cachedTotalPay)}</strong>) = <strong style="color:${netWorking >= 0 ? '#38bdf8' : '#f87171'};font-size:0.95rem;">${netWorking >= 0 ? '+' : ''}${inr(netWorking)}</strong>`;
+    }
+
+    async function submitInitialWorkingCapital() {
+      const inputEl = document.getElementById('wc-amount-input');
+      const chk = document.getElementById('wc-also-inject');
+      const modeEl = document.getElementById('wc-target-mode');
+      const submitBtn = document.getElementById('wc-submit-btn');
+
+      const amount = Number(inputEl ? inputEl.value : 0);
+      if (isNaN(amount) || amount < 0) {
+        alert('Please enter a valid non-negative amount.');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const payload = {
+          amount,
+          alsoInjectToAccounts: chk ? chk.checked : false,
+          accountMode: modeEl ? modeEl.value : 'CASH',
+        };
+
+        const res = await fetch(`${API}/inventory/payments/initial-working-capital`, {
+          method: 'PUT',
+          headers: H(),
+          body: JSON.stringify(payload),
+        });
+
+        const json = await res.json();
+        if (!res.ok) {
+          alert(json.message || 'Failed to update Initial Working Capital.');
+          return;
+        }
+
+        alert(json.message || 'Initial Working Capital updated successfully!');
+        closeWorkingCapitalModal();
+
+        await loadKpis();
+        if (chk && chk.checked) {
+          await loadVouchers();
+          await loadDailySummary();
+        }
+      } catch (err) {
+        console.error('Error saving Initial Working Capital:', err);
+        alert('An unexpected error occurred while saving.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '✓ Save Working Capital';
+        }
+      }
+    }
+
     // Explicitly bind all methods to window scope for inline onclick handlers
     window.openPaymentModal = openPaymentModal;
     window.closePaymentModal = closePaymentModal;
     window.openRecordPaymentForParty = openRecordPaymentForParty;
+    window.openOutsideCashflowModal = openOutsideCashflowModal;
+    window.closeOutsideCashflowModal = closeOutsideCashflowModal;
+    window.openWorkingCapitalModal = openWorkingCapitalModal;
+    window.closeWorkingCapitalModal = closeWorkingCapitalModal;
+    window.onWcInjectToggle = onWcInjectToggle;
+    window.updateWcPreview = updateWcPreview;
+    window.submitInitialWorkingCapital = submitInitialWorkingCapital;
+    window.setOcfDirection = setOcfDirection;
+    window.onOcfModeChange = onOcfModeChange;
+    window.updateOcfPreview = updateOcfPreview;
+    window.submitOutsideCashflow = submitOutsideCashflow;
     window.openStatement = openStatement;
     window.closeStatementModal = closeStatementModal;
     window.openWhatsAppModal = openWhatsAppModal;
@@ -2804,6 +3460,9 @@
     window.switchTab = switchTab;
     window.setCustFilter = setCustFilter;
     window.setSuppFilter = setSuppFilter;
+    window.setVoucherTypeFilter = setVoucherTypeFilter;
+    window.onVoucherFilterSelectChange = onVoucherFilterSelectChange;
+    window.loadVouchers = loadVouchers;
     window.loadDailySummary = loadDailySummary;
     window.fillFullOutstanding = fillFullOutstanding;
     window.onPartyTypeSelect = onPartyTypeSelect;
@@ -2820,7 +3479,16 @@
     loadKpis();
     const urlParams = new URLSearchParams(window.location.search);
     const initTab = urlParams.get('tab') || 'customers';
+    const initType = urlParams.get('type') || '';
+    if (initType) {
+      activeVoucherTypeFilter = initType;
+    }
     switchTab(initTab);
+    if (initTab === 'vouchers' && initType) {
+      const sel = document.getElementById('voucher-txn-type');
+      if (sel) sel.value = initType;
+      onVoucherFilterSelectChange();
+    }
   </script>
 </body>
 

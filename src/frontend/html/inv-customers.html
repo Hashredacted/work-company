@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suppliers — WorkSpace Inventory</title>
+  <title>Customers — WorkSpace Inventory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -119,8 +119,8 @@
     .gstin-tag {
       font-family: monospace;
       font-size: 0.78rem;
-      background: rgba(251, 191, 36, 0.08);
-      color: #fbbf24;
+      background: rgba(74, 222, 128, 0.08);
+      color: #4ade80;
       padding: 2px 7px;
       border-radius: 5px;
     }
@@ -263,10 +263,10 @@
             <a href="inv-products.html" class="nav-subitem">
               <span class="nav-bullet">📦</span> Products
             </a>
-            <a href="inv-customers.html" class="nav-subitem">
+            <a href="inv-customers.html" class="nav-subitem active">
               <span class="nav-bullet">👥</span> Customers
             </a>
-            <a href="inv-suppliers.html" class="nav-subitem active">
+            <a href="inv-suppliers.html" class="nav-subitem">
               <span class="nav-bullet">🏭</span> Suppliers
             </a>
           </div>
@@ -335,39 +335,39 @@
         <div style="display:flex;align-items:center;gap:12px;">
           <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
           <div>
-            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">🏭 Supplier
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">👥 Customer
               Master</h1>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Manage vendors, distributor profiles,
-              GSTIN details, and credit terms</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Manage buyers, client billing
+              profiles, credit terms, and GST details</div>
           </div>
         </div>
         <div>
           <button onclick="openModal()"
             style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
-            Add Supplier</button>
+            Add Customer</button>
         </div>
       </div>
 
       <div class="toolbar">
         <input id="search" class="search-box" type="text" placeholder="🔍 Search name or GSTIN…" oninput="debounce()" />
       </div>
-
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Supplier</th>
+              <th style="width:45px;text-align:center;">#</th>
+              <th>Customer</th>
               <th>GSTIN</th>
               <th>State</th>
               <th>Contact</th>
               <th>Phone</th>
-              <th>Payment Terms</th>
+              <th>Credit Limit</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="sup-tbody">
+          <tbody id="cus-tbody">
             <tr>
-              <td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+              <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
             </tr>
           </tbody>
         </table>
@@ -375,24 +375,22 @@
     </main>
   </div>
 
-  <!-- Modal -->
-  <div class="modal-overlay" id="sup-modal">
+  <div class="modal-overlay" id="cus-modal">
     <div class="modal">
-      <div class="modal-title" id="modal-title">Add Supplier</div>
-      <form id="sup-form" onsubmit="saveSupplier(event)">
+      <div class="modal-title" id="modal-title">Add Customer</div>
+      <form id="cus-form" onsubmit="saveCustomer(event)">
         <input type="hidden" id="edit-id" />
         <div class="form-grid">
-          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Business Name *</label><input
-              id="f-name" class="form-input" type="text" required /></div>
-          <div class="form-group"><label class="form-label">GSTIN (15 digits)</label><input id="f-gstin"
-              class="form-input" type="text" maxlength="15" placeholder="27AABCU9603R1ZM"
-              style="font-family:monospace;text-transform:uppercase;" oninput="onSupplierGstinInput()" />
-            <div id="sup-gstin-hint" style="display:none;font-size:0.72rem;color:#38bdf8;margin-top:4px;"></div>
+          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Business / Customer Name
+              *</label><input id="f-name" class="form-input" type="text" required /></div>
+          <div class="form-group"><label class="form-label">GSTIN</label><input id="f-gstin" class="form-input"
+              type="text" maxlength="15" placeholder="27AABCU9603R1ZM"
+              style="font-family:monospace;text-transform:uppercase;" oninput="onCustomerGstinInput()" />
+            <div id="cus-gstin-hint" style="display:none;font-size:0.72rem;color:#38bdf8;margin-top:4px;"></div>
           </div>
-          <div class="form-group"><label class="form-label">PAN (10 chars)</label><input id="f-pan" class="form-input"
-              type="text" maxlength="10" placeholder="AABCU9603R"
-              style="font-family:monospace;text-transform:uppercase;" oninput="this.value = this.value.toUpperCase()" />
-          </div>
+          <div class="form-group"><label class="form-label">PAN</label><input id="f-pan" class="form-input" type="text"
+              maxlength="10" placeholder="AABCU9603R" style="font-family:monospace;text-transform:uppercase;"
+              oninput="this.value = this.value.toUpperCase()" /></div>
           <div class="form-group"><label class="form-label">Contact Person</label><input id="f-contact"
               class="form-input" type="text" /></div>
           <div class="form-group"><label class="form-label">Phone</label><input id="f-phone" class="form-input"
@@ -400,41 +398,36 @@
           <div class="form-group"><label class="form-label">Email</label><input id="f-email" class="form-input"
               type="email" /></div>
           <div class="form-group"><label class="form-label">State</label><input id="f-state" class="form-input"
-              type="text" placeholder="Maharashtra" oninput="onSupplierStateInput()" /></div>
+              type="text" placeholder="Maharashtra" oninput="onCustomerStateInput()" /></div>
           <div class="form-group"><label class="form-label">GST State Code</label><input id="f-state-code"
-              class="form-input" type="text" placeholder="27" maxlength="2" oninput="onSupplierStateCodeInput()" />
+              class="form-input" type="text" maxlength="2" placeholder="27" oninput="onCustomerStateCodeInput()" />
           </div>
           <div class="form-group"><label class="form-label">City</label><input id="f-city" class="form-input"
               type="text" /></div>
           <div class="form-group"><label class="form-label">Pincode</label><input id="f-pin" class="form-input"
               type="text" maxlength="6" /></div>
-          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Address</label><input id="f-addr"
-              class="form-input" type="text" /></div>
+          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Billing Address</label><input
+              id="f-billing-addr" class="form-input" type="text" oninput="onCustomerBillingAddrInput()" /></div>
+          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Shipping Address</label><input
+              id="f-shipping-addr" class="form-input" type="text" placeholder="Leave blank if same as billing" /></div>
         </div>
-        <div class="section-divider">💰 Financial Details</div>
+        <div class="section-divider">💰 Credit Terms</div>
         <div class="form-grid">
           <div class="form-group"><label class="form-label">Payment Terms (days)</label><input id="f-terms"
-              class="form-input" type="number" min="0" value="30" /></div>
+              class="form-input" type="number" min="0" value="0" /></div>
           <div class="form-group"><label class="form-label">Credit Limit (₹)</label><input id="f-credit"
               class="form-input" type="number" min="0" value="0" /></div>
-          <div class="form-group"><label class="form-label">Bank Name</label><input id="f-bank" class="form-input"
-              type="text" /></div>
-          <div class="form-group"><label class="form-label">Account No</label><input id="f-accno" class="form-input"
-              type="text" /></div>
-          <div class="form-group"><label class="form-label">IFSC Code</label><input id="f-ifsc" class="form-input"
-              type="text" style="text-transform:uppercase;font-family:monospace;" /></div>
         </div>
-        <div id="sup-error" class="form-error" style="display:none;margin-top:12px;"></div>
+        <div id="cus-error" class="form-error" style="display:none;margin-top:12px;"></div>
         <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
           <button type="button" onclick="closeModal()"
             style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:9px 20px;border-radius:8px;cursor:pointer;">Cancel</button>
           <button type="submit" id="save-btn" class="btn-primary" style="width:auto;padding:9px 24px;">Save
-            Supplier</button>
+            Customer</button>
         </div>
       </form>
     </div>
   </div>
-
   <script>
     'use strict';
     const API = 'http://localhost:5000/api';
@@ -465,9 +458,9 @@
       '38': 'Ladakh', '97': 'Other Territory'
     };
 
-    function onSupplierGstinInput() {
+    function onCustomerGstinInput() {
       const gstinEl = document.getElementById('f-gstin');
-      const hintEl = document.getElementById('sup-gstin-hint');
+      const hintEl = document.getElementById('cus-gstin-hint');
       let val = (gstinEl.value || '').toUpperCase().trim();
       gstinEl.value = val;
 
@@ -505,7 +498,7 @@
       }
     }
 
-    function onSupplierStateCodeInput() {
+    function onCustomerStateCodeInput() {
       const codeEl = document.getElementById('f-state-code');
       const code = (codeEl.value || '').trim();
       if (code.length === 2 && GST_STATE_CODES[code]) {
@@ -514,7 +507,7 @@
       }
     }
 
-    function onSupplierStateInput() {
+    function onCustomerStateInput() {
       const stateVal = (document.getElementById('f-state')?.value || '').toLowerCase().trim();
       if (!stateVal) return;
       for (const [code, name] of Object.entries(GST_STATE_CODES)) {
@@ -528,84 +521,112 @@
       }
     }
 
+    function onCustomerBillingAddrInput() {
+      const bill = document.getElementById('f-billing-addr')?.value || '';
+      const ship = document.getElementById('f-shipping-addr');
+      if (ship && !ship.value) {
+        ship.placeholder = `Same as billing (${bill.substring(0, 25)}${bill.length > 25 ? '…' : ''})`;
+      }
+    }
+
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
     const mainNav = document.getElementById('main-nav-link');
     if (mainNav) {
       mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
     }
 
-    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
+    const H = () => {
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || '';
+      return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        ...(selectedTenant ? { 'X-Tenant-Id': selectedTenant } : {}),
+      };
+    };
+    function inr(n) {
+      const num = Number(n || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
+    }
     document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
-
     let debounceTimer;
     function debounce() { clearTimeout(debounceTimer); debounceTimer = setTimeout(load, 300); }
 
-    let rawSuppliersList = [];
+    let rawCustomersList = [];
     async function load() {
-      const tbody = document.getElementById('sup-tbody');
+      const tbody = document.getElementById('cus-tbody');
       try {
         const search = document.getElementById('search').value;
         const params = new URLSearchParams({ ...(search && { search }) });
-        const r = await fetch(`${API}/inventory/suppliers?${params}`, { headers: H() });
+        const r = await fetch(`${API}/inventory/customers?${params}`, { headers: H() });
         if (r.status === 401) {
           localStorage.clear();
           window.location.href = 'index.html';
           return;
         }
         if (r.status === 403) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view suppliers.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view customers.</td></tr>`;
           return;
         }
         const { data } = await r.json();
-        rawSuppliersList = data?.items || [];
-        if (!rawSuppliersList.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found. Click "+ Add Supplier" to add one.</td></tr>`; return; }
-        tbody.innerHTML = rawSuppliersList.map(s => `
+        rawCustomersList = data?.items || [];
+        if (!rawCustomersList.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No customers found. Click "+ Add Customer" to add one.</td></tr>`; return; }
+        tbody.innerHTML = rawCustomersList.map((c, idx) => `
           <tr>
-            <td><div style="font-weight:600;color:var(--text);">${s.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${s.city || ''}${s.city && s.email ? ' · ' : ''}${s.email || ''}</div></td>
-            <td>${s.gstin ? `<span class="gstin-tag">${s.gstin}</span>` : '—'}</td>
-            <td>${s.state ? `<span class="state-tag">${s.state} (${s.stateCode || '??'})</span>` : '—'}</td>
-            <td>${s.contactName || '—'}</td>
-            <td>${s.phone || '—'}</td>
-            <td>${s.paymentTerms ? s.paymentTerms + ' days' : 'Cash'}</td>
-            <td><button onclick="editSupplier('${s._id}')" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button></td>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
+            <td><div style="font-weight:600;color:var(--text);">${c.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${c.city || ''}${c.city && c.email ? ' · ' : ''}${c.email || ''}</div></td>
+            <td>${c.gstin ? `<span class="gstin-tag">${c.gstin}</span>` : '—'}</td>
+            <td>${c.state ? `<span class="state-tag">${c.state} (${c.stateCode || '??'})</span>` : '—'}</td>
+            <td>${c.contactName || '—'}</td>
+            <td>${c.phone || '—'}</td>
+            <td>${c.creditLimit ? inr(c.creditLimit) : 'COD'}</td>
+            <td><button onclick="editCustomer('${c._id}')" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button></td>
           </tr>`).join('');
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--error);">Failed to load suppliers.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load customers.</td></tr>`;
       }
     }
 
     function openModal(d = null, e = null) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-      document.getElementById('modal-title').textContent = d ? 'Edit Supplier' : 'Add Supplier';
+      document.getElementById('modal-title').textContent = d ? 'Edit Customer' : 'Add Customer';
       document.getElementById('edit-id').value = d?._id || '';
-      ['name', 'gstin', 'pan', 'contact', 'phone', 'email', 'state', 'state-code', 'city', 'pin', 'addr', 'terms', 'credit', 'bank', 'accno', 'ifsc'].forEach(id => {
-        const el = document.getElementById(`f-${id}`);
-        if (!el) return;
-        const key = { 'name': 'name', 'gstin': 'gstin', 'pan': 'pan', 'contact': 'contactName', 'phone': 'phone', 'email': 'email', 'state': 'state', 'state-code': 'stateCode', 'city': 'city', 'pin': 'pincode', 'addr': 'address', 'terms': 'paymentTerms', 'credit': 'creditLimit', 'bank': 'bankDetails.bankName', 'accno': 'bankDetails.accountNo', 'ifsc': 'bankDetails.ifsc' }[id];
-        if (key.includes('.')) { const [a, b] = key.split('.'); el.value = d?.[a]?.[b] || ''; } else el.value = d?.[key] || '';
-      });
-      document.getElementById('sup-error').style.display = 'none';
-      document.getElementById('sup-modal').classList.add('show');
+      document.getElementById('f-name').value = d?.name || '';
+      document.getElementById('f-gstin').value = d?.gstin || '';
+      document.getElementById('f-pan').value = d?.pan || '';
+      document.getElementById('f-contact').value = d?.contactName || '';
+      document.getElementById('f-phone').value = d?.phone || '';
+      document.getElementById('f-email').value = d?.email || '';
+      document.getElementById('f-state').value = d?.state || '';
+      document.getElementById('f-state-code').value = d?.stateCode || '';
+      document.getElementById('f-city').value = d?.city || '';
+      document.getElementById('f-pin').value = d?.pincode || '';
+      document.getElementById('f-billing-addr').value = d?.billingAddress || '';
+      document.getElementById('f-shipping-addr').value = d?.shippingAddress || '';
+      document.getElementById('f-terms').value = d?.paymentTerms || 0;
+      document.getElementById('f-credit').value = d?.creditLimit || 0;
+      document.getElementById('cus-error').style.display = 'none';
+      document.getElementById('cus-modal').classList.add('show');
     }
-    function editSupplier(id, e = null) {
+    function editCustomer(id, e = null) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-      const s = rawSuppliersList.find(x => x._id === id);
-      openModal(s);
+      const c = rawCustomersList.find(x => x._id === id);
+      openModal(c);
     }
-    function closeModal() { document.getElementById('sup-modal').classList.remove('show'); }
+    function closeModal() { document.getElementById('cus-modal').classList.remove('show'); }
 
     // Safe backdrop click handling
-    const supModalOverlay = document.getElementById('sup-modal');
-    let isSupBackdropDown = false;
-    supModalOverlay.addEventListener('mousedown', e => {
-      isSupBackdropDown = (e.target === supModalOverlay);
+    const cusModalOverlay = document.getElementById('cus-modal');
+    let isCusBackdropDown = false;
+    cusModalOverlay.addEventListener('mousedown', e => {
+      isCusBackdropDown = (e.target === cusModalOverlay);
     });
-    supModalOverlay.addEventListener('mouseup', e => {
-      if (isSupBackdropDown && e.target === supModalOverlay) {
+    cusModalOverlay.addEventListener('mouseup', e => {
+      if (isCusBackdropDown && e.target === cusModalOverlay) {
         closeModal();
       }
-      isSupBackdropDown = false;
+      isCusBackdropDown = false;
     });
 
     document.addEventListener('keydown', e => {
@@ -615,15 +636,15 @@
     // Window bindings
     window.openModal = openModal;
     window.closeModal = closeModal;
-    window.editSupplier = editSupplier;
-    window.saveSupplier = saveSupplier;
+    window.editCustomer = editCustomer;
+    window.saveCustomer = saveCustomer;
 
-    async function saveSupplier(e) {
+    async function saveCustomer(e) {
       e.preventDefault();
       const id = document.getElementById('edit-id').value;
       const btn = document.getElementById('save-btn');
       btn.textContent = 'Saving…'; btn.disabled = true;
-      const errEl = document.getElementById('sup-error');
+      const errEl = document.getElementById('cus-error');
       const body = {
         name: document.getElementById('f-name').value,
         gstin: document.getElementById('f-gstin').value.toUpperCase() || null,
@@ -635,28 +656,31 @@
         stateCode: document.getElementById('f-state-code').value,
         city: document.getElementById('f-city').value,
         pincode: document.getElementById('f-pin').value,
-        address: document.getElementById('f-addr').value,
+        billingAddress: document.getElementById('f-billing-addr').value,
+        shippingAddress: document.getElementById('f-shipping-addr').value,
         paymentTerms: Number(document.getElementById('f-terms').value) || 0,
         creditLimit: Number(document.getElementById('f-credit').value) || 0,
-        bankDetails: { bankName: document.getElementById('f-bank').value, accountNo: document.getElementById('f-accno').value, ifsc: document.getElementById('f-ifsc').value.toUpperCase() },
       };
       try {
-        const url = id ? `${API}/inventory/suppliers/${id}` : `${API}/inventory/suppliers`;
+        const url = id ? `${API}/inventory/customers/${id}` : `${API}/inventory/customers`;
         const method = id ? 'PUT' : 'POST';
         const r = await fetch(url, { method, headers: H(), body: JSON.stringify(body) });
         const json = await r.json();
-        if (!r.ok) { errEl.textContent = json.message || 'Failed to save'; errEl.style.display = 'block'; return; }
+        if (!r.ok) {
+          errEl.textContent = json.message || 'Failed to save';
+          errEl.style.display = 'block';
+          return;
+        }
         closeModal();
         load();
-      } catch {
+      } catch (err) {
         errEl.textContent = 'Server error.';
         errEl.style.display = 'block';
       } finally {
-        btn.textContent = 'Save Supplier';
+        btn.textContent = 'Save Customer';
         btn.disabled = false;
       }
     }
-
     load();
   </script>
 </body>

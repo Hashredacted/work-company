@@ -121,15 +121,17 @@ form.addEventListener('submit', async (e) => {
 
     const { token, user, previousLoginAt } = json.data;
 
-    // Persist token
+    // Persist token & session
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(user));
+    if (user.tenantId) {
+      localStorage.setItem('auth_tenant', JSON.stringify({ id: user.tenantId, name: user.companyName || '' }));
+    }
 
-    // Show previous login to user before redirecting
+    // Show previous login briefly if available, then immediately proceed
     if (previousLoginAt) {
       showPrevLogin(previousLoginAt);
-      // Brief pause to show the banner, then redirect
-      setTimeout(() => redirectToDashboard(user), 2200);
+      setTimeout(() => redirectToDashboard(user), 600);
     } else {
       redirectToDashboard(user);
     }

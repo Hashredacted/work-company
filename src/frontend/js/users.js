@@ -136,12 +136,13 @@ async function loadUsers() {
     const users = json.data?.users || [];
 
     if (users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No team members found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No team members found.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = users.map(u => `
+    tbody.innerHTML = users.map((u, idx) => `
       <tr>
+        <td style="text-align: center; color: var(--text-muted); font-weight: 700; font-size: 0.82rem;">${idx + 1}</td>
         <td style="font-weight: 600; color: var(--text);">${u.name}</td>
         <td>${u.email}</td>
         <td><span style="background: rgba(99,102,241,0.15); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${u.roleId ? u.roleId.name : 'No Role'}</span></td>
@@ -154,7 +155,7 @@ async function loadUsers() {
     `).join('');
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--error); padding: 24px;">Unable to load team members. Please refresh.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--error); padding: 24px;">Unable to load team members. Please refresh.</td></tr>';
   }
 }
 
@@ -176,7 +177,7 @@ async function loadRoles() {
     const rolesRes = await fetch(`${API_BASE}/roles`, { headers: authHeaders() });
     if (!rolesRes.ok) {
       if (rolesRes.status === 403) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">🛡️ View-only access: Only administrators can configure roles and permission policies.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">🛡️ View-only access: Only administrators can configure roles and permission policies.</td></tr>';
         return;
       }
       throw new Error('Failed to load roles');
@@ -186,12 +187,13 @@ async function loadRoles() {
     cachedRoles = rolesJson.data || [];
 
     if (cachedRoles.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">No roles configured.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No roles configured.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = cachedRoles.map(r => `
+    tbody.innerHTML = cachedRoles.map((r, idx) => `
       <tr>
+        <td style="text-align: center; color: var(--text-muted); font-weight: 700; font-size: 0.82rem;">${idx + 1}</td>
         <td style="font-weight: 600; color: var(--text);">${r.name.replace(/_/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase())}</td>
         <td><span style="font-size: 0.75rem; color: ${r.isSystemRole ? '#38bdf8' : '#a855f7'}; font-weight: 600; background: ${r.isSystemRole ? 'rgba(56,189,248,0.1)' : 'rgba(168,85,247,0.1)'}; padding: 2px 8px; border-radius: 6px;">${r.isSystemRole ? 'System Template' : 'Custom Workspace Role'}</span></td>
         <td>

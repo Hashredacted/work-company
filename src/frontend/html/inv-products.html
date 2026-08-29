@@ -11,7 +11,7 @@
     rel="stylesheet" />
   <!-- QuaggaJS for barcode scanning -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-  <link rel="stylesheet" href="css/style.css" nd\css\style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <style>
     body {
       overflow-y: auto;
@@ -553,6 +553,7 @@
         <table>
           <thead>
             <tr>
+              <th style="width:45px;text-align:center;">#</th>
               <th>Product</th>
               <th>SKU / Barcode</th>
               <th>HSN</th>
@@ -566,7 +567,7 @@
           </thead>
           <tbody id="products-tbody">
             <tr>
-              <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
+              <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading…</td>
             </tr>
           </tbody>
         </table>
@@ -888,8 +889,19 @@
       mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
     }
 
-    const H = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
-    function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+    const H = () => {
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || '';
+      return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        ...(selectedTenant ? { 'X-Tenant-Id': selectedTenant } : {}),
+      };
+    };
+    function inr(n) {
+      const num = Number(n || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
+    }
 
     document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
 
@@ -1611,16 +1623,17 @@
           return;
         }
         if (r.status === 403) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view products.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--error);">🔒 Access Restricted: Insufficient permissions to view products.</td></tr>`;
           return;
         }
         const { data } = await r.json();
         productsList = data?.products || [];
-        if (!productsList.length) { tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No products found. Click "+ Add Product" to create your first item.</td></tr>`; return; }
-        tbody.innerHTML = productsList.map(p => {
+        if (!productsList.length) { tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">No products found. Click "+ Add Product" to create your first item.</td></tr>`; return; }
+        tbody.innerHTML = productsList.map((p, idx) => {
           const isLow = p.reorderLevel > 0 && p.currentStock <= p.reorderLevel;
           const catName = p.categoryId?.name ? `${p.categoryId.icon || '🏷️'} ${p.categoryId.name}` : '';
           return `<tr>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
             <td><div style="font-weight:600;color:var(--text);">${p.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${catName}</div></td>
             <td><div style="font-family:monospace;font-size:0.8rem;">${p.sku}</div><div style="font-size:0.7rem;color:var(--text-muted);">${p.barcode || '—'}</div></td>
             <td><span style="font-family:monospace;font-size:0.8rem;">${p.hsnCode || '—'}</span></td>
@@ -1643,7 +1656,7 @@
         }
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load products.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--error);">Failed to load products.</td></tr>`;
       }
     }
 
