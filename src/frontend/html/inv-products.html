@@ -450,6 +450,9 @@
             <a href="inv-suppliers.html" class="nav-subitem">
               <span class="nav-bullet">🏭</span> Suppliers
             </a>
+            <a href="inv-finance.html" class="nav-subitem">
+              <span class="nav-bullet">🏦</span> Finance
+            </a>
           </div>
         </div>
 
@@ -830,12 +833,29 @@
             </div>
             <div class="form-group">
               <label class="form-label">Payment Mode</label>
-              <select id="qs-pay-mode" class="form-select">
+              <select id="qs-pay-mode" class="form-select" onchange="onQSPayModeChange()">
                 <option value="UPI">📱 UPI (GPay/PhonePe)</option>
                 <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
+                <option value="NET_BANKING">🌐 Net Banking</option>
                 <option value="CHEQUE">📝 Cheque</option>
+                <option value="CARD">💳 Card</option>
                 <option value="CASH">💵 Cash</option>
               </select>
+            </div>
+          </div>
+          <div class="form-row" id="qs-bank-ref-row" style="display:none;margin-top:8px;">
+            <div class="form-group" id="qs-bank-group">
+              <label class="form-label">Bank Account (बैंक खाता)</label>
+              <select id="qs-bank-id" class="form-select">
+                <option value="">— Primary Default Bank Account —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <label class="form-label" style="margin:0;">Reference / UTR #</label>
+                <button type="button" onclick="autoFillQSRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+              </div>
+              <input id="qs-ref" class="form-input" type="text" placeholder="e.g. UPI/899120482910" />
             </div>
           </div>
         </div>
@@ -1513,6 +1533,64 @@
       if (modal) modal.classList.remove('show');
     }
 
+    let bankAccountsList = [];
+
+    async function loadBankAccounts() {
+      try {
+        const r = await fetch(`${API}/inventory/finance/bank-accounts`, { headers: H() });
+        const json = await r.json();
+        if (r.ok) {
+          const list = Array.isArray(json.data) ? json.data : (json.data?.accounts || []);
+          bankAccountsList = list;
+          populateBankSelects();
+        }
+      } catch (err) {
+        console.error('Failed to load bank accounts:', err);
+      }
+    }
+
+    function populateBankSelects() {
+      const bankSel = document.getElementById('qs-bank-id');
+      if (bankSel) {
+        if (!bankAccountsList || !bankAccountsList.length) {
+          bankSel.innerHTML = '<option value="">— Primary Default Bank Account —</option>';
+          return;
+        }
+        bankSel.innerHTML = '<option value="">— Primary Default Bank Account —</option>' +
+          bankAccountsList.map(b => {
+            const accMask = b.accountNumberMasked || (b.accountNumber ? `•••• ${b.accountNumber.slice(-4)}` : '');
+            return `<option value="${b._id}" ${b.isDefault ? 'selected' : ''}>🏛️ ${escHtml(b.bankName)} (${escHtml(accMask)}) ${b.isDefault ? '⭐' : ''}</option>`;
+          }).join('');
+      }
+    }
+
+    function generateSmartRef(mode) {
+      const rand6 = Math.floor(100000 + Math.random() * 900000);
+      const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
+      if (mode === 'UPI') return `UPI/${rand12}@okhdfc`;
+      if (mode === 'NEFT_RTGS') return `HDFCN${rand6}`;
+      if (mode === 'NET_BANKING') return `IMPS-${rand12}`;
+      if (mode === 'CHEQUE') return `CHQ-${rand6}`;
+      if (mode === 'CARD') return `POS-TXN-${rand6}`;
+      if (mode === 'CASH') return `CASH-RCPT-${rand6}`;
+      return `TXN-${rand6}`;
+    }
+
+    function onQSPayModeChange() {
+      const mode = document.getElementById('qs-pay-mode')?.value || 'UPI';
+      const bankRow = document.getElementById('qs-bank-ref-row');
+      if (bankRow) {
+        bankRow.style.display = (mode === 'CASH') ? 'none' : 'grid';
+      }
+      autoFillQSRef();
+    }
+
+    function autoFillQSRef() {
+      const mode = document.getElementById('qs-pay-mode')?.value || 'UPI';
+      const refInput = document.getElementById('qs-ref');
+      if (refInput) refInput.value = generateSmartRef(mode);
+    }
+
     function onQSProductChange() {
       const prodSel = document.getElementById('qs-product');
       if (!prodSel) return;
@@ -1574,6 +1652,8 @@
           paymentStatus: payStatus,
           paidAmount: Number(document.getElementById('qs-paid-amt').value) || undefined,
           paymentMode: document.getElementById('qs-pay-mode').value || undefined,
+          bankAccountId: document.getElementById('qs-bank-id')?.value || undefined,
+          referenceNo: document.getElementById('qs-ref')?.value || undefined,
         }),
       };
 
@@ -1784,6 +1864,8 @@
     window.closeQuickStockModal = closeQuickStockModal;
     window.saveProduct = saveProduct;
     window.saveQuickStock = saveQuickStock;
+    window.onQSPayModeChange = onQSPayModeChange;
+    window.autoFillQSRef = autoFillQSRef;
     window.startScan = startScan;
     window.stopScan = stopScan;
     window.startScanForField = startScanForField;
@@ -1792,7 +1874,7 @@
     window.onProductNameInput = onProductNameInput;
 
     // ─── Init ──────────────────────────────────────────────────────────────────
-    Promise.all([loadCategories(), loadWarehouses(), loadParties(), loadMasterProducts()]).then(() => {
+    Promise.all([loadCategories(), loadWarehouses(), loadParties(), loadMasterProducts(), loadBankAccounts()]).then(() => {
       loadProducts();
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('action') === 'stock') {

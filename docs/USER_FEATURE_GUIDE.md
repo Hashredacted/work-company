@@ -303,12 +303,46 @@ Allows merchants, store managers, and admins to **add to (+ Inflow)** or **subtr
 | ➖ **Subtract from Balance** <br>*(Outside Outflow)* | Drawings, overheads, or non-commercial cash out | • **Owner Drawings / Personal Drawings** (`OWNER_DRAWINGS`)<br>• **Store / Office Rent & Utilities** (`RENT_AND_UTILITIES`)<br>• **Staff Salary & Wages** (`SALARY_AND_WAGES`)<br>• **Office & Store Expenses** (`OFFICE_EXPENSES`)<br>• **Loan Repayment / EMI** (`LOAN_REPAYMENT`)<br>• **Bank Charges & Processing Fee** (`BANK_CHARGES_TAX`)<br>• **Other Outflow** (`OTHER_OUTFLOW`) | Decreases **Cash in Hand** or **Bank / UPI** balance |
 
 ### 📋 How to Use
-1. On the **Inventory Dashboard** ([`inv-dashboard.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-dashboard.html)) or **Payments Screen** ([`inv-payments.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/inv-payments.html)), click **`⚡ Outside Cash Flow / Adjust Balance`**.
+1. On the **Inventory Dashboard** ([`inv-dashboard.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/html/inv-dashboard.html)) or **Payments Screen** ([`inv-payments.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/html/inv-payments.html)), click **`⚡ Outside Cash Flow / Adjust Balance`**.
 2. Select **➕ Add to Balance** (green) or **➖ Subtract from Balance** (red).
 3. Choose the target account: **💵 Cash in Hand** or **🏛️ Bank / UPI**.
 4. Enter the amount to view the **Live Impact Preview** (e.g., `+₹50,000 will be ADDED to Cash in Hand as Outside Inflow`).
 5. Select category, transaction date, particulars / entity name, and reference/UTR number.
 6. Click **✓ Record Outside Flow**. The account balances and daily cashflow will update immediately.
+
+---
+
+## 13. Finance Master — Cash & Multi-Bank Management (Money Flow Tracking)
+
+### 🏦 What It Is
+The **Finance Master** ([`inv-finance.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/html/inv-finance.html)) provides dedicated treasury control across **Physical Cash in Hand** and **Unlimited Simulated Bank Accounts** (e.g., HDFC Current A/C, ICICI Payout A/C, SBI Operating A/C). It features real-time money flow tracking to trace exactly **whose money was received by which bank account or cash register**.
+
+> [!NOTE]
+> **Simulated Treasury / Internal Bookkeeping**: All bank accounts in WorkSpace are virtual bookkeeping ledger accounts managed entirely within your ERP database. No live bank net-banking credentials or third-party Open Banking API connections are required.
+
+### 💼 Key Capabilities
+1. **Multiple Simulated Bank Accounts Management**:
+   - Register unlimited business bank accounts with Bank Name, Account Number, Account Type (`CURRENT`, `SAVINGS`, `OVERDRAFT`, `VIRTUAL`), IFSC Code, Branch Name, and UPI IDs.
+   - Quick preset sample buttons (`HDFC`, `ICICI`, `SBI`, `AXIS`) for 1-click simulation setup.
+   - Live Available Balance calculated automatically: $\text{Opening Balance} + \text{Credits (Inflows)} - \text{Debits (Outflows)}$.
+   - Visual bank cards with copyable account numbers, primary default badges, and one-click filtering.
+2. **Physical Cash Management**:
+   - Track physical cash drawer balance and today's cash velocity.
+   - Quick Cash Actions: Receive Outside Cash (`+`), Record Petty Expenses (`-`), Deposit Cash into Bank (`Contra`), and Withdraw Cash from Bank (`Contra`).
+3. **Contra Fund Transfers**:
+   - Seamless double-entry transfers between Cash and Bank (`CASH_DEPOSIT_BANK`, `CASH_WITHDRAWAL_BANK`) or between two registered Bank Accounts (`INTER_BANK_TRANSFER`).
+   - Generates sequential contra vouchers (`DEP`, `WTH`, `TXF`) keeping both source and destination ledgers perfectly balanced.
+4. **Real-Time Money Flow Tracking (खाता बही)**:
+   - Identifies exact source (`From: Customer / Owner / Cash / Source Bank`) and destination (`To: Target Bank Account / Supplier / Expense / Cash Register`).
+   - Color-coded badges: 🟢 Money In (Credit), 🔴 Money Out (Debit), 🔄 Contra Transfer.
+   - Reference and UTR number tracking for banking reconciliation.
+
+### 📋 How to Use
+1. In the sidebar navigation under **Master**, click **🏦 Finance** ([`inv-finance.html`](file:///c:/Users/moham/OneDrive/Desktop/imp/work%20company/src/frontend/html/inv-finance.html)).
+2. **To Add a Bank Account**: Click **`+ Add Bank Account`**, enter bank details, IFSC, account type, and optional opening balance. Click **Save Account**.
+3. **To Transfer Funds / Deposit Cash**: Click **`🔄 Transfer Funds (Contra)`**, choose source (`Cash` or `Bank A`), choose destination (`Cash` or `Bank B`), enter amount, UTR / Cheque reference, and click **Confirm Transfer**.
+4. **To Trace Money Flow**: Switch to the **Bank Management** or **Cash Management** tab to inspect the real-time money flow statement with party attribution and running balances.
+
 
 ---
 

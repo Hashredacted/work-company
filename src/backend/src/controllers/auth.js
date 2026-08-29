@@ -45,13 +45,13 @@ async function login(req, res, next) {
     const { email, password } = parsed.data;
     const cleanEmail = email.toLowerCase().trim();
 
-    let user = await User.findOne({ email: cleanEmail, isActive: true, deletedAt: null });
+    let user = await User.findOne({ email: cleanEmail, isActive: true, deletedAt: null }).select('+password');
 
     // Fallback: Check if user entered Company Email instead of personal Admin Email
     if (!user) {
       const tenant = await Tenant.findOne({ email: cleanEmail });
       if (tenant) {
-        user = await User.findOne({ tenantId: tenant._id, isActive: true, deletedAt: null });
+        user = await User.findOne({ tenantId: tenant._id, isActive: true, deletedAt: null }).select('+password');
       }
     }
 
@@ -250,7 +250,7 @@ async function changePassword(req, res, next) {
       return res.status(400).json({ data: null, message: 'New password must be at least 6 characters', errors: null });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
     const valid = await user.comparePassword(currentPassword);
     if (!valid) {
       return res.status(401).json({ data: null, message: 'Current password is incorrect', errors: null });

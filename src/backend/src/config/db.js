@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const { runStartupMigrations } = require('../utils/migration');
 
 async function connectDB() {
   const uri = process.env.MONGODB_URI;
@@ -10,6 +11,9 @@ async function connectDB() {
   mongoose.connection.on('error', (err) => console.error('[DB] Connection error:', err));
 
   await mongoose.connect(uri);
+
+  // Run idempotent backward compatibility & encryption checks on startup
+  await runStartupMigrations();
 }
 
 module.exports = { connectDB };

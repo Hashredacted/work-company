@@ -12,6 +12,7 @@ const whCtrl   = require('../controllers/inventory/warehouse');
 const adjCtrl  = require('../controllers/inventory/adjustment');
 const repCtrl  = require('../controllers/inventory/reports');
 const payCtrl  = require('../controllers/inventory/payment');
+const finCtrl  = require('../controllers/inventory/finance');
 
 const mongoose = require('mongoose');
 const Tenant = require('../models/Tenant');
@@ -87,6 +88,18 @@ router.put   ('/warehouses/:id', validateObjectId('id'), MANAGE, whCtrl.update);
 router.delete('/warehouses/:id', validateObjectId('id'), MANAGE, whCtrl.remove);
 router.get   ('/warehouses/:id/stock', validateObjectId('id'), READ, whCtrl.stockAtWarehouse);
 
+// ─── Finance, Multi-Bank & Cash Management ────────────────────────────────────
+router.get   ('/finance/summary',                                                       READ,   finCtrl.getFinancialSummary);
+router.get   ('/finance/bank-accounts',                                                 READ,   finCtrl.getBankAccounts);
+router.post  ('/finance/bank-accounts', financialLimiter,                               MANAGE, finCtrl.createBankAccount);
+router.get   ('/finance/bank-accounts/:id', validateObjectId('id'),                     READ,   finCtrl.getBankAccountById);
+router.put   ('/finance/bank-accounts/:id', validateObjectId('id'),                     MANAGE, finCtrl.updateBankAccount);
+router.delete('/finance/bank-accounts/:id', validateObjectId('id'),                     MANAGE, finCtrl.deleteBankAccount);
+router.put   ('/finance/bank-accounts/:id/set-default', validateObjectId('id'),         MANAGE, finCtrl.setDefaultBankAccount);
+router.get   ('/finance/flow',                                                          READ,   finCtrl.getMoneyFlow);
+router.post  ('/finance/transfer', financialLimiter, validateCashLimit,                 MANAGE, finCtrl.recordTransfer);
+router.post  ('/finance/quick-entry', financialLimiter, validateCashLimit,              MANAGE, finCtrl.recordQuickFinanceEntry);
+
 // ─── Payments, Outstandings & Khata Ledger ────────────────────────────────────
 router.get   ('/companies',                                                                    READ,   payCtrl.getAccessibleCompanies);
 router.get   ('/payments/kpis',                                                                READ,   payCtrl.getPaymentKpis);
@@ -108,3 +121,4 @@ router.get('/reports/valuation',                               READ, repCtrl.val
 router.get('/reports/expiry-alerts',                           READ, repCtrl.expiryAlerts);
 
 module.exports = router;
+

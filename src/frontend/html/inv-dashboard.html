@@ -808,6 +808,9 @@
             <a href="inv-suppliers.html" class="nav-subitem">
               <span class="nav-bullet">🏭</span> Suppliers
             </a>
+            <a href="inv-finance.html" class="nav-subitem">
+              <span class="nav-bullet">🏦</span> Finance
+            </a>
           </div>
         </div>
 
@@ -1196,6 +1199,14 @@
               </div>
             </div>
 
+            <!-- Bank Account Selector Row (shown when ocf-mode !== 'CASH') -->
+            <div id="ocf-bank-group" style="display:none;">
+              <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Bank Account (बैंक खाता) <span style="color:#f87171;">*</span></label>
+              <select id="ocf-bank-id" class="form-input" style="width:100%;">
+                <option value="">— Primary Default Bank Account —</option>
+              </select>
+            </div>
+
             <!-- Category & Date Row -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div>
@@ -1230,7 +1241,10 @@
                 <input type="text" id="ocf-party-name" class="form-input" placeholder="e.g. Store Owner, Landlord, Bank..." style="width:100%;">
               </div>
               <div>
-                <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Ref / UTR / Cheque #</label>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">Ref / UTR / Cheque #</label>
+                  <button type="button" onclick="autoFillOcfRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+                </div>
                 <input type="text" id="ocf-reference" class="form-input" placeholder="e.g. UPI/12345678, CHQ-00123" style="width:100%;">
               </div>
             </div>
@@ -1406,6 +1420,7 @@
       activeCompanyId = sel.value;
       localStorage.setItem('selected_tenant_id', activeCompanyId);
       load();
+      loadBankAccounts();
     }
 
     document.getElementById('logout-btn').addEventListener('click', () => {
@@ -1780,7 +1795,63 @@
       updateOcfPreview();
     }
 
+    let cachedBankAccounts = [];
+
+    async function loadBankAccounts() {
+      try {
+        const tParam = activeCompanyId ? `?tenantId=${encodeURIComponent(activeCompanyId)}` : '';
+        const r = await fetch(`${API}/inventory/finance/bank-accounts${tParam}`, { headers: H() });
+        const json = await r.json();
+        if (r.ok) {
+          const list = Array.isArray(json.data) ? json.data : (json.data?.accounts || []);
+          cachedBankAccounts = list;
+          populateBankDropdowns();
+        }
+      } catch (err) {
+        console.error('Failed to load bank accounts:', err);
+      }
+    }
+
+    function populateBankDropdowns() {
+      const ocfBank = document.getElementById('ocf-bank-id');
+      if (ocfBank) {
+        if (!cachedBankAccounts || !cachedBankAccounts.length) {
+          ocfBank.innerHTML = '<option value="">— Primary Default Bank Account —</option>';
+          return;
+        }
+        ocfBank.innerHTML = '<option value="">— Primary Default Bank Account —</option>' +
+          cachedBankAccounts.map(b => {
+            const accMask = b.accountNumberMasked || (b.accountNumber ? `•••• ${b.accountNumber.slice(-4)}` : '');
+            return `<option value="${b._id}" ${b.isDefault ? 'selected' : ''}>🏛️ ${escHtml(b.bankName)} (${escHtml(accMask)}) ${b.isDefault ? '⭐' : ''}</option>`;
+          }).join('');
+      }
+    }
+
+    function generateSmartRef(mode) {
+      const rand6 = Math.floor(100000 + Math.random() * 900000);
+      const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
+      if (mode === 'UPI') return `UPI/${rand12}@okhdfc`;
+      if (mode === 'NEFT_RTGS') return `HDFCN${rand6}`;
+      if (mode === 'NET_BANKING') return `IMPS-${rand12}`;
+      if (mode === 'CHEQUE') return `CHQ-${rand6}`;
+      if (mode === 'CARD') return `POS-TXN-${rand6}`;
+      if (mode === 'CASH') return `CASH-RCPT-${rand6}`;
+      return `TXN-${rand6}`;
+    }
+
+    function autoFillOcfRef() {
+      const mode = document.getElementById('ocf-mode')?.value || 'UPI';
+      const refInput = document.getElementById('ocf-reference');
+      if (refInput) refInput.value = generateSmartRef(mode);
+    }
+
     function onOcfModeChange() {
+      const mode = document.getElementById('ocf-mode')?.value || 'CASH';
+      const bankGroup = document.getElementById('ocf-bank-group');
+      if (bankGroup) {
+        bankGroup.style.display = (mode === 'CASH') ? 'none' : 'block';
+      }
+      autoFillOcfRef();
       updateOcfPreview();
     }
 
@@ -1829,6 +1900,7 @@
           dateInput.value = new Date().toISOString().split('T')[0];
         }
         setOcfDirection('ADD');
+        onOcfModeChange();
       }
     }
 
@@ -1864,6 +1936,7 @@
           direction: ocfDirection,
           amount,
           paymentMode: modeEl ? modeEl.value : 'CASH',
+          bankAccountId: (modeEl && modeEl.value !== 'CASH') ? (document.getElementById('ocf-bank-id')?.value || undefined) : undefined,
           category: catEl ? catEl.value : 'OTHER_INFLOW',
           paymentDate: dateEl && dateEl.value ? dateEl.value : new Date().toISOString(),
           partyName: partyEl ? partyEl.value : '',
@@ -2026,10 +2099,13 @@
     window.onOcfModeChange = onOcfModeChange;
     window.updateOcfPreview = updateOcfPreview;
     window.submitOutsideCashflow = submitOutsideCashflow;
+    window.autoFillOcfRef = autoFillOcfRef;
+    window.loadBankAccounts = loadBankAccounts;
 
     async function init() {
       await loadCompanies();
       await load();
+      await loadBankAccounts();
     }
 
     init();

@@ -6,9 +6,11 @@ const StockLedger        = require('../../models/inv/StockLedger');
 const Product            = require('../../models/inv/Product');
 const Supplier           = require('../../models/inv/Supplier');
 const Customer           = require('../../models/inv/Customer');
+const BankAccount        = require('../../models/inv/BankAccount');
 const PaymentTransaction = require('../../models/inv/PaymentTransaction');
 const AuditLog           = require('../../models/AuditLog');
 const { nextSeq }        = require('../../utils/sequence');
+const { decrypt, mask }  = require('../../utils/encryption');
 
 // GET /api/inventory/adjustments
 async function list(req, res, next) {
@@ -44,6 +46,7 @@ async function quickStock(req, res, next) {
       paymentStatus, // 'UNPAID' | 'PAID' | 'PARTIAL'
       paidAmount,
       paymentMode,
+      bankAccountId,
       referenceNo,
     } = req.body;
 
@@ -60,6 +63,42 @@ async function quickStock(req, res, next) {
     if (!product) {
       return res.status(404).json({ data: null, message: 'Product not found', errors: null });
     }
+
+    // Resolve Bank Account if Payment Mode is not CASH
+    let resolvedBankAccountId = null;
+    let resolvedBankAccountName = null;
+
+    if (bankAccountId && mongoose.Types.ObjectId.isValid(bankAccountId)) {
+      const bObj = await BankAccount.findOne({ _id: bankAccountId, tenantId: req.tenantId, deletedAt: null });
+      if (bObj) {
+        resolvedBankAccountId = bObj._id;
+        const plainAcc = decrypt(bObj.accountNumber);
+        resolvedBankAccountName = `${bObj.bankName} (****${plainAcc.slice(-4)})`;
+      }
+    } else if (paymentMode && paymentMode !== 'CASH') {
+      let defBank = await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true, isDefault: true })
+        || await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true });
+      if (defBank) {
+        resolvedBankAccountId = defBank._id;
+        const plainAcc = decrypt(defBank.accountNumber);
+        resolvedBankAccountName = `${defBank.bankName} (****${plainAcc.slice(-4)})`;
+      }
+    }
+
+    const isCashMode = (paymentMode || 'UPI') === 'CASH';
+    const acctDisplayName = isCashMode ? 'Cash in Hand (Drawer)' : (resolvedBankAccountName || 'Bank Account');
+
+    const rand6 = Math.floor(100000 + Math.random() * 900000);
+    const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
+    let autoRef = `TXN-${rand6}`;
+    if (paymentMode === 'UPI') autoRef = `UPI/${rand12}@okhdfc`;
+    else if (paymentMode === 'NEFT_RTGS') autoRef = `HDFCN${rand6}`;
+    else if (paymentMode === 'NET_BANKING') autoRef = `IMPS-${rand12}`;
+    else if (paymentMode === 'CHEQUE') autoRef = `CHQ-${rand6}`;
+    else if (paymentMode === 'CARD') autoRef = `POS-TXN-${rand6}`;
+    else if (paymentMode === 'CASH') autoRef = `CASH-RCPT-${rand6}`;
+
+    const finalRef = referenceNo ? referenceNo.trim() : autoRef;
 
     // If stock OUT, verify available stock
     if (type === 'OUT') {
@@ -123,13 +162,14 @@ async function quickStock(req, res, next) {
           voucherNo: billVoucherNo,
           partyType: 'SUPPLIER',
           partyId: supplier._id,
+          partyName: supplier.name,
           partyModel: 'InvSupplier',
           txnType: 'BILL',
           amount: billVal,
           paymentMode: 'CREDIT',
           paymentDate: new Date(),
           dueDate,
-          referenceNo: referenceNo || null,
+          referenceNo: finalRef,
           notes: remarks || `Stock In of ${numericQty} ${product.unit} (${product.name})`,
           stockLedgerId: ledgerEntry._id,
           createdBy: req.user._id,
@@ -144,12 +184,18 @@ async function quickStock(req, res, next) {
               voucherNo: payVoucherNo,
               partyType: 'SUPPLIER',
               partyId: supplier._id,
+              partyName: supplier.name,
               partyModel: 'InvSupplier',
               txnType: 'PAYMENT_OUT',
               amount: settledAmt,
               paymentMode: paymentMode || 'UPI',
               paymentDate: new Date(),
-              referenceNo: referenceNo || null,
+              referenceNo: finalRef,
+              bankAccount: resolvedBankAccountName,
+              bankAccountId: resolvedBankAccountId,
+              sourceName: acctDisplayName,
+              destinationName: supplier.name,
+              transferType: 'PARTY_PAYMENT',
               notes: `Payment for Bill ${billVoucherNo}`,
               allocatedBills: [{
                 billId: createdBillOrInvoice._id,
@@ -195,13 +241,14 @@ async function quickStock(req, res, next) {
           voucherNo: invVoucherNo,
           partyType: 'CUSTOMER',
           partyId: customer._id,
+          partyName: customer.name,
           partyModel: 'InvCustomer',
           txnType: 'INVOICE',
           amount: invVal,
           paymentMode: 'CREDIT',
           paymentDate: new Date(),
           dueDate,
-          referenceNo: referenceNo || null,
+          referenceNo: finalRef,
           notes: remarks || `Stock Out of ${numericQty} ${product.unit} (${product.name})`,
           stockLedgerId: ledgerEntry._id,
           createdBy: req.user._id,
@@ -216,12 +263,18 @@ async function quickStock(req, res, next) {
               voucherNo: recVoucherNo,
               partyType: 'CUSTOMER',
               partyId: customer._id,
+              partyName: customer.name,
               partyModel: 'InvCustomer',
               txnType: 'PAYMENT_IN',
               amount: settledAmt,
               paymentMode: paymentMode || 'UPI',
               paymentDate: new Date(),
-              referenceNo: referenceNo || null,
+              referenceNo: finalRef,
+              bankAccount: resolvedBankAccountName,
+              bankAccountId: resolvedBankAccountId,
+              sourceName: customer.name,
+              destinationName: acctDisplayName,
+              transferType: 'PARTY_RECEIPT',
               notes: `Payment for Invoice ${invVoucherNo}`,
               allocatedBills: [{
                 billId: createdBillOrInvoice._id,

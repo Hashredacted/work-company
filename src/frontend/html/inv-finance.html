@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance & Treasury — WorkSpace Inventory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      overflow-y: auto;
+      display: block;
+      padding: 0;
+    }
+
+    /* Top KPI Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .kpi:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .kpi::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent, var(--primary));
+    }
+
+    .kpi-lbl {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-val {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin: 6px 0 2px;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-sub {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    /* Primary Tabs */
+    .fin-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+      padding-bottom: 2px;
+      overflow-x: auto;
+    }
+
+    .fin-tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 10px 20px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .fin-tab-btn:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .fin-tab-btn.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.18);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .fin-panel {
+      display: none;
+    }
+
+    .fin-panel.active {
+      display: block;
+    }
+
+    /* Bank Account Cards Grid */
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .bank-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .bank-card:hover {
+      border-color: rgba(99, 102, 241, 0.45);
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
+    }
+
+    .bank-card.is-default {
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      background: linear-gradient(145deg, rgba(30, 35, 55, 0.95), rgba(20, 24, 40, 0.95));
+    }
+
+    .bank-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bank-logo-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .bank-card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .bank-card-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .bank-acc-no {
+      font-family: monospace;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #e2e8f0;
+      margin: 10px 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bank-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      margin: 8px 0 12px;
+      font-size: 0.73rem;
+    }
+
+    .bank-meta-item span {
+      display: block;
+      color: var(--text-muted);
+    }
+
+    .bank-meta-item strong {
+      color: var(--text);
+      font-family: monospace;
+    }
+
+    .bank-balance-box {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding-top: 8px;
+    }
+
+    .bank-bal-lbl {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .bank-bal-val {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: monospace;
+    }
+
+    .bank-card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      flex-wrap: wrap;
+    }
+
+    .btn-bank-action {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-bank-action:hover {
+      background: rgba(99, 102, 241, 0.2);
+      color: #fff;
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    /* Badges & Tags */
+    .tag-default {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      color: #facc15;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+
+    .tag-type {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      color: #38bdf8;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Flow direction badges */
+    .flow-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .flow-in {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .flow-out {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.35);
+    }
+
+    .flow-contra {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    /* Quick Cash Actions Panel */
+    .quick-cash-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .quick-cash-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-quick-cash {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-qc-in {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+    }
+
+    .btn-qc-in:hover {
+      background: rgba(34, 197, 94, 0.25);
+    }
+
+    .btn-qc-out {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, 0.35);
+      color: #fb7185;
+    }
+
+    .btn-qc-out:hover {
+      background: rgba(244, 63, 94, 0.25);
+    }
+
+    .btn-qc-transfer {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: #a5b4fc;
+    }
+
+    .btn-qc-transfer:hover {
+      background: rgba(99, 102, 241, 0.25);
+    }
+
+    /* Filter Toolbar */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Table wrap & styling */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      padding: 12px 16px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-sub);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Account Flow Box inside Table */
+    .acc-flow-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .acc-flow-from {
+      font-size: 0.76rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .acc-flow-to {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 540px) {
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+    }
+
+    .form-error {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+
+  <div class="app-layout">
+    <!-- Left Vertical Navigation Sidebar -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+              <rect width="28" height="28" rx="8" fill="url(#pG)" />
+              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
+              <defs>
+                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
+                  <stop offset="0%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name" id="sidebar-company-name">WorkSpace</span>
+            <span class="brand-badge">📦 INVENTORY</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- 1. Dashboard -->
+        <a href="inv-dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+
+        <!-- 2. Master -->
+        <div class="nav-group open">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Master</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-products.html" class="nav-subitem">
+              <span class="nav-bullet">📦</span> Products
+            </a>
+            <a href="inv-customers.html" class="nav-subitem">
+              <span class="nav-bullet">👥</span> Customers
+            </a>
+            <a href="inv-suppliers.html" class="nav-subitem">
+              <span class="nav-bullet">🏭</span> Suppliers
+            </a>
+            <a href="inv-finance.html" class="nav-subitem active">
+              <span class="nav-bullet">🏦</span> Finance
+            </a>
+          </div>
+        </div>
+
+        <!-- 3. Transactions -->
+        <div class="nav-group">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">💼</span>
+            <span class="nav-label">Transactions</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+              <span class="nav-bullet">📈</span> Sales
+            </a>
+            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+              <span class="nav-bullet">📥</span> Purchases
+            </a>
+            <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
+              <span class="nav-bullet">💸</span> Payments
+            </a>
+            <a href="inv-payments.html?tab=customers" class="nav-subitem">
+              <span class="nav-bullet">💵</span> Received
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. Reports -->
+        <div class="nav-group">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Reports</span>
+            <span class="nav-chevron">▾</span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-reports.html?tab=ledger" class="nav-subitem">
+              <span class="nav-bullet">📋</span> Ledger
+            </a>
+            <a href="inv-outstandings.html" class="nav-subitem">
+              <span class="nav-bullet">💰</span> Outstandings
+            </a>
+            <a href="inv-reports.html?tab=stock" class="nav-subitem">
+              <span class="nav-bullet">📦</span> Stock
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link">
+          <span>←</span> <span>Back to Main</span>
+        </a>
+        <button id="logout-btn" class="sidebar-logout-btn" onclick="signOut()">
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">🏦 Finance Master</h1>
+              <span style="font-size:0.68rem;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:2px 8px;border-radius:12px;font-weight:700;">Simulated Treasury</span>
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Simulate physical cash in hand & multiple virtual bank account books without external bank APIs</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" onclick="openTransferModal()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span>🔄</span> Transfer Funds (Contra)
+          </button>
+          <button type="button" onclick="openQuickEntryModal()" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.35);color:#f472b6;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span>⚡</span> Direct Inflow / Outflow
+          </button>
+          <button type="button" onclick="openBankAccountModal()" style="background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span>+</span> Add Bank Account
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Financial KPIs (4 Cards) -->
+      <div class="kpi-row">
+        <div class="kpi" style="--accent:#38bdf8;">
+          <div class="kpi-lbl">
+            <span>💵 Cash in Hand (नकद)</span>
+            <span style="font-size:0.7rem;color:#38bdf8;">Physical Drawer</span>
+          </div>
+          <div class="kpi-val" id="kpi-cash-bal" style="color:#38bdf8;">₹0</div>
+          <div class="kpi-sub" id="kpi-cash-today">Today: +₹0</div>
+        </div>
+
+        <div class="kpi" style="--accent:#818cf8;">
+          <div class="kpi-lbl">
+            <span>🏦 Bank Balances (कुल बैंक)</span>
+            <span id="kpi-bank-count-tag" class="tag-type" style="font-size:0.62rem;">0 Accounts</span>
+          </div>
+          <div class="kpi-val" id="kpi-bank-bal" style="color:#818cf8;">₹0</div>
+          <div class="kpi-sub" id="kpi-bank-sub">Across all registered bank accounts</div>
+        </div>
+
+        <div class="kpi" style="--accent:#4ade80;">
+          <div class="kpi-lbl">
+            <span>🟢 Total Money Received (आवक)</span>
+            <span>Total Inflow</span>
+          </div>
+          <div class="kpi-val" id="kpi-inflow-total" style="color:#4ade80;">₹0</div>
+          <div class="kpi-sub">Trading receipts & outside capital</div>
+        </div>
+
+        <div class="kpi" style="--accent:#fb7185;">
+          <div class="kpi-lbl">
+            <span>🔴 Total Money Paid (जावक)</span>
+            <span>Total Outflow</span>
+          </div>
+          <div class="kpi-val" id="kpi-outflow-total" style="color:#fb7185;">₹0</div>
+          <div class="kpi-sub">Supplier payouts & expenses</div>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <div class="fin-tabs">
+        <button class="fin-tab-btn active" id="tab-btn-cash" onclick="switchFinTab('cash')">
+          <span>💵</span> Cash Management (कैश प्रबंधन)
+        </button>
+        <button class="fin-tab-btn" id="tab-btn-bank" onclick="switchFinTab('bank')">
+          <span>🏦</span> Bank Management (बैंक प्रबंधन - Multi-Bank)
+        </button>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 1: CASH MANAGEMENT -->
+      <!-- ═════════════════════════════════════════════════════════════════════════ -->
+      <div id="panel-cash" class="fin-panel active">
+        <!-- Quick Cash Action Bar -->
+        <div class="quick-cash-bar">
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:var(--text);">💵 Physical Cash Register & Drawer</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">Instant cash drawer receipts, disbursements, and bank deposits</div>
+          </div>
+          <div class="quick-cash-btns">
+            <button type="button" onclick="quickCashAction('INFLOW')" class="btn-quick-cash btn-qc-in">
+              <span>+</span> 💵 Cash In (Receive)
+            </button>
+            <button type="button" onclick="quickCashAction('OUTFLOW')" class="btn-quick-cash btn-qc-out">
+              <span>-</span> 💸 Cash Out (Petty / Expense)
+            </button>
+            <button type="button" onclick="quickCashTransfer('DEPOSIT')" class="btn-quick-cash btn-qc-transfer">
+              <span>🏦</span> Deposit to Bank
+            </button>
+            <button type="button" onclick="quickCashTransfer('WITHDRAW')" class="btn-quick-cash btn-qc-transfer">
+              <span>🏧</span> Withdraw from Bank
+            </button>
+          </div>
+        </div>
+
+        <!-- Cash Money Flow Filter Bar -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <input id="cash-search" class="search-box" type="text" placeholder="🔍 Search Cash Voucher, Payer, Notes…" oninput="debounceCashSearch()" style="width:260px;" />
+            <div style="display:flex;gap:4px;">
+              <button class="filter-pill active" onclick="setCashDirectionFilter('ALL', this)">All Flows</button>
+              <button class="filter-pill" onclick="setCashDirectionFilter('INFLOW', this)">🟢 Inflow Only</button>
+              <button class="filter-pill" onclick="setCashDirectionFilter('OUTFLOW', this)">🔴 Outflow Only</button>
+              <button class="filter-pill" onclick="setCashDirectionFilter('CONTRA', this)">🔄 Contra Only</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <select id="cash-date-preset" class="form-select" onchange="onCashDatePresetChange()" style="width:140px;font-size:0.78rem;">
+              <option value="30">Last 30 Days</option>
+              <option value="7">Last 7 Days</option>
+              <option value="today">Today Only</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Cash Money Flow Table -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;text-align:center;">#</th>
+                <th>Date & Time</th>
+                <th>Voucher #</th>
+                <th>Flow Direction</th>
+                <th>Payer / Receiver (Whose Money)</th>
+                <th>Purpose / Category</th>
+                <th>Ref #</th>
+                <th style="text-align:right;">Amount (₹)</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="cash-flow-tbody">
+              <tr>
+                <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Cash Flows…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 2: BANK MANAGEMENT (MULTI-BANK) -->
+      <!-- ═════════════════════════════════════════════════════════════════════════ -->
+      <div id="panel-bank" class="fin-panel">
+        <!-- Multiple Bank Account Cards Showcase -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h2 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">Simulated Bank Accounts (बैंक खाते)</h2>
+              <span style="font-size:0.65rem;background:rgba(56,189,248,0.15);color:#38bdf8;padding:2px 6px;border-radius:4px;font-weight:700;">Internal Ledger</span>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Simulate business bank accounts (HDFC, ICICI, SBI, etc.) to track collections, payouts & contra transfers internally within your ERP</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button type="button" onclick="openBankAccountModal()" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:700;">
+              + Add Simulated Bank
+            </button>
+          </div>
+        </div>
+
+        <div class="bank-grid" id="bank-cards-grid">
+          <!-- Dynamic Bank Cards Rendered Here -->
+        </div>
+
+        <!-- Bank Flow & Statement Section -->
+        <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <div>
+              <h2 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">Bank Money Flow Statement (बैंक खाता बही)</h2>
+              <div style="font-size:0.75rem;color:var(--text-muted);">Detailed inward receipts, vendor payments, and inter-bank transfers across accounts</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <select id="bank-filter-account" class="form-select" onchange="loadBankFlows()" style="width:220px;font-size:0.78rem;">
+                <option value="">All Bank Accounts</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bank Flow Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <input id="bank-search" class="search-box" type="text" placeholder="🔍 Search Bank Flow, UTR, Party, Notes…" oninput="debounceBankSearch()" style="width:260px;" />
+              <div style="display:flex;gap:4px;">
+                <button class="filter-pill active" onclick="setBankDirectionFilter('ALL', this)">All</button>
+                <button class="filter-pill" onclick="setBankDirectionFilter('INFLOW', this)">🟢 Credits (Inward)</button>
+                <button class="filter-pill" onclick="setBankDirectionFilter('OUTFLOW', this)">🔴 Debits (Outward)</button>
+                <button class="filter-pill" onclick="setBankDirectionFilter('CONTRA', this)">🔄 Inter-Bank</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <select id="bank-date-preset" class="form-select" onchange="onBankDatePresetChange()" style="width:140px;font-size:0.78rem;">
+                <option value="30">Last 30 Days</option>
+                <option value="7">Last 7 Days</option>
+                <option value="today">Today Only</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bank Flow Table -->
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:40px;text-align:center;">#</th>
+                  <th>Date & Time</th>
+                  <th>Voucher #</th>
+                  <th>Bank Account</th>
+                  <th>Flow Type</th>
+                  <th>Source ➔ Destination (Whose Money)</th>
+                  <th>Category</th>
+                  <th>Reference / UTR</th>
+                  <th style="text-align:right;">Amount (₹)</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="bank-flow-tbody">
+                <tr>
+                  <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Bank Flows…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL 1: ADD / EDIT BANK ACCOUNT -->
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="bank-modal">
+    <div class="modal">
+      <div class="modal-title" style="flex-direction:column;align-items:flex-start;gap:2px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <span id="bank-modal-title">🏦 Add Simulated Bank Account</span>
+          <button type="button" onclick="closeBankAccountModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">Internal ERP bookkeeping account. No real banking credentials or live API connection needed.</div>
+      </div>
+
+      <div style="display:flex;gap:6px;margin:8px 0 14px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:0.72rem;color:var(--text-muted);font-weight:600;">⚡ Quick Presets:</span>
+        <button type="button" onclick="fillSampleBank('HDFC')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">HDFC Bank</button>
+        <button type="button" onclick="fillSampleBank('ICICI')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">ICICI Bank</button>
+        <button type="button" onclick="fillSampleBank('SBI')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">State Bank of India</button>
+        <button type="button" onclick="fillSampleBank('AXIS')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">Axis Bank</button>
+        <button type="button" onclick="fillRandomSimulatedBank()" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.35);">🎲 Auto-Generate Dummy A/C</button>
+      </div>
+
+      <div id="bank-error" class="form-error"></div>
+      <form id="bank-form" onsubmit="saveBankAccount(event)">
+        <input type="hidden" id="bank-edit-id" />
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Bank Name *</label>
+            <input id="f-bank-name" class="form-input" type="text" placeholder="e.g. HDFC Bank, SBI, ICICI" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Name / Nickname *</label>
+            <input id="f-acc-name" class="form-input" type="text" placeholder="e.g. Primary Current A/C" required />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Account Number *</label>
+            <input id="f-acc-no" class="form-input" type="text" placeholder="e.g. 50200012345678" style="font-family:monospace;" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Type</label>
+            <select id="f-acc-type" class="form-select">
+              <option value="CURRENT">Current Account (चालू खाता)</option>
+              <option value="SAVINGS">Savings Account (बचत खाता)</option>
+              <option value="OVERDRAFT">Overdraft / Cash Credit (OD/CC)</option>
+              <option value="VIRTUAL">Virtual Collection Account</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">IFSC Code</label>
+            <input id="f-ifsc" class="form-input" type="text" placeholder="e.g. HDFC0001234" maxlength="11" style="text-transform:uppercase;font-family:monospace;" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Branch & City</label>
+            <input id="f-branch" class="form-input" type="text" placeholder="e.g. MG Road, Bengaluru" />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">UPI ID / VPA (Optional)</label>
+            <input id="f-upi" class="form-input" type="text" placeholder="e.g. company@hdfcbank" />
+          </div>
+          <div class="form-group" id="group-opening-bal">
+            <label class="form-label">Opening Balance (₹)</label>
+            <input id="f-opening-bal" class="form-input" type="number" min="0" step="any" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:var(--text);margin-top:6px;">
+            <input type="checkbox" id="f-is-default" style="width:16px;height:16px;accent-color:var(--primary);" />
+            <span>Set as primary default account for payments and collections</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notes / Remarks</label>
+          <input id="f-bank-notes" class="form-input" type="text" placeholder="e.g. For supplier payments and tax debits" />
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+          <button type="button" onclick="closeBankAccountModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btn-save-bank" style="background:var(--primary);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL 2: FUND TRANSFER (CONTRA) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="transfer-modal">
+    <div class="modal">
+      <div class="modal-title">
+        <span>🔄 Fund Transfer / Contra (खाता स्थानांतरण)</span>
+        <button type="button" onclick="closeTransferModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+      </div>
+      <div id="transfer-error" class="form-error"></div>
+      <form id="transfer-form" onsubmit="saveTransfer(event)">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Transfer From (स्रोत) *</label>
+            <select id="t-from-type" class="form-select" onchange="onTransferSourceChange()" required>
+              <option value="CASH">💵 Cash in Hand (Drawer)</option>
+              <option value="BANK">🏦 Bank Account</option>
+            </select>
+          </div>
+          <div class="form-group" id="t-from-bank-group" style="display:none;">
+            <label class="form-label">Select Source Bank *</label>
+            <select id="t-from-bank" class="form-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Transfer To (गंतव्य) *</label>
+            <select id="t-to-type" class="form-select" onchange="onTransferDestChange()" required>
+              <option value="BANK">🏦 Bank Account (Deposit / Inter-Bank)</option>
+              <option value="CASH">💵 Cash in Hand (Withdrawal)</option>
+            </select>
+          </div>
+          <div class="form-group" id="t-to-bank-group">
+            <label class="form-label">Select Destination Bank *</label>
+            <select id="t-to-bank" class="form-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Transfer Amount (₹) *</label>
+            <input id="t-amount" class="form-input" type="number" min="1" step="any" placeholder="e.g. 50000" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Transfer Date *</label>
+            <input id="t-date" class="form-input" type="date" required />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="form-label" style="margin:0;">Reference / UTR / Cheque #</label>
+              <button type="button" onclick="autoFillTransferRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+            </div>
+            <input id="t-ref" class="form-input" type="text" placeholder="e.g. IMPS-89912304 / DEP-SLIP-10293" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Remarks / Description</label>
+            <input id="t-notes" class="form-input" type="text" placeholder="e.g. Daily Cash Deposit to HDFC" />
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+          <button type="button" onclick="closeTransferModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btn-save-transfer" style="background:#38bdf8;color:#000;border:none;padding:8px 20px;border-radius:8px;font-weight:800;cursor:pointer;">Confirm Transfer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL 3: DIRECT INFLOW / OUTFLOW (QUICK ENTRY) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="quick-entry-modal">
+    <div class="modal">
+      <div class="modal-title">
+        <span id="qe-modal-title">⚡ Direct Money Inflow / Outflow</span>
+        <button type="button" onclick="closeQuickEntryModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+      </div>
+      <div id="qe-error" class="form-error"></div>
+      <form id="qe-form" onsubmit="saveQuickEntry(event)">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Direction *</label>
+            <select id="qe-direction" class="form-select" onchange="onQuickEntryDirectionChange()" required>
+              <option value="INFLOW">🟢 Money In (Inflow / Capital / Income)</option>
+              <option value="OUTFLOW">🔴 Money Out (Outflow / Expense / Drawings)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account *</label>
+            <select id="qe-account-type" class="form-select" onchange="onQuickEntryAccountChange()" required>
+              <option value="CASH">💵 Cash in Hand</option>
+              <option value="BANK">🏦 Bank Account</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="qe-bank-select-group" style="display:none;">
+          <label class="form-label">Select Bank Account *</label>
+          <select id="qe-bank-id" class="form-select">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Amount (₹) *</label>
+            <input id="qe-amount" class="form-input" type="number" min="1" step="any" placeholder="e.g. 25000" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category / Purpose *</label>
+            <select id="qe-category" class="form-select" required>
+              <option value="CAPITAL_INJECTION">Capital Injection / Owner Equity</option>
+              <option value="OWNER_DRAWINGS">Owner Drawings / Dividend</option>
+              <option value="RENT_AND_UTILITIES">Rent & Utilities</option>
+              <option value="SALARY_AND_WAGES">Salary & Wages</option>
+              <option value="OFFICE_EXPENSES">Office / Tea / Refreshment Expenses</option>
+              <option value="LOAN_RECEIVED">Loan / Borrowing Inflow</option>
+              <option value="LOAN_REPAYMENT">Loan Repayment Outflow</option>
+              <option value="BANK_CHARGES_TAX">Bank Charges & Taxes</option>
+              <option value="OTHER_INFLOW">Other Miscellaneous Inflow</option>
+              <option value="OTHER_OUTFLOW">Other Miscellaneous Outflow</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" id="qe-party-label">Received From / Payer Name</label>
+            <input id="qe-party-name" class="form-input" type="text" placeholder="e.g. Partner, Landlord, Office Boy" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date *</label>
+            <input id="qe-date" class="form-input" type="date" required />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Payment Mode</label>
+            <select id="qe-mode" class="form-select" onchange="onQuickEntryModeChange()">
+              <option value="CASH">💵 Cash</option>
+              <option value="UPI">📱 UPI / QR</option>
+              <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
+              <option value="NET_BANKING">🌐 Net Banking</option>
+              <option value="CHEQUE">📑 Cheque</option>
+              <option value="CARD">💳 Card</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="form-label" style="margin:0;">Reference # / UTR / Voucher</label>
+              <button type="button" onclick="autoFillQuickEntryRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+            </div>
+            <input id="qe-ref" class="form-input" type="text" placeholder="e.g. UPI/829104829102@okhdfc" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input id="qe-notes" class="form-input" type="text" placeholder="e.g. Office stationery & electricity bill payment" />
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+          <button type="button" onclick="closeQuickEntryModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btn-save-qe" style="background:var(--primary);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api';
+    let rawBankAccounts = [];
+    let cashFlowDirectionFilter = 'ALL';
+    let bankFlowDirectionFilter = 'ALL';
+    let cashSearchTimer = null;
+    let bankSearchTimer = null;
+
+    const H = () => {
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || '';
+      return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        ...(selectedTenant ? { 'X-Tenant-Id': selectedTenant } : {}),
+      };
+    };
+
+    function inr(n) {
+      const num = Number(n || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function toggleNavGroup(btn) {
+      const group = btn.closest('.nav-group');
+      if (group) group.classList.toggle('open');
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      if (sidebar) sidebar.classList.toggle('show');
+    }
+
+    function signOut() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    // Set Header Info
+    const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+    const mainNav = document.getElementById('main-nav-link');
+    if (mainNav) {
+      mainNav.href = user.isSuperAdmin ? 'dashboard.html' : 'company-dashboard.html';
+    }
+    const sideComp = document.getElementById('sidebar-company-name');
+    if (sideComp) {
+      sideComp.textContent = localStorage.getItem('selected_tenant_name') || user.companyName || 'WorkSpace';
+    }
+
+    // Tabs Switching
+    function switchFinTab(tab) {
+      document.querySelectorAll('.fin-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.fin-panel').forEach(p => p.classList.remove('active'));
+
+      if (tab === 'cash') {
+        document.getElementById('tab-btn-cash').classList.add('active');
+        document.getElementById('panel-cash').classList.add('active');
+        loadCashFlows();
+      } else {
+        document.getElementById('tab-btn-bank').classList.add('active');
+        document.getElementById('panel-bank').classList.add('active');
+        loadBankAccounts();
+        loadBankFlows();
+      }
+    }
+
+    // ─── LOAD FINANCIAL SUMMARY & KPIS ──────────────────────────────────────────
+    async function loadFinancialSummary() {
+      try {
+        const r = await fetch(`${API}/inventory/finance/summary`, { headers: H() });
+        if (!r.ok) return;
+        const json = await r.json();
+        const { cash = {}, bank = {}, overall = {} } = json.data || {};
+
+        // KPIs
+        const cashBalEl = document.getElementById('kpi-cash-bal');
+        const cashTodayEl = document.getElementById('kpi-cash-today');
+        const bankBalEl = document.getElementById('kpi-bank-bal');
+        const bankTagEl = document.getElementById('kpi-bank-count-tag');
+        const inTotEl = document.getElementById('kpi-inflow-total');
+        const outTotEl = document.getElementById('kpi-outflow-total');
+
+        if (cashBalEl) cashBalEl.textContent = inr(cash.balance || 0);
+        if (cashTodayEl) {
+          const tNet = cash.todayNet || 0;
+          cashTodayEl.textContent = `Today: ${tNet >= 0 ? '+' : ''}${inr(tNet)}`;
+          cashTodayEl.style.color = tNet >= 0 ? '#4ade80' : '#fb7185';
+        }
+
+        if (bankBalEl) bankBalEl.textContent = inr(bank.totalBalance || 0);
+        if (bankTagEl) bankTagEl.textContent = `${bank.activeCount || 0} Active A/Cs`;
+        if (inTotEl) inTotEl.textContent = inr(overall.totalInflow || 0);
+        if (outTotEl) outTotEl.textContent = inr(overall.totalOutflow || 0);
+      } catch (err) {
+        console.error('Failed to load financial summary:', err);
+      }
+    }
+
+    // ─── LOAD BANK ACCOUNTS ───────────────────────────────────────────────────
+    async function loadBankAccounts() {
+      const grid = document.getElementById('bank-cards-grid');
+      const selectFilter = document.getElementById('bank-filter-account');
+      const transferFromSelect = document.getElementById('t-from-bank');
+      const transferToSelect = document.getElementById('t-to-bank');
+      const qeBankSelect = document.getElementById('qe-bank-id');
+
+      try {
+        const r = await fetch(`${API}/inventory/finance/bank-accounts`, { headers: H() });
+        if (!r.ok) {
+          if (grid) grid.innerHTML = '<div style="color:var(--error);padding:20px;">Failed to load bank accounts.</div>';
+          return;
+        }
+        const json = await r.json();
+        rawBankAccounts = json.data?.accounts || [];
+
+        // Populate dropdowns
+        const bankOptionsHtml = rawBankAccounts.map(b => `<option value="${b._id}">${escHtml(b.bankName)} — ****${(b.accountNumber || '').slice(-4)} (${inr(b.currentBalance)})</option>`).join('');
+        if (transferFromSelect) transferFromSelect.innerHTML = bankOptionsHtml;
+        if (transferToSelect) transferToSelect.innerHTML = bankOptionsHtml;
+        if (qeBankSelect) qeBankSelect.innerHTML = bankOptionsHtml;
+        if (selectFilter) {
+          selectFilter.innerHTML = '<option value="">All Bank Accounts</option>' + rawBankAccounts.map(b => `<option value="${b._id}">${escHtml(b.bankName)} (****${(b.accountNumber || '').slice(-4)})</option>`).join('');
+        }
+
+        if (!rawBankAccounts.length) {
+          if (grid) grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;">
+              <div style="font-size:2.2rem;margin-bottom:8px;">🏦</div>
+              <div style="font-weight:700;color:var(--text);">No bank accounts added yet</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin:4px 0 16px;">Add your business current or savings accounts to track deposits, withdrawals & payments</div>
+              <button onclick="openBankAccountModal()" style="background:var(--primary);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">+ Add Your First Bank Account</button>
+            </div>
+          `;
+          return;
+        }
+
+        if (grid) {
+          grid.innerHTML = rawBankAccounts.map(b => {
+            const maskedAcc = b.accountNumberMasked || `•••• •••• ${(b.accountNumber || '').slice(-4)}`;
+            const isDef = b.isDefault;
+            return `
+              <div class="bank-card ${isDef ? 'is-default' : ''}">
+                <div>
+                  <div class="bank-card-header">
+                    <div style="display:flex;gap:10px;align-items:center;min-width:0;">
+                      <div class="bank-logo-box">🏛️</div>
+                      <div style="min-width:0;">
+                        <h3 class="bank-card-title">${escHtml(b.bankName)}</h3>
+                        <div class="bank-card-subtitle">${escHtml(b.accountName)}</div>
+                      </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                      ${isDef ? '<span class="tag-default">⭐ Primary</span>' : ''}
+                      <span class="tag-type">${escHtml(b.accountType)}</span>
+                    </div>
+                  </div>
+
+                  <div class="bank-acc-no">
+                    <span>${maskedAcc}</span>
+                    <button onclick="copyAccNo('${b.accountNumber}', this)" title="Copy Account Number" style="background:none;border:none;cursor:pointer;font-size:0.8rem;color:var(--text-muted);padding:2px 4px;">📋</button>
+                  </div>
+
+                  <div class="bank-meta-grid">
+                    <div class="bank-meta-item">
+                      <span>IFSC Code</span>
+                      <strong>${escHtml(b.ifscCode || '—')}</strong>
+                    </div>
+                    <div class="bank-meta-item">
+                      <span>Branch</span>
+                      <strong>${escHtml(b.branchName || 'Main')}</strong>
+                    </div>
+                    <div class="bank-meta-item">
+                      <span>UPI ID</span>
+                      <strong>${escHtml(b.upiId || '—')}</strong>
+                    </div>
+                    <div class="bank-meta-item">
+                      <span>Transactions</span>
+                      <strong>${b.transactionCount || 0} Total</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="bank-balance-box">
+                    <div>
+                      <div class="bank-bal-lbl">Available Balance</div>
+                      <div style="font-size:0.68rem;color:var(--text-muted);">In: ${inr(b.totalInflows)} · Out: ${inr(b.totalOutflows)}</div>
+                    </div>
+                    <div class="bank-bal-val">${inr(b.currentBalance)}</div>
+                  </div>
+
+                  <div class="bank-card-actions">
+                    <button onclick="filterByAccount('${b._id}')" class="btn-bank-action">🔍 Flow</button>
+                    <button onclick="openTransferForAccount('${b._id}')" class="btn-bank-action">🔄 Transfer</button>
+                    <button onclick="editBankAccount('${b._id}')" class="btn-bank-action">✏️ Edit</button>
+                    ${!isDef ? `<button onclick="setDefaultAccount('${b._id}')" class="btn-bank-action">⭐ Set Default</button>` : ''}
+                    <button onclick="deleteBankAccount('${b._id}')" class="btn-bank-action" style="color:#fb7185;">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load bank accounts:', err);
+      }
+    }
+
+    // ─── LOAD CASH FLOW STATEMENT ─────────────────────────────────────────────
+    async function loadCashFlows() {
+      const tbody = document.getElementById('cash-flow-tbody');
+      const search = (document.getElementById('cash-search')?.value || '').trim();
+      const preset = document.getElementById('cash-date-preset')?.value || '30';
+
+      let dateQuery = '';
+      if (preset === '7') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        dateQuery = `&startDate=${d.toISOString()}`;
+      } else if (preset === '30') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        dateQuery = `&startDate=${d.toISOString()}`;
+      } else if (preset === 'today') {
+        const d = new Date(); d.setHours(0, 0, 0, 0);
+        dateQuery = `&startDate=${d.toISOString()}`;
+      }
+
+      const url = `${API}/inventory/finance/flow?accountType=CASH&flowDirection=${cashFlowDirectionFilter}&search=${encodeURIComponent(search)}${dateQuery}&limit=100`;
+
+      try {
+        const r = await fetch(url, { headers: H() });
+        if (!r.ok) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--error);">Failed to load cash flow statement.</td></tr>';
+          return;
+        }
+        const json = await r.json();
+        const flows = json.data?.flows || [];
+
+        if (!flows.length) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:35px;color:var(--text-muted);">No cash flow records found matching filters.</td></tr>';
+          return;
+        }
+
+        if (tbody) {
+          tbody.innerHTML = flows.map((f, idx) => {
+            const isContra = f.direction === 'CONTRA';
+            const isInflow = f.direction === 'INFLOW';
+            const badgeCls = isContra ? 'flow-contra' : (isInflow ? 'flow-in' : 'flow-out');
+            const badgeIcon = isContra ? '🔄 CONTRA' : (isInflow ? '🟢 CASH IN' : '🔴 CASH OUT');
+            const dStr = f.date ? new Date(f.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+            const tStr = f.date ? new Date(f.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+
+            return `
+              <tr>
+                <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+                <td>
+                  <div style="font-weight:700;color:var(--text);">${dStr}</div>
+                  <div style="font-size:0.7rem;color:var(--text-muted);">${tStr}</div>
+                </td>
+                <td>
+                  <span style="font-family:monospace;font-weight:700;color:#a5b4fc;">${escHtml(f.voucherNo)}</span>
+                </td>
+                <td>
+                  <span class="flow-badge ${badgeCls}">${badgeIcon}</span>
+                </td>
+                <td>
+                  <div class="acc-flow-cell">
+                    <div class="acc-flow-from">From: <span>${escHtml(f.source)}</span></div>
+                    <div class="acc-flow-to">To: <span>${escHtml(f.destination)}</span></div>
+                  </div>
+                </td>
+                <td>
+                  <div style="font-weight:600;font-size:0.8rem;color:var(--text);">${escHtml(f.category ? f.category.replace(/_/g, ' ') : 'Cashflow')}</div>
+                  <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(f.partyName ? `Party: ${f.partyName}` : '')}</div>
+                </td>
+                <td>
+                  <span style="font-family:monospace;font-size:0.75rem;color:var(--text-muted);">${escHtml(f.referenceNo || '—')}</span>
+                </td>
+                <td style="text-align:right;font-family:monospace;">
+                  <span style="font-weight:800;font-size:0.95rem;color:${isInflow ? '#4ade80' : (isContra ? '#38bdf8' : '#fb7185')};">
+                    ${isInflow ? '+' : (isContra ? '±' : '-')}${inr(f.amount)}
+                  </span>
+                </td>
+                <td style="font-size:0.75rem;color:var(--text-muted);max-width:200px;">
+                  ${escHtml(f.notes || '—')}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load cash flows:', err);
+      }
+    }
+
+    // ─── LOAD BANK FLOW STATEMENT ─────────────────────────────────────────────
+    async function loadBankFlows() {
+      const tbody = document.getElementById('bank-flow-tbody');
+      const accFilter = document.getElementById('bank-filter-account')?.value || '';
+      const search = (document.getElementById('bank-search')?.value || '').trim();
+      const preset = document.getElementById('bank-date-preset')?.value || '30';
+
+      let dateQuery = '';
+      if (preset === '7') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        dateQuery = `&startDate=${d.toISOString()}`;
+      } else if (preset === '30') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        dateQuery = `&startDate=${d.toISOString()}`;
+      } else if (preset === 'today') {
+        const d = new Date(); d.setHours(0, 0, 0, 0);
+        dateQuery = `&startDate=${d.toISOString()}`;
+      }
+
+      const accParam = accFilter ? `&bankAccountId=${accFilter}` : '';
+      const url = `${API}/inventory/finance/flow?accountType=BANK&flowDirection=${bankFlowDirectionFilter}&search=${encodeURIComponent(search)}${accParam}${dateQuery}&limit=100`;
+
+      try {
+        const r = await fetch(url, { headers: H() });
+        if (!r.ok) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--error);">Failed to load bank flow statement.</td></tr>';
+          return;
+        }
+        const json = await r.json();
+        const flows = json.data?.flows || [];
+
+        if (!flows.length) {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:35px;color:var(--text-muted);">No bank flow records found matching filters.</td></tr>';
+          return;
+        }
+
+        if (tbody) {
+          tbody.innerHTML = flows.map((f, idx) => {
+            const isContra = f.direction === 'CONTRA';
+            const isInflow = f.direction === 'INFLOW';
+            const badgeCls = isContra ? 'flow-contra' : (isInflow ? 'flow-in' : 'flow-out');
+            const badgeIcon = isContra ? '🔄 CONTRA' : (isInflow ? '🟢 CREDIT (IN)' : '🔴 DEBIT (OUT)');
+            const dStr = f.date ? new Date(f.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+            const tStr = f.date ? new Date(f.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+            const bName = f.bankAccountDetails?.bankName ? `${f.bankAccountDetails.bankName} (****${(f.bankAccountDetails.accountNumber || '').slice(-4)})` : (f.accountLabel || 'Bank A/C');
+
+            return `
+              <tr>
+                <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+                <td>
+                  <div style="font-weight:700;color:var(--text);">${dStr}</div>
+                  <div style="font-size:0.7rem;color:var(--text-muted);">${tStr}</div>
+                </td>
+                <td>
+                  <span style="font-family:monospace;font-weight:700;color:#a5b4fc;">${escHtml(f.voucherNo)}</span>
+                </td>
+                <td>
+                  <div style="font-weight:700;color:#38bdf8;font-size:0.8rem;">${escHtml(bName)}</div>
+                  <div style="font-size:0.7rem;color:var(--text-muted);">${escHtml(f.paymentMode || 'ONLINE')}</div>
+                </td>
+                <td>
+                  <span class="flow-badge ${badgeCls}">${badgeIcon}</span>
+                </td>
+                <td>
+                  <div class="acc-flow-cell">
+                    <div class="acc-flow-from">From: <span>${escHtml(f.source)}</span></div>
+                    <div class="acc-flow-to">To: <span>${escHtml(f.destination)}</span></div>
+                  </div>
+                </td>
+                <td>
+                  <div style="font-weight:600;font-size:0.8rem;color:var(--text);">${escHtml(f.category ? f.category.replace(/_/g, ' ') : 'Bank Transfer')}</div>
+                </td>
+                <td>
+                  <span style="font-family:monospace;font-size:0.75rem;color:#e2e8f0;">${escHtml(f.referenceNo || '—')}</span>
+                </td>
+                <td style="text-align:right;font-family:monospace;">
+                  <span style="font-weight:800;font-size:0.95rem;color:${isInflow ? '#4ade80' : (isContra ? '#38bdf8' : '#fb7185')};">
+                    ${isInflow ? '+' : (isContra ? '±' : '-')}${inr(f.amount)}
+                  </span>
+                </td>
+                <td style="font-size:0.75rem;color:var(--text-muted);max-width:200px;">
+                  ${escHtml(f.notes || '—')}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load bank flows:', err);
+      }
+    }
+
+    // Filter Helpers
+    function setCashDirectionFilter(dir, btn) {
+      cashFlowDirectionFilter = dir;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      loadCashFlows();
+    }
+
+    function setBankDirectionFilter(dir, btn) {
+      bankFlowDirectionFilter = dir;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      loadBankFlows();
+    }
+
+    function debounceCashSearch() {
+      clearTimeout(cashSearchTimer);
+      cashSearchTimer = setTimeout(loadCashFlows, 300);
+    }
+
+    function debounceBankSearch() {
+      clearTimeout(bankSearchTimer);
+      bankSearchTimer = setTimeout(loadBankFlows, 300);
+    }
+
+    function onCashDatePresetChange() { loadCashFlows(); }
+    function onBankDatePresetChange() { loadBankFlows(); }
+
+    function filterByAccount(accId) {
+      const select = document.getElementById('bank-filter-account');
+      if (select) select.value = accId;
+      loadBankFlows();
+    }
+
+    function copyAccNo(accNo, btn) {
+      navigator.clipboard.writeText(accNo).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '✅';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      });
+    }
+
+    function fillSampleBank(type) {
+      const randNum = Math.floor(1000000000 + Math.random() * 9000000000);
+      if (type === 'HDFC') {
+        document.getElementById('f-bank-name').value = 'HDFC Bank';
+        document.getElementById('f-acc-name').value = 'HDFC Main Operational A/C';
+        document.getElementById('f-acc-no').value = `5020${randNum}`;
+        document.getElementById('f-acc-type').value = 'CURRENT';
+        document.getElementById('f-ifsc').value = 'HDFC0000123';
+        document.getElementById('f-branch').value = 'Koramangala, Bengaluru';
+        document.getElementById('f-upi').value = 'company@hdfcbank';
+        document.getElementById('f-opening-bal').value = '150000';
+      } else if (type === 'ICICI') {
+        document.getElementById('f-bank-name').value = 'ICICI Bank';
+        document.getElementById('f-acc-name').value = 'ICICI Vendor Payouts A/C';
+        document.getElementById('f-acc-no').value = `9190${randNum}`;
+        document.getElementById('f-acc-type').value = 'CURRENT';
+        document.getElementById('f-ifsc').value = 'ICIC0001040';
+        document.getElementById('f-branch').value = 'Bandra Kurla Complex, Mumbai';
+        document.getElementById('f-upi').value = 'company@icici';
+        document.getElementById('f-opening-bal').value = '85000';
+      } else if (type === 'SBI') {
+        document.getElementById('f-bank-name').value = 'State Bank of India';
+        document.getElementById('f-acc-name').value = 'SBI Main Branch Current A/C';
+        document.getElementById('f-acc-no').value = `3001${randNum}`;
+        document.getElementById('f-acc-type').value = 'CURRENT';
+        document.getElementById('f-ifsc').value = 'SBIN0000691';
+        document.getElementById('f-branch').value = 'Connaught Place, New Delhi';
+        document.getElementById('f-upi').value = 'company@sbi';
+        document.getElementById('f-opening-bal').value = '200000';
+      } else if (type === 'AXIS') {
+        document.getElementById('f-bank-name').value = 'Axis Bank';
+        document.getElementById('f-acc-name').value = 'Axis Retail Collections A/C';
+        document.getElementById('f-acc-no').value = `9200${randNum}`;
+        document.getElementById('f-acc-type').value = 'CURRENT';
+        document.getElementById('f-ifsc').value = 'UTIB0000004';
+        document.getElementById('f-branch').value = 'Central Mall, Pune';
+        document.getElementById('f-upi').value = 'company@axisbank';
+        document.getElementById('f-opening-bal').value = '50000';
+      }
+    }
+
+    function fillRandomSimulatedBank() {
+      const banks = [
+        { name: 'HDFC Bank', prefix: '5020', ifsc: 'HDFC0000123', branch: 'Koramangala, Bengaluru', upi: '@hdfcbank' },
+        { name: 'ICICI Bank', prefix: '9190', ifsc: 'ICIC0001040', branch: 'Indiranagar, Bengaluru', upi: '@icici' },
+        { name: 'State Bank of India', prefix: '3001', ifsc: 'SBIN0000691', branch: 'Connaught Place, New Delhi', upi: '@sbi' },
+        { name: 'Axis Bank', prefix: '9200', ifsc: 'UTIB0000004', branch: 'Bandra West, Mumbai', upi: '@axisbank' },
+        { name: 'Kotak Mahindra Bank', prefix: '7819', ifsc: 'KKBK0000214', branch: 'MG Road, Pune', upi: '@kotak' },
+      ];
+      const selected = banks[Math.floor(Math.random() * banks.length)];
+      const rand8 = Math.floor(10000000 + Math.random() * 90000000);
+      document.getElementById('f-bank-name').value = selected.name;
+      document.getElementById('f-acc-name').value = `${selected.name.split(' ')[0]} Operating Current A/C`;
+      document.getElementById('f-acc-no').value = `${selected.prefix}${rand8}`;
+      document.getElementById('f-acc-type').value = 'CURRENT';
+      document.getElementById('f-ifsc').value = selected.ifsc;
+      document.getElementById('f-branch').value = selected.branch;
+      document.getElementById('f-upi').value = `company${selected.upi}`;
+      document.getElementById('f-opening-bal').value = '100000';
+    }
+
+    // ─── SMART REFERENCE ID AUTO-GENERATORS ────────────────────────────────────
+    function generateSmartRef(mode, category = '') {
+      const rand6 = Math.floor(100000 + Math.random() * 900000);
+      const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
+      if (category === 'CASH_DEPOSIT_BANK') return `DEP-SLIP-${rand6}`;
+      if (category === 'CASH_WITHDRAWAL_BANK') return `CHQ-${rand6}`;
+      if (category === 'INTER_BANK_TRANSFER') return `IMPS-${rand12}`;
+      if (mode === 'UPI') return `UPI/${rand12}@okhdfc`;
+      if (mode === 'NEFT_RTGS') return `HDFCN${rand6}`;
+      if (mode === 'NET_BANKING') return `IMPS-${rand12}`;
+      if (mode === 'CHEQUE') return `CHQ-${rand6}`;
+      if (mode === 'CARD') return `POS-TXN-${rand6}`;
+      if (mode === 'CASH') return `CASH-RCPT-${rand6}`;
+      return `TXN-${rand6}`;
+    }
+
+    function autoFillTransferRef() {
+      const fromType = document.getElementById('t-from-type').value;
+      const toType = document.getElementById('t-to-type').value;
+      let cat = 'INTER_BANK_TRANSFER';
+      if (fromType === 'CASH' && toType === 'BANK') cat = 'CASH_DEPOSIT_BANK';
+      else if (fromType === 'BANK' && toType === 'CASH') cat = 'CASH_WITHDRAWAL_BANK';
+      document.getElementById('t-ref').value = generateSmartRef('NET_BANKING', cat);
+    }
+
+    function autoFillQuickEntryRef() {
+      const mode = document.getElementById('qe-mode').value;
+      document.getElementById('qe-ref').value = generateSmartRef(mode);
+    }
+
+    function onQuickEntryModeChange() {
+      autoFillQuickEntryRef();
+    }
+
+    // ─── MODAL 1: BANK ACCOUNT CRUD ──────────────────────────────────────────
+    function openBankAccountModal(acc = null) {
+      document.getElementById('bank-modal-title').textContent = acc ? '✏️ Edit Bank Account' : '🏦 Add Bank Account';
+      document.getElementById('bank-edit-id').value = acc?._id || '';
+      document.getElementById('f-bank-name').value = acc?.bankName || '';
+      document.getElementById('f-acc-name').value = acc?.accountName || '';
+      document.getElementById('f-acc-no').value = acc?.accountNumber || '';
+      document.getElementById('f-acc-type').value = acc?.accountType || 'CURRENT';
+      document.getElementById('f-ifsc').value = acc?.ifscCode || '';
+      document.getElementById('f-branch').value = acc?.branchName || '';
+      document.getElementById('f-upi').value = acc?.upiId || '';
+      document.getElementById('f-opening-bal').value = acc?.openingBalance || '';
+      document.getElementById('f-is-default').checked = Boolean(acc?.isDefault);
+      document.getElementById('f-bank-notes').value = acc?.notes || '';
+
+      const obGroup = document.getElementById('group-opening-bal');
+      if (obGroup) obGroup.style.display = acc ? 'none' : 'block';
+
+      document.getElementById('bank-error').style.display = 'none';
+      document.getElementById('bank-modal').classList.add('show');
+    }
+
+    function closeBankAccountModal() {
+      document.getElementById('bank-modal').classList.remove('show');
+    }
+
+    function editBankAccount(id) {
+      const acc = rawBankAccounts.find(x => x._id === id);
+      if (acc) openBankAccountModal(acc);
+    }
+
+    async function saveBankAccount(e) {
+      e.preventDefault();
+      const id = document.getElementById('bank-edit-id').value;
+      const btn = document.getElementById('btn-save-bank');
+      const errEl = document.getElementById('bank-error');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+
+      const body = {
+        bankName: document.getElementById('f-bank-name').value.trim(),
+        accountName: document.getElementById('f-acc-name').value.trim(),
+        accountNumber: document.getElementById('f-acc-no').value.trim(),
+        accountType: document.getElementById('f-acc-type').value,
+        ifscCode: document.getElementById('f-ifsc').value.trim().toUpperCase(),
+        branchName: document.getElementById('f-branch').value.trim(),
+        upiId: document.getElementById('f-upi').value.trim(),
+        openingBalance: Number(document.getElementById('f-opening-bal').value) || 0,
+        isDefault: document.getElementById('f-is-default').checked,
+        notes: document.getElementById('f-bank-notes').value.trim(),
+      };
+
+      try {
+        const url = id ? `${API}/inventory/finance/bank-accounts/${id}` : `${API}/inventory/finance/bank-accounts`;
+        const method = id ? 'PUT' : 'POST';
+        const r = await fetch(url, { method, headers: H(), body: JSON.stringify(body) });
+        const json = await r.json();
+
+        if (!r.ok) {
+          errEl.textContent = json.message || 'Failed to save bank account';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        closeBankAccountModal();
+        loadFinancialSummary();
+        loadBankAccounts();
+        loadBankFlows();
+      } catch (err) {
+        errEl.textContent = 'Server connection error.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.textContent = 'Save Account';
+        btn.disabled = false;
+      }
+    }
+
+    async function setDefaultAccount(id) {
+      try {
+        const r = await fetch(`${API}/inventory/finance/bank-accounts/${id}/set-default`, { method: 'PUT', headers: H() });
+        const json = await r.json();
+        if (r.ok) {
+          loadBankAccounts();
+        } else {
+          alert(json.message || 'Failed to set default account');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function deleteBankAccount(id) {
+      const acc = rawBankAccounts.find(x => x._id === id);
+      const name = acc ? `${acc.bankName} (${acc.accountNumber})` : 'this account';
+      if (!confirm(`Are you sure you want to delete ${name}?`)) return;
+
+      try {
+        const r = await fetch(`${API}/inventory/finance/bank-accounts/${id}`, { method: 'DELETE', headers: H() });
+        const json = await r.json();
+        if (r.ok) {
+          loadFinancialSummary();
+          loadBankAccounts();
+          loadBankFlows();
+        } else {
+          alert(json.message || 'Failed to delete bank account');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ─── MODAL 2: FUND TRANSFER (CONTRA) ──────────────────────────────────────
+    function openTransferModal(fromType = 'CASH', toType = 'BANK', fromBankId = null, toBankId = null) {
+      document.getElementById('t-from-type').value = fromType;
+      document.getElementById('t-to-type').value = toType;
+      document.getElementById('t-amount').value = '';
+      document.getElementById('t-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('t-notes').value = '';
+
+      onTransferSourceChange();
+      onTransferDestChange();
+      autoFillTransferRef();
+
+      if (fromBankId) document.getElementById('t-from-bank').value = fromBankId;
+      if (toBankId) document.getElementById('t-to-bank').value = toBankId;
+
+      document.getElementById('transfer-error').style.display = 'none';
+      document.getElementById('transfer-modal').classList.add('show');
+    }
+
+    function closeTransferModal() {
+      document.getElementById('transfer-modal').classList.remove('show');
+    }
+
+    function onTransferSourceChange() {
+      const type = document.getElementById('t-from-type').value;
+      const group = document.getElementById('t-from-bank-group');
+      if (group) group.style.display = type === 'BANK' ? 'block' : 'none';
+      autoFillTransferRef();
+    }
+
+    function onTransferDestChange() {
+      const type = document.getElementById('t-to-type').value;
+      const group = document.getElementById('t-to-bank-group');
+      if (group) group.style.display = type === 'BANK' ? 'block' : 'none';
+      autoFillTransferRef();
+    }
+
+    function openTransferForAccount(accId) {
+      openTransferModal('BANK', 'CASH', accId);
+    }
+
+    function quickCashTransfer(type) {
+      if (type === 'DEPOSIT') {
+        openTransferModal('CASH', 'BANK');
+      } else {
+        openTransferModal('BANK', 'CASH');
+      }
+    }
+
+    async function saveTransfer(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-transfer');
+      const errEl = document.getElementById('transfer-error');
+      btn.textContent = 'Transferring…'; btn.disabled = true;
+
+      const fromType = document.getElementById('t-from-type').value;
+      const toType = document.getElementById('t-to-type').value;
+      const fromBankId = fromType === 'BANK' ? document.getElementById('t-from-bank').value : null;
+      const toBankId = toType === 'BANK' ? document.getElementById('t-to-bank').value : null;
+
+      const body = {
+        fromType,
+        fromBankAccountId: fromBankId,
+        toType,
+        toBankAccountId: toBankId,
+        amount: Number(document.getElementById('t-amount').value),
+        transferDate: document.getElementById('t-date').value,
+        referenceNo: document.getElementById('t-ref').value.trim(),
+        notes: document.getElementById('t-notes').value.trim(),
+      };
+
+      try {
+        const r = await fetch(`${API}/inventory/finance/transfer`, {
+          method: 'POST',
+          headers: H(),
+          body: JSON.stringify(body),
+        });
+        const json = await r.json();
+
+        if (!r.ok) {
+          errEl.textContent = json.message || 'Failed to complete fund transfer';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        closeTransferModal();
+        loadFinancialSummary();
+        loadBankAccounts();
+        loadCashFlows();
+        loadBankFlows();
+      } catch (err) {
+        errEl.textContent = 'Server connection error.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.textContent = 'Confirm Transfer';
+        btn.disabled = false;
+      }
+    }
+
+    // ─── MODAL 3: QUICK ENTRY (DIRECT INFLOW / OUTFLOW) ────────────────────────
+    function openQuickEntryModal(direction = 'INFLOW', accountType = 'CASH') {
+      document.getElementById('qe-direction').value = direction;
+      document.getElementById('qe-account-type').value = accountType;
+      document.getElementById('qe-amount').value = '';
+      document.getElementById('qe-party-name').value = '';
+      document.getElementById('qe-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('qe-notes').value = '';
+
+      onQuickEntryDirectionChange();
+      onQuickEntryAccountChange();
+      autoFillQuickEntryRef();
+
+      document.getElementById('qe-error').style.display = 'none';
+      document.getElementById('quick-entry-modal').classList.add('show');
+    }
+
+    function closeQuickEntryModal() {
+      document.getElementById('quick-entry-modal').classList.remove('show');
+    }
+
+    function onQuickEntryDirectionChange() {
+      const dir = document.getElementById('qe-direction').value;
+      const lbl = document.getElementById('qe-party-label');
+      if (lbl) {
+        lbl.textContent = dir === 'INFLOW' ? 'Received From / Payer Name' : 'Paid To / Payee Name';
+      }
+    }
+
+    function onQuickEntryAccountChange() {
+      const acc = document.getElementById('qe-account-type').value;
+      const group = document.getElementById('qe-bank-select-group');
+      if (group) group.style.display = acc === 'BANK' ? 'block' : 'none';
+    }
+
+    function quickCashAction(direction) {
+      openQuickEntryModal(direction, 'CASH');
+    }
+
+    async function saveQuickEntry(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-qe');
+      const errEl = document.getElementById('qe-error');
+      btn.textContent = 'Recording…'; btn.disabled = true;
+
+      const accountType = document.getElementById('qe-account-type').value;
+      const bankAccountId = accountType === 'BANK' ? document.getElementById('qe-bank-id').value : null;
+
+      const body = {
+        direction: document.getElementById('qe-direction').value,
+        accountType,
+        bankAccountId,
+        amount: Number(document.getElementById('qe-amount').value),
+        category: document.getElementById('qe-category').value,
+        partyName: document.getElementById('qe-party-name').value.trim(),
+        paymentMode: document.getElementById('qe-mode').value,
+        referenceNo: document.getElementById('qe-ref').value.trim(),
+        paymentDate: document.getElementById('qe-date').value,
+        notes: document.getElementById('qe-notes').value.trim(),
+      };
+
+      try {
+        const r = await fetch(`${API}/inventory/finance/quick-entry`, {
+          method: 'POST',
+          headers: H(),
+          body: JSON.stringify(body),
+        });
+        const json = await r.json();
+
+        if (!r.ok) {
+          errEl.textContent = json.message || 'Failed to record entry';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        closeQuickEntryModal();
+        loadFinancialSummary();
+        loadBankAccounts();
+        loadCashFlows();
+        loadBankFlows();
+      } catch (err) {
+        errEl.textContent = 'Server connection error.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.textContent = 'Save Entry';
+        btn.disabled = false;
+      }
+    }
+
+    // Modal Backdrop Click Safety
+    ['bank-modal', 'transfer-modal', 'quick-entry-modal'].forEach(modalId => {
+      const modalOverlay = document.getElementById(modalId);
+      if (!modalOverlay) return;
+      let isBackdropDown = false;
+      modalOverlay.addEventListener('mousedown', e => {
+        isBackdropDown = (e.target === modalOverlay);
+      });
+      modalOverlay.addEventListener('mouseup', e => {
+        if (isBackdropDown && e.target === modalOverlay) {
+          modalOverlay.classList.remove('show');
+        }
+        isBackdropDown = false;
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFinancialSummary();
+      loadBankAccounts();
+      loadCashFlows();
+    });
+  </script>
+</body>
+
+</html>

@@ -100,7 +100,51 @@
 
 ---
 
-## 7. Reports & Analytics (`/api/inventory/reports`)
+## 7. Finance, Multi-Bank & Cash Management (`/api/inventory/finance`)
+- `GET /api/inventory/finance/summary`: Aggregated executive financial summary including:
+  - `liquidAssets`: Total liquid capital (Cash in Hand + Total Active Bank Balances) in INR.
+  - `cash`: `{ balance, totalInflow, totalOutflow, todayInflow, todayOutflow, todayNet }`
+  - `bank`: `{ totalBalance, totalInflows, totalOutflows, accountCount, activeCount, accounts: [ ... ] }`
+  - `overall`: `{ totalInflow, totalOutflow, netCashflow }`
+- `GET /api/inventory/finance/bank-accounts`: List all registered bank accounts for the active company with computed live balances, inflows, outflows, transaction counts, and default indicator.
+- `POST /api/inventory/finance/bank-accounts`: Register new bank account with account number duplicate validation, IFSC, branch, UPI ID, and optional opening balance.
+```json
+{
+  "bankName": "HDFC Bank",
+  "accountName": "Primary Current Account",
+  "accountNumber": "50200012345678",
+  "ifscCode": "HDFC0001234",
+  "branchName": "Koramangala, Bengaluru",
+  "accountType": "CURRENT" | "SAVINGS" | "OVERDRAFT" | "CASH_CREDIT" | "VIRTUAL",
+  "upiId": "company@hdfcbank",
+  "openingBalance": 150000,
+  "isDefault": true,
+  "notes": "Main operational collections account"
+}
+```
+- `GET /api/inventory/finance/bank-accounts/:id`: Get bank account profile and recent transactions.
+- `PUT /api/inventory/finance/bank-accounts/:id`: Update bank account details (name, IFSC, branch, UPI, type, status, isDefault).
+- `DELETE /api/inventory/finance/bank-accounts/:id`: Soft-delete bank account.
+- `PUT /api/inventory/finance/bank-accounts/:id/set-default`: Set primary default account for payments and collections.
+- `GET /api/inventory/finance/flow?accountType=ALL|CASH|BANK&bankAccountId=...&flowDirection=ALL|INFLOW|OUTFLOW|CONTRA&startDate=...&endDate=...&search=...&page=1&limit=100`: Query unified money flow ledger tracing exact source (`source`), destination (`destination`), voucher, category, amount, UTR, and running balances.
+- `POST /api/inventory/finance/transfer`: Record Contra fund transfer between Cash and Bank, or Inter-Bank transfers with double-entry ledger attribution:
+```json
+{
+  "fromType": "CASH" | "BANK",
+  "fromBankAccountId": "ObjectId (required if fromType is BANK)",
+  "toType": "CASH" | "BANK",
+  "toBankAccountId": "ObjectId (required if toType is BANK)",
+  "amount": 50000,
+  "transferDate": "2026-08-29T12:00:00.000Z",
+  "referenceNo": "UTR1234567890",
+  "notes": "Daily Cash Counter Deposit"
+}
+```
+- `POST /api/inventory/finance/quick-entry`: Record direct cash or bank inflow/outflow entry with custom party and category attribution.
+
+---
+
+## 8. Reports & Analytics (`/api/inventory/reports`)
 - `GET /api/inventory/reports/dashboard-kpis`: Executive trading and liquidity overview. Returns:
   - `total`: `{ items, suppliers, customers }`
   - `outstanding`: `{ suppliers: { payed, due }, customers: { recieved, due } }`

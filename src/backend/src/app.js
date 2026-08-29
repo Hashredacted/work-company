@@ -27,7 +27,9 @@ const { errorHandler } = require('./middlewares/error');
 
 const app = express();
 
-// ─── Security Headers (Helmet) ───────────────────────────────────────────────
+// ─── Zero-Leak HTTP Security Hardening ─────────────────────────────────────────
+app.disable('x-powered-by'); // Never expose Express server technology
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -45,8 +47,18 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false,
+    frameguard: { action: 'deny' }, // Anti-clickjacking
+    noSniff: true,                  // X-Content-Type-Options: nosniff
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   })
 );
+
+// Custom Permissions-Policy Header
+app.use((_req, res, next) => {
+  res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
+  next();
+});
 
 // ─── Core Middleware ─────────────────────────────────────────────────────────
 app.use(cors());

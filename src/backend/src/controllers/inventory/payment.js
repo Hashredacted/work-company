@@ -2,11 +2,13 @@
 
 const mongoose          = require('mongoose');
 const PaymentTransaction = require('../../models/inv/PaymentTransaction');
+const BankAccount        = require('../../models/inv/BankAccount');
 const Customer          = require('../../models/inv/Customer');
 const Supplier          = require('../../models/inv/Supplier');
 const Tenant            = require('../../models/Tenant');
 const AuditLog          = require('../../models/AuditLog');
 const { nextSeq }       = require('../../utils/sequence');
+const { decrypt, mask } = require('../../utils/encryption');
 
 // ─── GET /api/inventory/payments/pending-bills ────────────────────────────────
 async function getPendingBills(req, res, next) {
@@ -87,6 +89,7 @@ async function recordPayment(req, res, next) {
       paymentDate,
       referenceNo,
       bankAccount,
+      bankAccountId,
       notes,
       allocations, // Array of { billId, amount }
       autoKnockoff, // Boolean (FIFO knockoff)
@@ -261,6 +264,58 @@ async function recordPayment(req, res, next) {
       finalNotes = `${finalNotes} [Settled: ${summaryText}]`;
     }
 
+    let resolvedBankAccountId = null;
+    let resolvedBankAccountName = bankAccount || null;
+    if (bankAccountId && mongoose.Types.ObjectId.isValid(bankAccountId)) {
+      const bObj = await BankAccount.findOne({ _id: bankAccountId, tenantId: req.tenantId, deletedAt: null });
+      if (bObj) {
+        resolvedBankAccountId = bObj._id;
+        resolvedBankAccountName = `${bObj.bankName} (****${(bObj.accountNumber || '').slice(-4)})`;
+      }
+    } else if (paymentMode !== 'CASH') {
+      let defBank = await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true, isDefault: true }) || await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true });
+      if (!defBank) {
+        const randAcc = '5010' + Math.floor(10000000 + Math.random() * 90000000);
+        defBank = await BankAccount.create({
+          tenantId: req.tenantId,
+          bankName: 'Main Business Bank A/C',
+          accountName: 'Primary Operating Account',
+          accountNumber: randAcc,
+          ifscCode: 'HDFC0000123',
+          branchName: 'Main Branch',
+          accountType: 'CURRENT',
+          upiId: '',
+          openingBalance: 0,
+          isDefault: true,
+          isActive: true,
+          notes: 'Default operational bank account. You can edit this bank name, account number, and details anytime in Finance Master.',
+        });
+      }
+      if (defBank) {
+        resolvedBankAccountId = defBank._id;
+        const plainAcc = decrypt(defBank.accountNumber);
+        resolvedBankAccountName = `${defBank.bankName} (****${plainAcc.slice(-4)})`;
+      }
+    }
+
+    const isCashMode = (paymentMode || 'UPI') === 'CASH';
+    const acctDisplayName = isCashMode ? 'Cash in Hand' : (resolvedBankAccountName || 'Bank Account');
+    const sourceName = partyType === 'CUSTOMER' ? party.name : acctDisplayName;
+    const destinationName = partyType === 'CUSTOMER' ? acctDisplayName : party.name;
+
+    const modeToUse = paymentMode || 'UPI';
+    const rand6 = Math.floor(100000 + Math.random() * 900000);
+    const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
+    let autoRef = `TXN-${rand6}`;
+    if (modeToUse === 'UPI') autoRef = `UPI/${rand12}@okhdfc`;
+    else if (modeToUse === 'NEFT_RTGS') autoRef = `HDFCN${rand6}`;
+    else if (modeToUse === 'NET_BANKING') autoRef = `IMPS-${rand12}`;
+    else if (modeToUse === 'CHEQUE') autoRef = `CHQ-${rand6}`;
+    else if (modeToUse === 'CARD') autoRef = `POS-TXN-${rand6}`;
+    else if (modeToUse === 'CASH') autoRef = `CASH-RCPT-${rand6}`;
+
+    const finalRef = referenceNo ? referenceNo.trim() : autoRef;
+
     const txn = await PaymentTransaction.create({
       tenantId: req.tenantId,
       voucherNo,
@@ -269,10 +324,14 @@ async function recordPayment(req, res, next) {
       partyModel,
       txnType,
       amount: numAmount,
-      paymentMode: paymentMode || 'UPI',
+      paymentMode: modeToUse,
       paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
-      referenceNo: referenceNo || null,
-      bankAccount: bankAccount || null,
+      referenceNo: finalRef,
+      bankAccount: resolvedBankAccountName,
+      bankAccountId: resolvedBankAccountId,
+      sourceName,
+      destinationName,
+      transferType: partyType === 'CUSTOMER' ? 'PARTY_RECEIPT' : 'PARTY_PAYMENT',
       notes: finalNotes,
       allocatedBills,
       createdBy: req.user._id,
@@ -335,11 +394,12 @@ async function recordOutsideCashflow(req, res, next) {
       partyName = '',
       referenceNo = '',
       bankAccount = '',
+      bankAccountId,
       notes = '',
       paymentDate,
     } = req.body;
 
-    const rawTenant = req.query.tenantId || req.headers['x-tenant-id'];
+    const rawTenant = req.query?.tenantId || req.headers?.['x-tenant-id'];
     const targetTenantId = (rawTenant && req.isSuperAdmin)
       ? new mongoose.Types.ObjectId(rawTenant)
       : (req.tenantId ? new mongoose.Types.ObjectId(req.tenantId) : null);
@@ -359,8 +419,46 @@ async function recordOutsideCashflow(req, res, next) {
 
     const voucherNo = await nextSeq(targetTenantId, prefix);
 
-    const validModes = ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD'];
+    const validModes = ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD', 'TRANSFER'];
     const validMode = validModes.includes(paymentMode) ? paymentMode : 'CASH';
+
+    let resolvedBankAccountId = null;
+    let resolvedBankAccountName = bankAccount ? bankAccount.trim() : null;
+
+    if (bankAccountId && mongoose.Types.ObjectId.isValid(bankAccountId)) {
+      const bObj = await BankAccount.findOne({ _id: bankAccountId, tenantId: targetTenantId, deletedAt: null });
+      if (bObj) {
+        resolvedBankAccountId = bObj._id;
+        const plainAcc = decrypt(bObj.accountNumber);
+        resolvedBankAccountName = `${bObj.bankName} (****${plainAcc.slice(-4)})`;
+      }
+    } else if (validMode !== 'CASH') {
+      const defBank = await BankAccount.findOne({ tenantId: targetTenantId, deletedAt: null, isActive: true, isDefault: true })
+        || await BankAccount.findOne({ tenantId: targetTenantId, deletedAt: null, isActive: true });
+      if (defBank) {
+        resolvedBankAccountId = defBank._id;
+        const plainAcc = decrypt(defBank.accountNumber);
+        resolvedBankAccountName = `${defBank.bankName} (****${plainAcc.slice(-4)})`;
+      }
+    }
+
+    const isCashMode = validMode === 'CASH';
+    const accountDisplayName = isCashMode ? 'Cash Register' : (resolvedBankAccountName || 'Bank Account');
+    const pName = partyName ? partyName.trim() : (isAdd ? 'External Capital / Inflow' : 'Operating Expense / Outflow');
+    const sourceName = isAdd ? pName : accountDisplayName;
+    const destinationName = isAdd ? accountDisplayName : pName;
+
+    const rand6_oc = Math.floor(100000 + Math.random() * 900000);
+    const rand12_oc = Math.floor(100000000000 + Math.random() * 900000000000);
+    let autoRef_oc = `TXN-${rand6_oc}`;
+    if (validMode === 'UPI') autoRef_oc = `UPI/${rand12_oc}@okhdfc`;
+    else if (validMode === 'NEFT_RTGS') autoRef_oc = `HDFCN${rand6_oc}`;
+    else if (validMode === 'NET_BANKING') autoRef_oc = `IMPS-${rand12_oc}`;
+    else if (validMode === 'CHEQUE') autoRef_oc = `CHQ-${rand6_oc}`;
+    else if (validMode === 'CARD') autoRef_oc = `POS-TXN-${rand6_oc}`;
+    else if (validMode === 'CASH') autoRef_oc = `CASH-RCPT-${rand6_oc}`;
+
+    const finalRef = referenceNo ? referenceNo.trim() : autoRef_oc;
 
     const txn = await PaymentTransaction.create({
       tenantId: targetTenantId,
@@ -368,15 +466,19 @@ async function recordOutsideCashflow(req, res, next) {
       partyType: 'OTHER',
       partyId: null,
       partyModel: null,
-      partyName: partyName ? partyName.trim() : (isAdd ? 'External Capital / Inflow' : 'Operating Expense / Outflow'),
+      partyName: pName,
       txnType,
       isOutsideCashflow: true,
       cashflowCategory: category,
       amount: numAmount,
       paymentMode: validMode,
       paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
-      referenceNo: referenceNo ? referenceNo.trim() : null,
-      bankAccount: bankAccount ? bankAccount.trim() : null,
+      referenceNo: finalRef,
+      bankAccount: resolvedBankAccountName,
+      bankAccountId: resolvedBankAccountId,
+      sourceName,
+      destinationName,
+      transferType: isAdd ? 'OUTSIDE_INFLOW' : 'OUTSIDE_OUTFLOW',
       notes: notes ? notes.trim() : (isAdd ? `Outside Cash Inflow: ${category}` : `Outside Cash Outflow: ${category}`),
       createdBy: req.user?._id || req.userId,
     });

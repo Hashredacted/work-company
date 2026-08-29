@@ -749,6 +749,9 @@
             <a href="inv-suppliers.html" class="nav-subitem">
               <span class="nav-bullet">🏭</span> Suppliers
             </a>
+            <a href="inv-finance.html" class="nav-subitem">
+              <span class="nav-bullet">🏦</span> Finance
+            </a>
           </div>
         </div>
 
@@ -1196,9 +1199,20 @@
             <select id="pm-mode" class="form-select" required onchange="onPaymentModeChange()">
               <option value="UPI">📱 UPI (GPay / PhonePe / Paytm)</option>
               <option value="NEFT_RTGS">🏦 NEFT / RTGS / IMPS</option>
-              <option value="CHEQUE">📝 Cheque</option>
-              <option value="CASH">💵 Cash</option>
               <option value="NET_BANKING">🌐 Net Banking</option>
+              <option value="CHEQUE">📝 Cheque</option>
+              <option value="CARD">💳 Debit / Credit Card</option>
+              <option value="CASH">💵 Cash</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bank Account Selector (Shown when non-cash mode is selected) -->
+        <div class="form-row" id="pm-bank-group" style="display:none;margin-bottom:12px;">
+          <div class="form-group" style="width:100%;">
+            <label class="form-label">Bank Account (बैंक खाता) <span style="color:#f87171;">*</span></label>
+            <select id="pm-bank-id" class="form-select">
+              <option value="">— Primary Default Bank Account —</option>
             </select>
           </div>
         </div>
@@ -1253,7 +1267,10 @@
 
         <div class="form-row" style="margin-bottom:12px;">
           <div class="form-group">
-            <label class="form-label" id="pm-ref-lbl">Reference / UTR Number</label>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="form-label" id="pm-ref-lbl" style="margin:0;">Reference / UTR Number</label>
+              <button type="button" onclick="autoFillPmRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+            </div>
             <input id="pm-ref" class="form-input" type="text" placeholder="12-digit UTR / RRN" />
           </div>
           <div class="form-group">
@@ -1330,34 +1347,27 @@
   <!-- WhatsApp Payment Reminder Modal -->
   <div class="modal-overlay" id="wa-modal">
     <div class="modal" style="max-width:500px;">
-      <div class="modal-title">📲 Send WhatsApp Payment Reminder</div>
-
-      <div style="margin-bottom:12px;">
-        <label class="form-label">Message Template</label>
-        <select id="wa-template" class="form-select" style="margin-top:4px;" onchange="applyWaTemplate()">
-          <option value="FRIENDLY">1. 🤝 Friendly Payment Reminder</option>
-          <option value="DUE_DATE">2. ⏰ Due Date Reminder</option>
-          <option value="URGENT">3. 🚨 Urgent Overdue Notice</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <label class="form-label">Recipient WhatsApp Number</label>
-        <input id="wa-phone" class="form-input" type="text" placeholder="e.g. 9876543210" style="margin-top:4px;" />
+      <div class="modal-title">
+        <span>💬 Send WhatsApp Reminder</span>
+        <button type="button" onclick="closeWaModal()"
+          style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;">✕</button>
       </div>
 
       <div style="margin-bottom:14px;">
-        <label class="form-label">Message Preview</label>
-        <textarea id="wa-msg" class="form-input"
-          style="height:140px;resize:vertical;margin-top:4px;font-family:inherit;font-size:0.85rem;line-height:1.45;"></textarea>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">Recipient: <strong id="wa-party-name"
+            style="color:var(--text);"></strong></div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">Phone: <strong id="wa-party-phone"
+            style="color:var(--text);font-family:monospace;"></strong></div>
+        <label class="form-label">Custom Reminder Message</label>
+        <textarea id="wa-msg" class="form-input" rows="5"
+          style="font-family:inherit;font-size:0.82rem;line-height:1.5;resize:vertical;"></textarea>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
         <button type="button" onclick="closeWaModal()"
           style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-        <button type="button" onclick="launchWhatsApp()" class="btn-primary"
-          style="background:#25d366;border-color:#25d366;color:#fff;width:auto;padding:8px 20px;font-weight:700;">Launch
-          WhatsApp ↗</button>
+        <button type="button" onclick="sendWaMessage()" class="btn-primary"
+          style="background:#22c55e;color:#fff;border:none;padding:8px 20px;">📲 Send on WhatsApp</button>
       </div>
     </div>
   </div>
@@ -1411,6 +1421,14 @@
           </div>
         </div>
 
+        <!-- Bank Account Selector Row (shown when ocf-mode !== 'CASH') -->
+        <div id="ocf-bank-group" style="display:none;">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Bank Account (बैंक खाता) <span style="color:#f87171;">*</span></label>
+          <select id="ocf-bank-id" class="form-input" style="width:100%;">
+            <option value="">— Primary Default Bank Account —</option>
+          </select>
+        </div>
+
         <!-- Category & Date Row -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
@@ -1445,7 +1463,10 @@
             <input type="text" id="ocf-party-name" class="form-input" placeholder="e.g. Store Owner, Landlord, Bank..." style="width:100%;">
           </div>
           <div>
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Ref / UTR / Cheque #</label>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">Ref / UTR / Cheque #</label>
+              <button type="button" onclick="autoFillOcfRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+            </div>
             <input type="text" id="ocf-reference" class="form-input" placeholder="e.g. UPI/12345678, CHQ-00123" style="width:100%;">
           </div>
         </div>
@@ -2580,13 +2601,76 @@
       }
     }
 
+    let cachedBankAccounts = [];
+
+    async function loadBankAccounts() {
+      try {
+        const r = await fetch(`${API}/inventory/finance/bank-accounts`, { headers: H() });
+        const json = await r.json();
+        if (r.ok) {
+          const list = Array.isArray(json.data) ? json.data : (json.data?.accounts || []);
+          cachedBankAccounts = list;
+          populateBankDropdowns();
+        }
+      } catch (err) {
+        console.error('Failed to load bank accounts:', err);
+      }
+    }
+
+    function populateBankDropdowns() {
+      const pmBank = document.getElementById('pm-bank-id');
+      const ocfBank = document.getElementById('ocf-bank-id');
+      if (!cachedBankAccounts || !cachedBankAccounts.length) {
+        const emptyHtml = '<option value="">— Primary Default Bank Account —</option>';
+        if (pmBank) pmBank.innerHTML = emptyHtml;
+        if (ocfBank) ocfBank.innerHTML = emptyHtml;
+        return;
+      }
+      const optionsHtml = '<option value="">— Primary Default Bank Account —</option>' +
+        cachedBankAccounts.map(b => {
+          const accMask = b.accountNumberMasked || (b.accountNumber ? `•••• ${b.accountNumber.slice(-4)}` : '');
+          return `<option value="${b._id}" ${b.isDefault ? 'selected' : ''}>🏛️ ${escHtml(b.bankName)} (${escHtml(accMask)}) ${b.isDefault ? '⭐' : ''}</option>`;
+        }).join('');
+      if (pmBank) pmBank.innerHTML = optionsHtml;
+      if (ocfBank) ocfBank.innerHTML = optionsHtml;
+    }
+
+    function generateSmartRef(mode) {
+      const rand6 = Math.floor(100000 + Math.random() * 900000);
+      const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
+      if (mode === 'UPI') return `UPI/${rand12}@okhdfc`;
+      if (mode === 'NEFT_RTGS') return `HDFCN${rand6}`;
+      if (mode === 'NET_BANKING') return `IMPS-${rand12}`;
+      if (mode === 'CHEQUE') return `CHQ-${rand6}`;
+      if (mode === 'CARD') return `POS-TXN-${rand6}`;
+      if (mode === 'CASH') return `CASH-RCPT-${rand6}`;
+      return `TXN-${rand6}`;
+    }
+
+    function autoFillPmRef() {
+      const mode = document.getElementById('pm-mode')?.value || 'UPI';
+      const refInput = document.getElementById('pm-ref');
+      if (refInput) refInput.value = generateSmartRef(mode);
+    }
+
+    function autoFillOcfRef() {
+      const mode = document.getElementById('ocf-mode')?.value || 'UPI';
+      const refInput = document.getElementById('ocf-reference');
+      if (refInput) refInput.value = generateSmartRef(mode);
+    }
+
     function onPaymentModeChange() {
       const modeEl = document.getElementById('pm-mode');
       const refLbl = document.getElementById('pm-ref-lbl');
       const refInput = document.getElementById('pm-ref');
       const hint = document.getElementById('pm-hint');
+      const bankGroup = document.getElementById('pm-bank-group');
 
       const mode = modeEl ? modeEl.value : 'UPI';
+
+      if (bankGroup) {
+        bankGroup.style.display = (mode === 'CASH') ? 'none' : 'block';
+      }
 
       if (mode === 'UPI') {
         if (refLbl) refLbl.textContent = 'UPI Reference / UTR / RRN (12 Digits)';
@@ -2596,10 +2680,18 @@
         if (refLbl) refLbl.textContent = 'Bank UTR / Transaction Reference';
         if (refInput) refInput.placeholder = 'e.g. HDFCN2608269999';
         if (hint) hint.textContent = '💡 Enter Bank UTR number received from net banking transfer.';
+      } else if (mode === 'NET_BANKING') {
+        if (refLbl) refLbl.textContent = 'Net Banking IMPS / Ref #';
+        if (refInput) refInput.placeholder = 'e.g. IMPS-109283746501';
+        if (hint) hint.textContent = '💡 Enter IMPS or Net Banking settlement reference number.';
       } else if (mode === 'CHEQUE') {
         if (refLbl) refLbl.textContent = 'Cheque No. & Bank Name';
         if (refInput) refInput.placeholder = 'e.g. 000124 (HDFC Bank)';
         if (hint) hint.textContent = '💡 Enter 6-digit cheque number and issuing bank.';
+      } else if (mode === 'CARD') {
+        if (refLbl) refLbl.textContent = 'POS Transaction / Terminal Ref';
+        if (refInput) refInput.placeholder = 'e.g. POS-TXN-829104';
+        if (hint) hint.textContent = '💡 Enter swipe terminal authorization / batch number.';
       } else if (mode === 'CASH') {
         if (refLbl) refLbl.textContent = 'Cash Receipt No. / Cashier Ref (Optional)';
         if (refInput) refInput.placeholder = 'e.g. CR-104';
@@ -2609,6 +2701,8 @@
         if (refInput) refInput.placeholder = 'e.g. TXN-12345';
         if (hint) hint.textContent = '';
       }
+
+      autoFillPmRef();
     }
 
     async function openRecordPaymentForParty(type, partyId, e) {
@@ -2683,6 +2777,7 @@
         partyId,
         amount,
         paymentMode,
+        bankAccountId: (paymentMode !== 'CASH') ? (document.getElementById('pm-bank-id')?.value || undefined) : undefined,
         referenceNo: referenceNo || undefined,
         paymentDate: paymentDate || undefined,
         notes: notes || undefined,
@@ -3021,6 +3116,7 @@
                   <span style="color:var(--text-muted);">Date:</span> <strong style="font-family:monospace;">${fmtDate(txn.paymentDate)}</strong>
                   ${txn.dueDate ? `<span style="color:var(--text-muted);">Due Date:</span> <strong style="font-family:monospace;color:${new Date(txn.dueDate) < new Date() ? '#f87171' : 'var(--text)'};">${fmtDate(txn.dueDate)}</strong>` : ''}
                   <span style="color:var(--text-muted);">Payment Mode:</span> <strong>${escHtml(txn.paymentMode || 'CREDIT')}</strong>
+                  ${txn.bankAccount ? `<span style="color:var(--text-muted);">Bank Account:</span> <strong style="color:#38bdf8;">🏛️ ${escHtml(txn.bankAccount)}</strong>` : (txn.sourceName || txn.destinationName) ? `<span style="color:var(--text-muted);">A/C Ledger:</span> <strong>${escHtml(isReceipt ? txn.destinationName : txn.sourceName)}</strong>` : ''}
                   ${txn.referenceNo ? `<span style="color:var(--text-muted);">Ref / UTR:</span> <strong style="font-family:monospace;">${escHtml(txn.referenceNo)}</strong>` : ''}
                   ${txn.notes ? `<span style="color:var(--text-muted);">Remarks:</span> <span style="color:var(--text);">${escHtml(txn.notes)}</span>` : ''}
                 </div>
@@ -3172,6 +3268,16 @@
     // ─── Outside Cashflow & Balance Adjustment Modal Handlers ──────────────────
     let ocfDirection = 'ADD';
 
+    function onOcfModeChange() {
+      const mode = document.getElementById('ocf-mode')?.value || 'CASH';
+      const bankGroup = document.getElementById('ocf-bank-group');
+      if (bankGroup) {
+        bankGroup.style.display = (mode === 'CASH') ? 'none' : 'block';
+      }
+      autoFillOcfRef();
+      updateOcfPreview();
+    }
+
     function setOcfDirection(dir) {
       ocfDirection = dir;
       const btnAdd = document.getElementById('ocf-dir-add');
@@ -3216,10 +3322,6 @@
           submitBtn.textContent = '✓ Record Outside Outflow (-)';
         }
       }
-      updateOcfPreview();
-    }
-
-    function onOcfModeChange() {
       updateOcfPreview();
     }
 
@@ -3268,6 +3370,7 @@
           dateInput.value = new Date().toISOString().split('T')[0];
         }
         setOcfDirection('ADD');
+        onOcfModeChange();
       }
     }
 
@@ -3303,6 +3406,7 @@
           direction: ocfDirection,
           amount,
           paymentMode: modeEl ? modeEl.value : 'CASH',
+          bankAccountId: (modeEl && modeEl.value !== 'CASH') ? (document.getElementById('ocf-bank-id')?.value || undefined) : undefined,
           category: catEl ? catEl.value : 'OTHER_INFLOW',
           paymentDate: dateEl && dateEl.value ? dateEl.value : new Date().toISOString(),
           partyName: partyEl ? partyEl.value : '',
@@ -3365,32 +3469,35 @@
     }
 
     function onWcInjectToggle() {
-      const chk = document.getElementById('wc-also-inject');
-      const modeRow = document.getElementById('wc-mode-row');
-      if (modeRow) modeRow.style.display = (chk && chk.checked) ? 'block' : 'none';
+      updateWcPreview();
     }
 
     function updateWcPreview() {
       const inputEl = document.getElementById('wc-amount-input');
-      const formText = document.getElementById('wc-formula-text');
-      if (!formText) return;
+      const prevEl = document.getElementById('wc-preview-val');
+      const injectCheckbox = document.getElementById('wc-inject-checkbox');
+      const previewText = document.getElementById('wc-preview-text');
 
-      const baseAmount = Number(inputEl ? inputEl.value : 0) || 0;
-      const netWorking = baseAmount + cachedTotalRec - cachedTotalPay;
+      const val = Number(inputEl ? inputEl.value : 0) || 0;
+      if (prevEl) prevEl.textContent = inr(val);
 
-      formText.innerHTML = `Initial Capital (<strong>${inr(baseAmount)}</strong>) + Receivables (<strong>${inr(cachedTotalRec)}</strong>) − Payables (<strong>${inr(cachedTotalPay)}</strong>) = <strong style="color:${netWorking >= 0 ? '#38bdf8' : '#f87171'};font-size:0.95rem;">${netWorking >= 0 ? '+' : ''}${inr(netWorking)}</strong>`;
+      if (previewText) {
+        if (injectCheckbox && injectCheckbox.checked && val > 0) {
+          previewText.innerHTML = `🌟 ₹${val.toLocaleString('en-IN')} will be recorded as <strong>Owner Capital Injection</strong> in cash drawer.`;
+        } else {
+          previewText.textContent = `Baseline working capital sets the starting reference threshold.`;
+        }
+      }
     }
 
     async function submitInitialWorkingCapital() {
       const inputEl = document.getElementById('wc-amount-input');
-      const chk = document.getElementById('wc-also-inject');
-      const modeEl = document.getElementById('wc-target-mode');
+      const injectCheckbox = document.getElementById('wc-inject-checkbox');
       const submitBtn = document.getElementById('wc-submit-btn');
 
       const amount = Number(inputEl ? inputEl.value : 0);
       if (isNaN(amount) || amount < 0) {
-        alert('Please enter a valid non-negative amount.');
-        if (inputEl) inputEl.focus();
+        alert('Please enter a valid working capital amount (₹0 or greater).');
         return;
       }
 
@@ -3400,34 +3507,31 @@
       }
 
       try {
-        const payload = {
-          amount,
-          alsoInjectToAccounts: chk ? chk.checked : false,
-          accountMode: modeEl ? modeEl.value : 'CASH',
-        };
-
-        const res = await fetch(`${API}/inventory/payments/initial-working-capital`, {
-          method: 'PUT',
+        const res = await fetch(`${API}/inventory/payments/working-capital`, {
+          method: 'POST',
           headers: H(),
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            initialWorkingCapital: amount,
+            injectAsCashInflow: Boolean(injectCheckbox && injectCheckbox.checked),
+          }),
         });
 
         const json = await res.json();
         if (!res.ok) {
-          alert(json.message || 'Failed to update Initial Working Capital.');
+          alert(json.message || 'Failed to update working capital.');
           return;
         }
 
-        alert(json.message || 'Initial Working Capital updated successfully!');
+        alert(json.message || 'Working capital configured successfully!');
+        cachedInitialWc = amount;
         closeWorkingCapitalModal();
 
+        // Reload data
         await loadKpis();
-        if (chk && chk.checked) {
-          await loadVouchers();
-          await loadDailySummary();
-        }
+        await loadVouchers();
+        await loadDailySummary();
       } catch (err) {
-        console.error('Error saving Initial Working Capital:', err);
+        console.error('Error saving working capital:', err);
         alert('An unexpected error occurred while saving.');
       } finally {
         if (submitBtn) {
@@ -3452,6 +3556,9 @@
     window.onOcfModeChange = onOcfModeChange;
     window.updateOcfPreview = updateOcfPreview;
     window.submitOutsideCashflow = submitOutsideCashflow;
+    window.autoFillPmRef = autoFillPmRef;
+    window.autoFillOcfRef = autoFillOcfRef;
+    window.loadBankAccounts = loadBankAccounts;
     window.openStatement = openStatement;
     window.closeStatementModal = closeStatementModal;
     window.openWhatsAppModal = openWhatsAppModal;

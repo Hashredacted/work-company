@@ -35,6 +35,12 @@ WorkSpace is a multi-tenant B2B SaaS platform combined with an Inventory & Doubl
 - **Supported Non-Trading Categories**: Owner Capital Injections, Owner Drawings, Rent & Utilities, Staff Wages, Office Expenses, Loans In/Out, Bank Charges.
 - **Multi-Type Vouchers History**: Filter all commercial documents and vouchers by type (`Sales Invoices`, `Purchase Bills`, `Collections In`, `Payments Out`, `Outside Cashflow`, `Opening Balance`).
 
+### 6. Finance Master — Cash & Multi-Bank Management (Money Flow Tracking)
+- **Multiple Bank Accounts Management**: Register and track unlimited bank accounts (HDFC, ICICI, SBI, etc.) with IFSC, account numbers, UPI IDs, opening balances, and live balance calculations.
+- **Physical Cash Register**: Real-time cash in hand tracking, fast cash receipts, and petty cash expense logging.
+- **Contra Fund Transfers**: Double-entry synchronized transfers between Cash and Bank (Deposits, Withdrawals) or between two Bank Accounts.
+- **Real-Time Money Flow Statement**: Detailed audit log showing who gave money to which account, payment vouchers, UTR references, and running balances.
+
 ---
 
 ## 🛠️ Quick Start

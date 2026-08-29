@@ -32,15 +32,32 @@ const financialLimiter = rateLimit({
   message: { data: null, message: 'Transaction rate limit exceeded. Please wait a moment before trying again.', errors: null },
 });
 
-// ─── In-place NoSQL Injection Sanitizer (Express 5 compatible) ────────────────
-function sanitizeInPlace(obj) {
-  if (!obj || typeof obj !== 'object') return;
+// ─── Deep NoSQL Injection & Query Sanitizer (Express 5 compatible) ────────────
+const DANGEROUS_OPERATORS = /^\$(where|regex|gt|gte|lt|lte|ne|nin|in|expr|jsonSchema|function|accumulator|exec)/i;
+
+function sanitizeInPlace(obj, depth = 0) {
+  if (depth > 12 || !obj || typeof obj !== 'object') return;
+
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      if (typeof obj[i] === 'object') {
+        sanitizeInPlace(obj[i], depth + 1);
+      }
+    }
+    return;
+  }
+
   for (const key of Object.keys(obj)) {
-    // Drop keys with dangerous MongoDB operators ($gt, $ne, $where, etc.) or dot notation
-    if (key.startsWith('$') || key.includes('.')) {
+    // Drop keys with MongoDB operators ($gt, $ne, $where, etc.) or dot notation
+    if (key.startsWith('$') || key.includes('.') || DANGEROUS_OPERATORS.test(key)) {
       delete obj[key];
     } else if (typeof obj[key] === 'object') {
-      sanitizeInPlace(obj[key]);
+      sanitizeInPlace(obj[key], depth + 1);
+    } else if (typeof obj[key] === 'string') {
+      // Strip null-byte injections
+      if (obj[key].includes('\0')) {
+        obj[key] = obj[key].replace(/\0/g, '');
+      }
     }
   }
 }

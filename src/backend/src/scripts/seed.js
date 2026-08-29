@@ -37,6 +37,7 @@ const InvStockLedger = require('../models/inv/StockLedger');
 const InvPaymentTransaction = require('../models/inv/PaymentTransaction');
 const InvPurchaseOrder = require('../models/inv/PurchaseOrder');
 const InvSalesOrder = require('../models/inv/SalesOrder');
+const BankAccount = require('../models/inv/BankAccount');
 
 const SUPER_ADMIN_PERMISSIONS = [
   'company:read', 'company:create', 'company:update', 'company:delete',
@@ -672,31 +673,72 @@ async function seed() {
     createdBills.push(billDoc);
   }
 
+  // 12. Seed Simulated Bank Accounts (HDFC Operational & ICICI Vendor Payouts)
+  await BankAccount.deleteMany({ tenantId });
+
+  const hdfcBank = await BankAccount.create({
+    tenantId,
+    bankName: 'HDFC Bank',
+    accountName: 'HDFC Main Operational A/C',
+    accountNumber: '50200099881122',
+    ifscCode: 'HDFC0000123',
+    branchName: 'Koramangala, Bengaluru',
+    accountType: 'CURRENT',
+    upiId: 'apexretail@hdfcbank',
+    openingBalance: 200000,
+    isDefault: true,
+    isActive: true,
+    notes: 'Primary business operating current account',
+    createdBy: userId,
+  });
+
+  const iciciBank = await BankAccount.create({
+    tenantId,
+    bankName: 'ICICI Bank',
+    accountName: 'ICICI Vendor Payouts A/C',
+    accountNumber: '91900088776655',
+    ifscCode: 'ICIC0001040',
+    branchName: 'Indiranagar, Bengaluru',
+    accountType: 'CURRENT',
+    upiId: 'apexretail@icici',
+    openingBalance: 100000,
+    isDefault: false,
+    isActive: true,
+    notes: 'Secondary account for vendor payments & bulk supplies',
+    createdBy: userId,
+  });
+
+  console.log(`[Seed] ✓ 2 Simulated Bank Accounts created: HDFC (****1122) & ICICI (****6655)`);
+
   // Matching Payment Out Vouchers for Settled Bills
   const paymentOutVouchers = [
-    { voucherNo: 'PAY-2627-0101', partyId: suppliers[0]._id, amount: 540000, mode: 'NEFT_RTGS', ref: 'HDFCN26270011234', bank: 'HDFC Bank', date: new Date(Date.now() - 38 * 86400000), bill: createdBills[0] },
-    { voucherNo: 'PAY-2627-0102', partyId: suppliers[1]._id, amount: 175000, mode: 'UPI', ref: 'UPI/9820599887@icici', bank: 'HDFC UPI', date: new Date(Date.now() - 32 * 86400000), bill: createdBills[1] },
-    { voucherNo: 'PAY-2627-0103', partyId: suppliers[2]._id, amount: 45000,  mode: 'NEFT_RTGS', ref: 'AXISN26270088991', bank: 'Axis Bank', date: new Date(Date.now() - 28 * 86400000), bill: createdBills[2] },
-    { voucherNo: 'PAY-2627-0104', partyId: suppliers[3]._id, amount: 68000,  mode: 'CHEQUE', ref: 'CHQ-880123', bank: 'HDFC Bank Current A/c', date: new Date(Date.now() - 22 * 86400000), bill: createdBills[3] },
-    { voucherNo: 'PAY-2627-0105', partyId: suppliers[4]._id, amount: 95000,  mode: 'NEFT_RTGS', ref: 'KOTAKN2627009988', bank: 'Kotak Bank', date: new Date(Date.now() - 18 * 86400000), bill: createdBills[4] },
-    { voucherNo: 'PAY-2627-0106', partyId: suppliers[0]._id, amount: 204000, mode: 'NEFT_RTGS', ref: 'HDFCN26270044556', bank: 'HDFC Bank', date: new Date(Date.now() - 12 * 86400000), bill: createdBills[5] },
-    { voucherNo: 'PAY-2627-0107', partyId: suppliers[2]._id, amount: 28000,  mode: 'UPI', ref: 'UPI/tataconsumer@axis', bank: 'HDFC UPI', date: new Date(Date.now() - 8 * 86400000), bill: createdBills[6] },
-    { voucherNo: 'PAY-2627-0108', partyId: suppliers[1]._id, amount: 28000,  mode: 'UPI', ref: 'UPI/tresor@icici', bank: 'HDFC UPI', date: new Date(Date.now() - 4 * 86400000), bill: createdBills[7] },
+    { voucherNo: 'PAY-2627-0101', partyId: suppliers[0]._id, amount: 540000, mode: 'NEFT_RTGS', ref: 'HDFCN26270011234', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 38 * 86400000), bill: createdBills[0] },
+    { voucherNo: 'PAY-2627-0102', partyId: suppliers[1]._id, amount: 175000, mode: 'UPI', ref: 'UPI/9820599887@icici', bankId: iciciBank._id, bankLabel: 'ICICI Bank (****6655)', date: new Date(Date.now() - 32 * 86400000), bill: createdBills[1] },
+    { voucherNo: 'PAY-2627-0103', partyId: suppliers[2]._id, amount: 45000,  mode: 'NEFT_RTGS', ref: 'AXISN26270088991', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 28 * 86400000), bill: createdBills[2] },
+    { voucherNo: 'PAY-2627-0104', partyId: suppliers[3]._id, amount: 68000,  mode: 'CHEQUE', ref: 'CHQ-880123', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 22 * 86400000), bill: createdBills[3] },
+    { voucherNo: 'PAY-2627-0105', partyId: suppliers[4]._id, amount: 95000,  mode: 'NEFT_RTGS', ref: 'KOTAKN2627009988', bankId: iciciBank._id, bankLabel: 'ICICI Bank (****6655)', date: new Date(Date.now() - 18 * 86400000), bill: createdBills[4] },
+    { voucherNo: 'PAY-2627-0106', partyId: suppliers[0]._id, amount: 204000, mode: 'NEFT_RTGS', ref: 'HDFCN26270044556', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 12 * 86400000), bill: createdBills[5] },
+    { voucherNo: 'PAY-2627-0107', partyId: suppliers[2]._id, amount: 28000,  mode: 'UPI', ref: 'UPI/tataconsumer@axis', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 8 * 86400000), bill: createdBills[6] },
+    { voucherNo: 'PAY-2627-0108', partyId: suppliers[1]._id, amount: 28000,  mode: 'UPI', ref: 'UPI/tresor@icici', bankId: iciciBank._id, bankLabel: 'ICICI Bank (****6655)', date: new Date(Date.now() - 4 * 86400000), bill: createdBills[7] },
   ];
 
   for (const p of paymentOutVouchers) {
+    const supp = suppliers.find(s => s._id.toString() === p.partyId.toString());
     await InvPaymentTransaction.create({
       tenantId,
       voucherNo: p.voucherNo,
       partyType: 'SUPPLIER',
       partyId: p.partyId,
+      partyName: supp?.name || 'Supplier',
       partyModel: 'InvSupplier',
       txnType: 'PAYMENT_OUT',
       amount: p.amount,
       paymentMode: p.mode,
       paymentDate: p.date,
       referenceNo: p.ref,
-      bankAccount: p.bank,
+      bankAccountId: p.bankId,
+      sourceName: `🏦 ${p.bankLabel}`,
+      destinationName: supp?.name || 'Supplier',
       notes: `Supplier payment settlement against ${p.bill.voucherNo}`,
       allocatedBills: [
         {
@@ -712,10 +754,6 @@ async function seed() {
   console.log(`[Seed] ✓ ${createdBills.length} Purchase Bills & ${paymentOutVouchers.length} Payment Vouchers recorded`);
 
   // 13. Realistic Sales Invoices & Collections
-  // Total Sales Invoiced: ~₹18,40,000 across 12 invoices:
-  // - 8 Paid in full
-  // - 2 Partially Paid
-  // - 2 Unpaid (including 1 overdue to populate Aging Buckets!)
   const salesInvoices = [
     {
       voucherNo: 'INV-2627-0101',
@@ -846,6 +884,7 @@ async function seed() {
       voucherNo: inv.voucherNo,
       partyType: 'CUSTOMER',
       partyId: inv.customer._id,
+      partyName: inv.customer.name,
       partyModel: 'InvCustomer',
       txnType: 'INVOICE',
       amount: inv.amount,
@@ -862,31 +901,35 @@ async function seed() {
 
   // Matching Payment In Receipts / Collections
   const paymentInReceipts = [
-    { voucherNo: 'REC-2627-0101', customer: customers[0], amount: 324995, mode: 'NEFT_RTGS', ref: 'HDFCR26270019921', bank: 'HDFC Business Account', date: new Date(Date.now() - 40 * 86400000), inv: createdInvoices[0] },
-    { voucherNo: 'REC-2627-0102', customer: customers[1], amount: 35000,  mode: 'UPI', ref: 'UPI/greenleaf@okaxis', bank: 'HDFC UPI', date: new Date(Date.now() - 34 * 86400000), inv: createdInvoices[1] },
-    { voucherNo: 'REC-2627-0103', customer: customers[3], amount: 140000, mode: 'CASH', ref: 'CASH-POS-DRAWER-01', bank: 'Cash in Hand Drawer', date: new Date(Date.now() - 30 * 86400000), inv: createdInvoices[2] },
-    { voucherNo: 'REC-2627-0104', customer: customers[2], amount: 85000,  mode: 'UPI', ref: 'UPI/rajeshstore@paytm', bank: 'HDFC UPI', date: new Date(Date.now() - 22 * 86400000), inv: createdInvoices[3] },
-    { voucherNo: 'REC-2627-0105', customer: customers[4], amount: 119999, mode: 'CARD', ref: 'POS-TXN-984412', bank: 'HDFC POS Terminal', date: new Date(Date.now() - 18 * 86400000), inv: createdInvoices[4] },
-    { voucherNo: 'REC-2627-0106', customer: customers[3], amount: 140000, mode: 'CASH', ref: 'CASH-POS-DRAWER-02', bank: 'Cash in Hand Drawer', date: new Date(Date.now() - 16 * 86400000), inv: createdInvoices[5] },
-    { voucherNo: 'REC-2627-0107', customer: customers[0], amount: 224900, mode: 'NEFT_RTGS', ref: 'ICICR26270055667', bank: 'HDFC Business Account', date: new Date(Date.now() - 10 * 86400000), inv: createdInvoices[6] },
-    { voucherNo: 'REC-2627-0108', customer: customers[1], amount: 45000,  mode: 'UPI', ref: 'UPI/ananya@okhdfc', bank: 'HDFC UPI', date: new Date(Date.now() - 6 * 86400000), inv: createdInvoices[7] },
-    { voucherNo: 'REC-2627-0109', customer: customers[2], amount: 70000,  mode: 'UPI', ref: 'UPI/rajeshagarwal@icici', bank: 'HDFC UPI', date: new Date(Date.now() - 4 * 86400000), inv: createdInvoices[8] },
-    { voucherNo: 'REC-2627-0110', customer: customers[4], amount: 39950,  mode: 'CARD', ref: 'POS-TXN-110293', bank: 'HDFC POS Terminal', date: new Date(Date.now() - 2 * 86400000), inv: createdInvoices[9] },
+    { voucherNo: 'REC-2627-0101', customer: customers[0], amount: 324995, mode: 'NEFT_RTGS', ref: 'HDFCR26270019921', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 40 * 86400000), inv: createdInvoices[0] },
+    { voucherNo: 'REC-2627-0102', customer: customers[1], amount: 35000,  mode: 'UPI', ref: 'UPI/greenleaf@okaxis', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 34 * 86400000), inv: createdInvoices[1] },
+    { voucherNo: 'REC-2627-0103', customer: customers[3], amount: 140000, mode: 'CASH', ref: 'CASH-POS-DRAWER-01', bankId: null, bankLabel: 'Cash in Hand', date: new Date(Date.now() - 30 * 86400000), inv: createdInvoices[2] },
+    { voucherNo: 'REC-2627-0104', customer: customers[2], amount: 85000,  mode: 'UPI', ref: 'UPI/rajeshstore@paytm', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 22 * 86400000), inv: createdInvoices[3] },
+    { voucherNo: 'REC-2627-0105', customer: customers[4], amount: 119999, mode: 'CARD', ref: 'POS-TXN-984412', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 18 * 86400000), inv: createdInvoices[4] },
+    { voucherNo: 'REC-2627-0106', customer: customers[3], amount: 140000, mode: 'CASH', ref: 'CASH-POS-DRAWER-02', bankId: null, bankLabel: 'Cash in Hand', date: new Date(Date.now() - 16 * 86400000), inv: createdInvoices[5] },
+    { voucherNo: 'REC-2627-0107', customer: customers[0], amount: 224900, mode: 'NEFT_RTGS', ref: 'ICICR26270055667', bankId: iciciBank._id, bankLabel: 'ICICI Bank (****6655)', date: new Date(Date.now() - 10 * 86400000), inv: createdInvoices[6] },
+    { voucherNo: 'REC-2627-0108', customer: customers[1], amount: 45000,  mode: 'UPI', ref: 'UPI/ananya@okhdfc', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 6 * 86400000), inv: createdInvoices[7] },
+    { voucherNo: 'REC-2627-0109', customer: customers[2], amount: 70000,  mode: 'UPI', ref: 'UPI/rajeshagarwal@icici', bankId: iciciBank._id, bankLabel: 'ICICI Bank (****6655)', date: new Date(Date.now() - 4 * 86400000), inv: createdInvoices[8] },
+    { voucherNo: 'REC-2627-0110', customer: customers[4], amount: 39950,  mode: 'CARD', ref: 'POS-TXN-110293', bankId: hdfcBank._id, bankLabel: 'HDFC Bank (****1122)', date: new Date(Date.now() - 2 * 86400000), inv: createdInvoices[9] },
   ];
 
   for (const r of paymentInReceipts) {
+    const isCash = r.mode === 'CASH';
     await InvPaymentTransaction.create({
       tenantId,
       voucherNo: r.voucherNo,
       partyType: 'CUSTOMER',
       partyId: r.customer._id,
+      partyName: r.customer.name,
       partyModel: 'InvCustomer',
       txnType: 'PAYMENT_IN',
       amount: r.amount,
       paymentMode: r.mode,
       paymentDate: r.date,
       referenceNo: r.ref,
-      bankAccount: r.bank,
+      bankAccountId: r.bankId,
+      sourceName: r.customer.name,
+      destinationName: isCash ? '💵 Cash Register (In Hand)' : `🏦 ${r.bankLabel}`,
       notes: `Customer collection receipt against invoice #${r.inv.voucherNo}`,
       allocatedBills: [
         {
@@ -900,22 +943,66 @@ async function seed() {
     });
   }
 
-  // 14. Initial Bank Operating Capital & Reserve (Positive Liquidity)
+  // 14. Initial Bank Operating Capital & Contra Transfers
   await InvPaymentTransaction.create({
     tenantId,
     voucherNo: 'REC-2627-0100',
     partyType: 'CUSTOMER',
     partyId: customers[0]._id,
+    partyName: 'TechNova Corporate Solutions (Capital Infusion)',
     partyModel: 'InvCustomer',
     txnType: 'PAYMENT_IN',
     amount: 500000,
     paymentMode: 'NEFT_RTGS',
     paymentDate: new Date(Date.now() - 45 * 86400000),
     referenceNo: 'CAPITAL-OPENING-2608',
-    bankAccount: 'HDFC Business Account',
+    bankAccountId: hdfcBank._id,
+    sourceName: 'TechNova Corporate Solutions (Promoter Capital)',
+    destinationName: '🏦 HDFC Bank (****1122)',
     notes: 'Initial Store Operating Capital & Bank Liquidity Reserve',
     createdBy: userId,
   });
+
+  // Seed Contra Transfers between Cash <-> Bank and Bank <-> Bank
+  await InvPaymentTransaction.insertMany([
+    {
+      tenantId,
+      voucherNo: 'DEP-2627-0001',
+      partyType: 'INTERNAL',
+      partyName: `Contra: Cash Register ➔ HDFC Bank`,
+      txnType: 'CONTRA',
+      isOutsideCashflow: true,
+      cashflowCategory: 'CASH_DEPOSIT_BANK',
+      amount: 50000,
+      paymentMode: 'CASH',
+      paymentDate: new Date(Date.now() - 25 * 86400000),
+      referenceNo: 'CASH-DEP-BR-01',
+      bankAccountId: hdfcBank._id,
+      sourceName: '💵 Cash Register (In Hand)',
+      destinationName: '🏦 HDFC Bank (****1122)',
+      notes: 'Daily counter cash surplus deposit into primary current account',
+      createdBy: userId,
+    },
+    {
+      tenantId,
+      voucherNo: 'TXF-2627-0001',
+      partyType: 'INTERNAL',
+      partyName: `Contra: HDFC Bank ➔ ICICI Bank`,
+      txnType: 'CONTRA',
+      isOutsideCashflow: true,
+      cashflowCategory: 'INTER_BANK_TRANSFER',
+      amount: 75000,
+      paymentMode: 'NET_BANKING',
+      paymentDate: new Date(Date.now() - 15 * 86400000),
+      referenceNo: 'HDFC-IMPS-89912304',
+      bankAccountId: hdfcBank._id,
+      toBankAccountId: iciciBank._id,
+      sourceName: '🏦 HDFC Bank (****1122)',
+      destinationName: '🏦 ICICI Bank (****6655)',
+      notes: 'Fund transfer to ICICI vendor payouts account for upcoming supplier clearances',
+      createdBy: userId,
+    },
+  ]);
 
   console.log(`[Seed] ✓ ${createdInvoices.length} Sales Invoices, ${paymentInReceipts.length} Collections Receipts & Initial Capital recorded`);
 

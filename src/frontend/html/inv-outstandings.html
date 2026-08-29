@@ -650,6 +650,9 @@
             <a href="inv-suppliers.html" class="nav-subitem">
               <span class="nav-bullet">🏭</span> Suppliers
             </a>
+            <a href="inv-finance.html" class="nav-subitem">
+              <span class="nav-bullet">🏦</span> Finance
+            </a>
           </div>
         </div>
 
@@ -1581,6 +1584,12 @@
               <div style="font-size:0.68rem;color:var(--text-muted);">Payment Mode</div>
               <div style="font-weight:700;font-size:0.85rem;margin-top:2px;">${escHtml(txn.paymentMode || 'CREDIT')}</div>
             </div>
+            ${txn.bankAccount ? `
+            <div>
+              <div style="font-size:0.68rem;color:var(--text-muted);">Bank Account</div>
+              <div style="font-weight:700;font-size:0.85rem;color:#38bdf8;margin-top:2px;">🏛️ ${escHtml(txn.bankAccount)}</div>
+            </div>
+            ` : ''}
             <div>
               <div style="font-size:0.68rem;color:var(--text-muted);">Ref / UTR / Cheque</div>
               <div style="font-family:monospace;font-size:0.8rem;margin-top:2px;">${escHtml(txn.referenceNo || '—')}</div>

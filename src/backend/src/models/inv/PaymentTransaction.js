@@ -6,7 +6,7 @@ const PaymentTransactionSchema = new mongoose.Schema({
   tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
   voucherNo: { type: String, required: true, index: true }, // e.g. REC-2026-0001, PAY-2026-0001, BILL-2026-0001, INV-2026-0001
   
-  partyType: { type: String, enum: ['CUSTOMER', 'SUPPLIER', 'OTHER', 'EXTERNAL'], default: 'CUSTOMER' },
+  partyType: { type: String, enum: ['CUSTOMER', 'SUPPLIER', 'OTHER', 'EXTERNAL', 'INTERNAL'], default: 'CUSTOMER' },
   partyId: { type: mongoose.Schema.Types.ObjectId, refPath: 'partyModel', default: null, index: true },
   partyModel: { type: String, enum: ['InvCustomer', 'InvSupplier', null], default: null },
   partyName: { type: String, trim: true, default: '' }, // For outside parties / owners / landlords / lenders
@@ -22,6 +22,7 @@ const PaymentTransactionSchema = new mongoose.Schema({
       'ADJUSTMENT',      // Discount, rebate, or credit/debit note adjustment
       'OUTSIDE_INFLOW',  // External Capital Injection, Loan In, Non-trading Cash In (+)
       'OUTSIDE_OUTFLOW', // Owner Drawings, Rent/Utility, Non-trading Cash Out (-)
+      'CONTRA',          // Bank-to-Bank, Cash-to-Bank, Bank-to-Cash Fund Transfer
     ],
     required: true,
     index: true,
@@ -43,6 +44,10 @@ const PaymentTransactionSchema = new mongoose.Schema({
       'BANK_CHARGES_TAX',
       'CASH_DEPOSIT_BANK',
       'CASH_WITHDRAWAL_BANK',
+      'INTER_BANK_TRANSFER',
+      'DIRECT_BANK_RECEIPT',
+      'DIRECT_BANK_PAYMENT',
+      'PETTY_CASH_EXPENSE',
       'OTHER_INFLOW',
       'OTHER_OUTFLOW',
     ],
@@ -54,7 +59,7 @@ const PaymentTransactionSchema = new mongoose.Schema({
   
   paymentMode: {
     type: String,
-    enum: ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD', 'CREDIT'],
+    enum: ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD', 'CREDIT', 'TRANSFER', 'ONLINE', 'BANK_TRANSFER'],
     default: 'UPI',
   },
 
@@ -62,7 +67,19 @@ const PaymentTransactionSchema = new mongoose.Schema({
   dueDate: { type: Date, default: null }, // Credit due date calculated from party credit terms
 
   referenceNo: { type: String, trim: true }, // 12-digit UPI RRN / 16-digit Bank UTR / 6-digit Cheque No
-  bankAccount: { type: String, trim: true }, // Bank Name / VPA ID / Cheque Details
+  bankAccount: { type: String, trim: true }, // Legacy string Bank Name / VPA ID / Cheque Details
+  bankAccountId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvBankAccount', default: null, index: true }, // Linked Bank Account
+  toBankAccountId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvBankAccount', default: null, index: true }, // Target Bank Account for Inter-Bank Transfers
+
+  // Explicit attribution for Money Flow Tracking
+  sourceName: { type: String, trim: true, default: '' },      // Who sent the money (Customer / Owner / Source Bank / Cash Register)
+  destinationName: { type: String, trim: true, default: '' }, // Who received the money (Target Bank / Supplier / Expense / Cash Register)
+  transferType: {
+    type: String,
+    enum: ['PARTY_PAYMENT', 'PARTY_RECEIPT', 'OUTSIDE_INFLOW', 'OUTSIDE_OUTFLOW', 'CASH_DEPOSIT', 'CASH_WITHDRAWAL', 'CASH_DEPOSIT_BANK', 'CASH_WITHDRAWAL_BANK', 'INTER_BANK_TRANSFER', 'ADJUSTMENT', null],
+    default: null,
+  },
+
   notes: { type: String, trim: true },
 
   // Bill-wise Knockoff Tracking (for BILL & INVOICE records)
@@ -85,6 +102,8 @@ const PaymentTransactionSchema = new mongoose.Schema({
 
 PaymentTransactionSchema.index({ tenantId: 1, partyId: 1, paymentDate: -1 });
 PaymentTransactionSchema.index({ tenantId: 1, partyType: 1, txnType: 1 });
+PaymentTransactionSchema.index({ tenantId: 1, bankAccountId: 1, paymentDate: -1 });
 PaymentTransactionSchema.index({ tenantId: 1, 'allocatedBills.billId': 1 });
 
 module.exports = mongoose.model('InvPaymentTransaction', PaymentTransactionSchema);
+

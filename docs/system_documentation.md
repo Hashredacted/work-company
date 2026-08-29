@@ -189,29 +189,52 @@ work company/
 | **StockAdjustment** | `inv_stock_adjustments` | Stock movements | `tenantId`, `voucherNo`, `productId`, `warehouseId`, `type` (`IN`, `OUT`, `TRANSFER`), `quantity`, `unitCost`, `supplierId`, `customerId`, `paymentStatus` |
 | **Supplier** | `inv_suppliers` | Vendor register | `tenantId`, `name`, `contactName`, `phone`, `email`, `gstin`, `state`, `paymentTerms` (days), `creditLimit`, `bankDetails` |
 | **Customer** | `inv_customers` | Debtor register | `tenantId`, `name`, `contactName`, `phone`, `email`, `gstin`, `state`, `paymentTerms` (days), `creditLimit`, `billingAddress` |
-| **Sequence** | `inv_sequences` | Atomic sequence counters | `tenantId`, `prefix` (`INV`, `BILL`, `REC`, `PAY`, `ADJ`), `currentSeq`, `fiscalYear` |
+| **BankAccount** | `inv_bank_accounts` | Bank Treasury A/Cs | `tenantId`, `bankName`, `accountName`, `accountNumber`, `ifscCode`, `branchName`, `accountType`, `upiId`, `openingBalance`, `isDefault`, `isActive` |
+| **Sequence** | `inv_sequences` | Atomic sequence counters | `tenantId`, `prefix` (`INV`, `BILL`, `REC`, `PAY`, `ADJ`, `DEP`, `WTH`, `TXF`), `currentSeq`, `fiscalYear` |
 
-### Payments & Khata Ledger Entities
+### Payments, Treasury & Khata Ledger Entities
 
-#### `PaymentTransaction` (`inv_payment_transactions`)
-Represents all financial bills, sales invoices, receipts, and payments:
+#### `BankAccount` (`inv_bank_accounts`)
+Manages multiple registered bank accounts per tenant company with automatic live balance computations:
 
 | Field | Type | Description |
 |---|---|---|
 | `tenantId` | `ObjectId → Tenant` | Tenant scoping |
-| `voucherNo` | `String` | Unique voucher number (e.g. `REC-2627-0102`, `INV-2627-0101`) |
-| `partyType` | `Enum` | `CUSTOMER` \| `SUPPLIER` |
+| `bankName` | `String` | Bank Name (e.g. HDFC Bank, ICICI Bank, State Bank of India) |
+| `accountName` | `String` | Account display name / purpose |
+| `accountNumber` | `String` | Unique bank account number per company |
+| `ifscCode` | `String` | 11-digit IFSC code |
+| `branchName` | `String` | Branch name & city |
+| `accountType` | `Enum` | `CURRENT` \| `SAVINGS` \| `OVERDRAFT` \| `CASH_CREDIT` \| `VIRTUAL` |
+| `upiId` | `String` | UPI ID / VPA handle |
+| `openingBalance` | `Number` | Initial carry-forward balance in INR |
+| `isDefault` | `Boolean` | Flag indicating the primary default account for payouts/collections |
+| `isActive` | `Boolean` | Active status |
+
+#### `PaymentTransaction` (`inv_payment_transactions`)
+Represents all financial bills, sales invoices, receipts, payments, and contra transfers:
+
+| Field | Type | Description |
+|---|---|---|
+| `tenantId` | `ObjectId → Tenant` | Tenant scoping |
+| `voucherNo` | `String` | Unique voucher number (e.g. `REC-2627-0102`, `INV-2627-0101`, `TXF-2627-0001`) |
+| `partyType` | `Enum` | `CUSTOMER` \| `SUPPLIER` \| `OTHER` \| `EXTERNAL` \| `INTERNAL` |
 | `partyId` | `ObjectId` | Linked customer or supplier ID |
-| `partyModel` | `Enum` | `InvCustomer` \| `InvSupplier` |
-| `txnType` | `Enum` | `INVOICE` \| `BILL` \| `PAYMENT_IN` \| `PAYMENT_OUT` \| `OPENING_BAL` \| `CREDIT_NOTE` \| `DEBIT_NOTE` |
+| `partyModel` | `Enum` | `InvCustomer` \| `InvSupplier` \| null |
+| `txnType` | `Enum` | `INVOICE` \| `BILL` \| `PAYMENT_IN` \| `PAYMENT_OUT` \| `OPENING_BAL` \| `ADJUSTMENT` \| `OUTSIDE_INFLOW` \| `OUTSIDE_OUTFLOW` \| `CONTRA` |
 | `amount` | `Number` | Total transaction amount in INR (₹) |
 | `settledAmount` | `Number` | Amount knocked off / settled so far (default: 0) |
 | `paymentStatus` | `Enum` | `UNPAID` \| `PARTIALLY_PAID` \| `PAID` |
-| `paymentMode` | `Enum` | `CASH` \| `UPI` \| `NEFT_RTGS` \| `CHEQUE` \| `NET_BANKING` \| `CREDIT` |
+| `paymentMode` | `Enum` | `CASH` \| `UPI` \| `NEFT_RTGS` \| `CHEQUE` \| `NET_BANKING` \| `CARD` \| `TRANSFER` |
 | `paymentDate` | `Date` | Date of payment or bill issuance |
 | `dueDate` | `Date` | Credit due date (calculated via party `paymentTerms`) |
 | `referenceNo` | `String` | 12-digit UTR/RRN, Cheque number, or receipt reference |
-| `bankAccount` | `String` | Bank name and account number |
+| `bankAccount` | `String` | Bank name and formatted account number |
+| `bankAccountId` | `ObjectId → InvBankAccount` | Linked Bank Account ID |
+| `toBankAccountId` | `ObjectId → InvBankAccount` | Target Bank Account ID for inter-bank transfers |
+| `sourceName` | `String` | Payer/Source involved in money flow |
+| `destinationName` | `String` | Recipient/Destination involved in money flow |
+| `transferType` | `Enum` | `PARTY_PAYMENT` \| `PARTY_RECEIPT` \| `OUTSIDE_INFLOW` \| `OUTSIDE_OUTFLOW` \| `CASH_DEPOSIT_BANK` \| `CASH_WITHDRAWAL_BANK` \| `INTER_BANK_TRANSFER` |
 | `allocatedBills` | `[SubDoc]` | Array of linked bill knockoffs: `[{ billId, voucherNo, allocatedAmount, remainingBillBalance }]` |
 | `notes` | `String` | Narration / particulars |
 | `createdBy` | `ObjectId → User` | User who recorded the transaction |
@@ -287,6 +310,21 @@ All responses follow standard JSON structure: `{ "data": ..., "message": "OK", "
 | `POST` | `/api/inventory/payments` | `inventory:manage` | Record Payment Voucher with manual or FIFO bill knockoff (Section 269ST guarded) |
 | `POST` | `/api/inventory/payments/outside-cashflow` | `inventory:manage` | Add (+ Inflow) or Subtract (- Outflow) non-trading funds from Cash in Hand or Bank/UPI |
 
+### Finance, Multi-Bank & Cash Management APIs
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/inventory/finance/summary` | `inventory:read` | High-level summary of Cash in Hand, Multi-Bank balances, Total Inflow, Total Outflow, and Today's stats |
+| `GET` | `/api/inventory/finance/bank-accounts` | `inventory:read` | List all registered bank accounts with calculated live balances and transaction metrics |
+| `POST` | `/api/inventory/finance/bank-accounts` | `inventory:manage` | Register new bank account with duplicate checking and opening balance |
+| `GET` | `/api/inventory/finance/bank-accounts/:id`| `inventory:read` | Retrieve specific bank account details and recent transactions |
+| `PUT` | `/api/inventory/finance/bank-accounts/:id`| `inventory:manage` | Update bank account parameters (name, IFSC, branch, UPI, type, status) |
+| `DELETE` | `/api/inventory/finance/bank-accounts/:id`| `inventory:manage` | Soft-delete bank account |
+| `PUT` | `/api/inventory/finance/bank-accounts/:id/set-default`| `inventory:manage` | Set primary default account for payouts and collections |
+| `GET` | `/api/inventory/finance/flow` | `inventory:read` | Unified Money Flow statement with party tracing (who sent what to which account) and direction filters |
+| `POST` | `/api/inventory/finance/transfer` | `inventory:manage` | Record Contra fund transfer (Cash-to-Bank, Bank-to-Cash, Bank-to-Bank) |
+| `POST` | `/api/inventory/finance/quick-entry` | `inventory:manage` | Direct Inflow/Outflow financial entry with party and category attribution |
+
 ---
 
 ## 7. Frontend Pages
@@ -299,8 +337,9 @@ All responses follow standard JSON structure: `{ "data": ..., "message": "OK", "
 | **Company Admin** | `company-dashboard.html` | Workspace hub with grouped pill navigation and profile badge |
 | **Inventory Dashboard** | `inv-dashboard.html` | Stock valuation, Retail Trading bills, Liquidity cards, Outside Cash Flow modal |
 | **Products** | `inv-products.html` | Product catalog, barcode, HSN, Quick Stock modal |
-| **Suppliers** | `inv-suppliers.html` | Vendor directory, bank details, outstanding payables |
 | **Customers** | `inv-customers.html` | Customer directory, credit terms, outstanding receivables |
+| **Suppliers** | `inv-suppliers.html` | Vendor directory, bank details, outstanding payables |
+| **Finance Master** | `inv-finance.html` | Liquid Cash in Hand register, Multi-Bank Accounts manager, Contra Transfers, and real-time Money Flow tracing |
 | **Payments & Khata** | `inv-payments.html` | Bill-wise knockoff, Outside Cash Flow modal, multi-type voucher pills, party statements, WhatsApp reminders |
 | **Reports** | `inv-reports.html` | Valuation summary (FIFO/Average) and stock ledgers |
 
@@ -368,13 +407,28 @@ Provides daily financial monitoring:
 
 ---
 
-## 10. Security Model
+## 10. Security Model & Defense-in-Depth Architecture
 
-- **Multi-Tenant Isolation**: Strict `tenantId` query scoping server-side.
-- **Helmet CSP Level 3**: Permits modern script attributes (`scriptSrcAttr: ["'unsafe-inline'"]`) while securing local API connections.
-- **Safe Modal Backdrop Handlers**: Two-phase mouse tracking (`mousedown` + `mouseup`) prevents modal flicker or instant closure.
-- **Rate Limiting**: Express rate limiters on login, registration, and financial payment endpoints.
-- **Password Security**: bcrypt hashing (12 salt rounds), one-time password reset tokens with SHA-256 and TTL expiration.
+The platform implements multi-layered enterprise defense-in-depth so that **even in the event of an infrastructure breach or raw database dump, zero sensitive credentials or financial identifiers leak**:
+
+1. **Field-Level AES-256-GCM Encryption at Rest**:
+   - Sensitive financial and tax identifiers (`BankAccount.accountNumber`, `BankAccount.upiId`, `Supplier.pan`, `Supplier.bankDetails.accountNo`, `Customer.pan`) are encrypted in MongoDB Atlas using AES-256-GCM with authenticated tags and random 12-byte IVs (`enc:v1:<iv>:<authTag>:<ciphertext>`).
+   - Deterministic HMAC-SHA-256 Blind Indexing (`accountNumberHash`) allows high-speed unique constraint enforcement and indexed lookups without exposing plaintext in database storage.
+2. **Zero-Leak Logging & Audit Redaction**:
+   - Pre-save hooks automatically scrub passwords, Bearer tokens, DB connection passwords, authorization headers, and raw financial identifiers from `AuditLog` documents.
+   - Centralized error handlers strip internal stack traces, system paths, and duplicate key secret payloads from API error responses.
+3. **Model & Password Hardening**:
+   - `User.password` configured with `select: false` to prevent password hashes from being queried or leaked in memory or serialized responses.
+   - Masked representations (`accountNumberMasked`: `•••• •••• 1234`) are provided for secure frontend rendering.
+4. **HTTP & Injection Hardening**:
+   - `x-powered-by` header disabled across Express.
+   - Helmet headers: Anti-clickjacking (`X-Frame-Options: DENY`), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy` (disables camera, microphone, geolocation).
+   - Deep NoSQL Injection Sanitizer: Recursively scrubs MongoDB operators (`$`, `.`, `$where`, `$regex`, `$gt`, `$ne`, null-bytes) from all incoming requests.
+5. **Multi-Tenant Isolation**:
+   - Strict `tenantId` query scoping enforced across all operational controllers and routes.
+6. **Rate Limiting & Financial Guards**:
+   - Express rate limiters on login, registration, and financial payment endpoints.
+   - Statutory Section 269ST limits blocking single cash transactions $> ₹2,00,000$.
 
 ---
 

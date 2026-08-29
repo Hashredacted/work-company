@@ -80,5 +80,11 @@ Super Admin KPIs:
 - Real-time liquidity reporting on dashboard KPIs (`cashBalance`, `bankBalance`, `outsideCashflow`).
 - Document-type filtering on vouchers history (`Sales Invoices`, `Purchase Bills`, `Collections In`, `Payments Out`, `Outside Cashflow`, `Opening Balance`).
 
+### Finance Master — Cash & Multi-Bank Management
+- Dedicated Finance tab under Master (`inv-finance.html`) with dual-tab interface for Cash Management and Bank Management.
+- Support for multiple active bank accounts per tenant with duplicate account number validation, IFSC, branch, UPI IDs, and opening balances.
+- Contra fund transfer engine supporting double-entry Cash-to-Bank deposits, Bank-to-Cash withdrawals, and Inter-Bank transfers.
+- Real-time Money Flow Tracking detailing exact payer source, beneficiary account, reference/UTR numbers, and running ledger balances.
+
 ### Data Persistence
 - Scoped seed script operations ensuring user-registered tenants, custom users, and transactions remain permanently persisted in MongoDB Atlas across server reloads.
