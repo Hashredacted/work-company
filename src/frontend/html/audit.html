@@ -131,6 +131,7 @@
       text-transform: uppercase;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -168,17 +169,27 @@
 
     <!-- Activity Logs -->
     <section id="section-activity" class="content-section active">
-      <div class="filter-row">
-        <input type="text" id="filter-action" class="filter-input" placeholder="Filter by action..."
-          oninput="debouncedLoad()" />
-        <select id="filter-resource" class="filter-input" onchange="loadAuditLogs()">
-          <option value="">All Resources</option>
-          <option value="auth">Auth</option>
-          <option value="user">User</option>
-          <option value="role">Role</option>
-          <option value="company">Company</option>
-          <option value="subscription">Subscription</option>
-        </select>
+      <div class="filter-row" style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input type="text" id="filter-action" class="filter-input" placeholder="Filter by action..."
+            oninput="debouncedLoad()" />
+          <select id="filter-resource" class="filter-input" onchange="loadAuditLogs()">
+            <option value="">All Resources</option>
+            <option value="auth">Auth</option>
+            <option value="user">User</option>
+            <option value="role">Role</option>
+            <option value="company">Company</option>
+            <option value="subscription">Subscription</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button type="button" onclick="previewAuditInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:var(--radius-sm);font-size:0.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <span>👁️</span> View in Browser
+          </button>
+          <button type="button" onclick="exportAuditToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:var(--radius-sm);font-size:0.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <span>📥</span> Export to Excel
+          </button>
+        </div>
       </div>
       <div class="table-box">
         <table>
@@ -204,6 +215,14 @@
 
     <!-- Login History -->
     <section id="section-logins" class="content-section">
+      <div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;margin-bottom:12px;">
+        <button type="button" onclick="previewAuditInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:var(--radius-sm);font-size:0.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+          <span>👁️</span> View in Browser
+        </button>
+        <button type="button" onclick="exportAuditToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:var(--radius-sm);font-size:0.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+          <span>📥</span> Export to Excel
+        </button>
+      </div>
       <div class="table-box">
         <table>
           <thead>

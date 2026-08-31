@@ -384,6 +384,7 @@
       font-weight: 700;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -550,6 +551,14 @@
         <button onclick="startScan()"
           style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">📷
           Scan</button>
+        <button type="button" onclick="previewProductsInBrowser()"
+          style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+          <span>👁️</span> View in Browser
+        </button>
+        <button type="button" onclick="exportProductsToExcel()"
+          style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+          <span>📥</span> Export to Excel
+        </button>
       </div>
 
       <div class="table-wrap">
@@ -923,7 +932,12 @@
       return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
     }
 
-    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    });
 
     let scanTarget = null;
     let categories = [];
@@ -1739,6 +1753,47 @@
         tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--error);">Failed to load products.</td></tr>`;
       }
     }
+
+    
+
+        function getProductsRows() {
+      const list = (typeof productsList !== 'undefined' && productsList) ? productsList : [];
+      if (!list.length) return null;
+      const rows = [
+        ['#', 'Product Name', 'Category', 'SKU', 'Barcode', 'HSN Code', 'GST %', 'MRP (INR)', 'Purchase Price (INR)', 'Selling Price (INR)', 'Current Stock', 'Unit', 'Tracking Type', 'Reorder Level'],
+      ];
+      list.forEach((p, idx) => {
+        rows.push([
+          idx + 1,
+          p.name || '',
+          p.categoryId?.name || '',
+          p.sku || '',
+          p.barcode || '',
+          p.hsnCode || '',
+          p.gstRate ?? 18,
+          p.mrp || 0,
+          p.purchasePrice || 0,
+          p.sellingPrice || 0,
+          p.currentStock || 0,
+          p.unit || 'Pcs',
+          p.trackingType || 'NONE',
+          p.reorderLevel || 0,
+        ]);
+      });
+      return rows;
+    }
+
+    function exportProductsToExcel() {
+      const rows = getProductsRows();
+      downloadAsXls(rows, 'Inventory_Products');
+    }
+
+    function previewProductsInBrowser() {
+      const rows = getProductsRows();
+      showSpreadsheetPreview(rows, 'Product Catalogue Master', 'Inventory_Products');
+    }
+    window.exportProductsToExcel = exportProductsToExcel;
+    window.previewProductsInBrowser = previewProductsInBrowser;
 
     // ─── Modal ─────────────────────────────────────────────────────────────────
     function openModal(d = null, e = null) {

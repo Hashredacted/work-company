@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema(
 
     name:         { type: String, required: true, trim: true },
     email:        { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phone:        { type: String, trim: true, default: null },
     password:     { type: String, required: true, select: false },
     roleId:       { type: mongoose.Schema.Types.ObjectId, ref: 'Role', default: null },
     lastLoginAt:  { type: Date, default: null },
@@ -21,6 +22,7 @@ const UserSchema = new mongoose.Schema(
 
 // Indexes for frequent queries
 UserSchema.index({ tenantId: 1, email: 1 });
+UserSchema.index({ phone: 1 });
 
 // Hash password before saving
 UserSchema.pre('save', async function () {

@@ -171,12 +171,17 @@ window.cancelSub = async function () {
   }
 };
 
+let cachedInvoices = [];
+
 // ─── Load Invoices ─────────────────────────────────────────────────────────────
 async function loadInvoices() {
   const tbody = document.getElementById('invoices-tbody');
   try {
     const res = await fetch(`${API_BASE}/billing/invoices`, { headers: authHeaders() });
     const json = await res.json();
+    const invoices = json.data?.invoices || [];
+    cachedInvoices = invoices;
+
     if (!invoices || invoices.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No invoices yet.</td></tr>';
       return;
@@ -197,6 +202,56 @@ async function loadInvoices() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--error);">Failed to load invoices.</td></tr>';
   }
 }
+
+function downloadAsXls(rows, filenamePrefix) {
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const tbl = '<table border="1">' + rows.map((row, i) =>
+    '<tr>' + row.map(c => i === 0
+      ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
+      : `<td style="padding:4px 12px;">${esc(c)}</td>`
+    ).join('') + '</tr>'
+  ).join('') + '</table>';
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getInvoicesRows() {
+  if (!cachedInvoices || cachedInvoices.length === 0) return null;
+  const rows = [
+    ['#', 'Invoice #', 'Description / Plan', 'Amount', 'Currency', 'Status', 'Invoice Date'],
+  ];
+  cachedInvoices.forEach((inv, idx) => {
+    rows.push([
+      idx + 1,
+      inv.invoiceNumber || '',
+      inv.lineItems && inv.lineItems[0] ? inv.lineItems[0].description : 'Subscription Plan',
+      inv.total?.toFixed(2) || '0.00',
+      inv.currency || 'USD',
+      inv.status || '',
+      inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('en-IN') : '',
+    ]);
+  });
+  return rows;
+}
+
+window.exportInvoicesToExcel = function () {
+  const rows = getInvoicesRows();
+  if (!rows) { alert('No invoices available to export.'); return; }
+  downloadAsXls(rows, 'WorkSpace_Invoices');
+};
+
+window.previewInvoicesInBrowser = function () {
+  const rows = getInvoicesRows();
+  if (!rows) { alert('No invoices available to preview.'); return; }
+  if (typeof showSpreadsheetPreview === 'function') {
+    showSpreadsheetPreview(rows, 'Invoice & Billing History', 'WorkSpace_Invoices');
+  }
+};
 
 // Init
 loadPlans();

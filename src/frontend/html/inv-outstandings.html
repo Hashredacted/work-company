@@ -594,6 +594,7 @@
       }
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -811,7 +812,9 @@
         <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
           oninput="debounceSearch()" />
         <div class="filter-actions">
-          <button class="btn-action" onclick="exportToCsv()">📥 Export CSV</button>
+          <a href="inv-finance.html" class="btn-action" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:#a5b4fc;border-color:rgba(99,102,241,0.35);font-weight:700;">🏦 Treasury Books</a>
+          <button class="btn-action" onclick="previewOutstandingsInBrowser()" style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.35);font-weight:700;display:inline-flex;align-items:center;gap:6px;"><span>👁️</span> View in Browser</button>
+          <button class="btn-action" onclick="exportToCsv()" style="background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.35);font-weight:700;display:inline-flex;align-items:center;gap:6px;"><span>📥</span> Export to Excel</button>
           <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
         </div>
       </div>
@@ -1019,8 +1022,10 @@
     }
 
     document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.clear();
-      window.location.href = 'index.html';
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
     });
 
     // State
@@ -1202,7 +1207,17 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} with active pending balance found.</td></tr>`;
+        const filterNames = {
+          ACTIVE: 'active pending balance',
+          CURRENT_0_15: '0-15 Days Current dues',
+          DUE_16_30: '16-30 Days Due Soon dues',
+          OVERDUE_31_60: '31-60 Days Overdue dues',
+          CRITICAL_60_PLUS: '> 60 Days Critical dues',
+          CLEARED: 'cleared (zero balance)',
+          ALL: 'matching records',
+        };
+        const filterName = filterNames[activeAgingFilter] || activeAgingFilter;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No ${activePartyType === 'CUSTOMER' ? 'customers' : 'suppliers'} found with ${filterName}.</td></tr>`;
         return;
       }
 
@@ -1795,59 +1810,44 @@
     }
 
     // ─── Export to CSV ────────────────────────────────────────────────────────
-    function exportToCsv() {
-      if (!rawOutstandings || rawOutstandings.length === 0) {
-        alert('No outstandings data available to export.');
-        return;
-      }
+    
+      
 
+    function getOutstandingsRows() {
+      if (!rawOutstandings || rawOutstandings.length === 0) return null;
       const isReceivable = activePartyType === 'CUSTOMER';
-      const headers = ['Party Name', 'Category', 'Contact Name', 'Phone', 'GSTIN', 'State', 'Credit Terms (Days)', 'Due Amount (INR)', 'Aging Status', 'Days Overdue', 'Open Bills Count'];
-      const rows = rawOutstandings.map(p => [
-        `"${(p.name || '').replace(/"/g, '""')}"`,
-        `"${isReceivable ? 'RECEIVABLE (LENA)' : 'PAYABLE (DENA)'}"`,
-        `"${(p.contactName || '').replace(/"/g, '""')}"`,
-        `"${p.phone || ''}"`,
-        `"${p.gstin || ''}"`,
-        `"${p.state || ''}"`,
+      const headers = ['#', 'Party Name', 'Party Type', 'Contact Person', 'Phone', 'GSTIN', 'State', 'Payment Terms (Days)', 'Outstanding Amount (INR)', 'Status', 'Days Overdue', 'Open Invoices / Bills'];
+      const rows = rawOutstandings.map((p, idx) => [
+        idx + 1,
+        p.name || '',
+        isReceivable ? 'RECEIVABLE (LENA)' : 'PAYABLE (DENA)',
+        p.contactName || '',
+        p.phone || '',
+        p.gstin || '',
+        p.state || '',
         p.paymentTerms || 15,
         p.outstanding || 0,
         p.status || 'CLEARED',
         p.daysOverdue || 0,
         p.openBillsCount || 0,
       ]);
-
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `${activePartyType.toLowerCase()}_outstandings_due_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      return [headers, ...rows];
     }
-
-    // ─── Safe Backdrop & Escape Key Handlers ──────────────────────────────────
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      let isBackdropMouseDown = false;
-      overlay.addEventListener('mousedown', e => {
-        isBackdropMouseDown = (e.target === overlay);
-      });
-      overlay.addEventListener('mouseup', e => {
-        if (isBackdropMouseDown && e.target === overlay) {
-          overlay.classList.remove('show');
-        }
-        isBackdropMouseDown = false;
-      });
-    });
-
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    function exportToCsv() {
+      const allRows = getOutstandingsRows();
+      if (!allRows) { alert('No outstandings data to export.'); return; }
+      downloadAsXls(allRows, `${activePartyType.toLowerCase()}_outstandings_due`);
+    }
+    function previewOutstandingsInBrowser() {
+      const allRows = getOutstandingsRows();
+      if (!allRows) { alert('No outstandings data to preview.'); return; }
+      const isReceivable = activePartyType === 'CUSTOMER';
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(allRows, isReceivable ? 'Customer Receivables Ledger (Lena)' : 'Supplier Payables Ledger (Dena)', `${activePartyType.toLowerCase()}_outstandings_due`);
       }
-    });
+    }
+    window.previewOutstandingsInBrowser = previewOutstandingsInBrowser;
 
-    // Window bindings
     window.switchPartyType = switchPartyType;
     window.filterByAging = filterByAging;
     window.debounceSearch = debounceSearch;

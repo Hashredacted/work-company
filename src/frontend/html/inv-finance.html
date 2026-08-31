@@ -552,6 +552,7 @@
       display: none;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -780,13 +781,22 @@
               <button class="filter-pill" onclick="setCashDirectionFilter('CONTRA', this)">🔄 Contra Only</button>
             </div>
           </div>
-          <div class="filter-group">
-            <select id="cash-date-preset" class="form-select" onchange="onCashDatePresetChange()" style="width:140px;font-size:0.78rem;">
+          <div class="filter-group" style="display:flex;gap:8px;align-items:center;">
+            <select id="cash-date-preset" class="form-select" onchange="onCashDatePresetChange()" style="width:130px;font-size:0.78rem;">
               <option value="30">Last 30 Days</option>
               <option value="7">Last 7 Days</option>
               <option value="today">Today Only</option>
               <option value="all">All Time</option>
             </select>
+            <button type="button" onclick="previewFinanceInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+              <span>👁️</span> View in Browser
+            </button>
+            <button type="button" onclick="exportFinanceToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+              <span>📥</span> Export to Excel
+            </button>
+            <button type="button" onclick="window.print()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+              <span>🖨️</span> Print
+            </button>
           </div>
         </div>
 
@@ -864,13 +874,22 @@
                 <button class="filter-pill" onclick="setBankDirectionFilter('CONTRA', this)">🔄 Inter-Bank</button>
               </div>
             </div>
-            <div class="filter-group">
-              <select id="bank-date-preset" class="form-select" onchange="onBankDatePresetChange()" style="width:140px;font-size:0.78rem;">
+            <div class="filter-group" style="display:flex;gap:8px;align-items:center;">
+              <select id="bank-date-preset" class="form-select" onchange="onBankDatePresetChange()" style="width:130px;font-size:0.78rem;">
                 <option value="30">Last 30 Days</option>
                 <option value="7">Last 7 Days</option>
                 <option value="today">Today Only</option>
                 <option value="all">All Time</option>
               </select>
+              <button type="button" onclick="previewFinanceInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                <span>👁️</span> View in Browser
+              </button>
+              <button type="button" onclick="exportFinanceToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                <span>📥</span> Export to Excel
+              </button>
+              <button type="button" onclick="window.print()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                <span>🖨️</span> Print
+              </button>
             </div>
           </div>
 
@@ -1133,8 +1152,12 @@
 
         <div class="form-grid-2">
           <div class="form-group">
-            <label class="form-label" id="qe-party-label">Received From / Payer Name</label>
-            <input id="qe-party-name" class="form-input" type="text" placeholder="e.g. Partner, Landlord, Office Boy" />
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="form-label" id="qe-party-label" style="margin:0;">Received From / Payer Name</label>
+              <span style="font-size:0.7rem;color:var(--text-muted);">👤 Team Member / Custom Name</span>
+            </div>
+            <input id="qe-party-name" list="qe-party-datalist" class="form-input" type="text" placeholder="Type custom name or choose Team Member..." autocomplete="off" />
+            <datalist id="qe-party-datalist"></datalist>
           </div>
           <div class="form-group">
             <label class="form-label">Date *</label>
@@ -1218,10 +1241,102 @@
       if (sidebar) sidebar.classList.toggle('show');
     }
 
-    function signOut() {
-      localStorage.clear();
-      window.location.href = 'index.html';
+    let rawCashFlows = [];
+    let rawBankFlows = [];
+    let cachedPartySuggestions = [];
+
+    function setQeParty(name) {
+      const el = document.getElementById('qe-party-name');
+      if (el) el.value = name;
     }
+    window.setQeParty = setQeParty;
+
+    async function loadPartiesForDatalist() {
+      try {
+        const teamRes = await fetch(`${API}/users`, { headers: H() }).catch(() => ({ ok: false }));
+        const teamJson = teamRes.ok ? await teamRes.json() : { data: [] };
+        const team = Array.isArray(teamJson.data) ? teamJson.data : (teamJson.data?.users || teamJson.data?.members || []);
+
+        cachedPartySuggestions = team.filter(u => u.name).map(u => ({ name: u.name, type: '👤 Team' }));
+
+        const datalist = document.getElementById('qe-party-datalist');
+        if (datalist) {
+          datalist.innerHTML = cachedPartySuggestions.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.type)}: ${escHtml(p.name)}</option>`).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load team suggestions:', err);
+      }
+    }
+
+    
+      
+
+    function getFinanceRows() {
+      const activePanel = document.querySelector('.fin-panel.active');
+      const isCash = !activePanel || activePanel.id === 'panel-cash';
+      const rows = [];
+
+      if (isCash) {
+        if (!rawCashFlows || rawCashFlows.length === 0) return null;
+        rows.push(['#', 'Date', 'Time', 'Voucher #', 'Flow Direction', 'Source / Payer', 'Destination / Payee', 'Category', 'Ref #', 'Amount (INR)', 'Notes']);
+        rawCashFlows.forEach((f, idx) => {
+          const dStr = f.date ? new Date(f.date).toLocaleDateString('en-IN') : '';
+          const tStr = f.date ? new Date(f.date).toLocaleTimeString('en-IN') : '';
+          rows.push([
+            idx + 1,
+            dStr,
+            tStr,
+            f.voucherNo || '',
+            f.direction || '',
+            f.source || '',
+            f.destination || '',
+            f.category ? f.category.replace(/_/g, ' ') : '',
+            f.referenceNo || '',
+            f.amount || 0,
+            f.notes || '',
+          ]);
+        });
+      } else {
+        if (!rawBankFlows || rawBankFlows.length === 0) return null;
+        rows.push(['#', 'Date', 'Time', 'Voucher #', 'Bank Account', 'Flow Type', 'Source', 'Destination', 'Category', 'Ref / UTR', 'Amount (INR)', 'Notes']);
+        rawBankFlows.forEach((f, idx) => {
+          const dStr = f.date ? new Date(f.date).toLocaleDateString('en-IN') : '';
+          const tStr = f.date ? new Date(f.date).toLocaleTimeString('en-IN') : '';
+          const bName = f.bankAccountDetails?.bankName ? `${f.bankAccountDetails.bankName} (****${(f.bankAccountDetails.accountNumber || '').slice(-4)})` : (f.accountLabel || 'Bank A/C');
+          rows.push([
+            idx + 1,
+            dStr,
+            tStr,
+            f.voucherNo || '',
+            bName,
+            f.direction || '',
+            f.source || '',
+            f.destination || '',
+            f.category ? f.category.replace(/_/g, ' ') : '',
+            f.referenceNo || '',
+            f.amount || 0,
+            f.notes || '',
+          ]);
+        });
+      }
+      return { rows, isCash };
+    }
+
+    function exportFinanceToExcel() {
+      const data = getFinanceRows();
+      if (!data) { alert('No financial flow records available to export.'); return; }
+      downloadAsXls(data.rows, `Finance_Statement_${data.isCash ? 'Cash' : 'Bank'}`);
+    }
+
+    function previewFinanceInBrowser() {
+      const data = getFinanceRows();
+      if (!data) { alert('No financial flow records available to preview.'); return; }
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(data.rows, data.isCash ? 'Cash Flow Statement' : 'Bank Flow Statement', `Finance_Statement_${data.isCash ? 'Cash' : 'Bank'}`);
+      }
+    }
+    window.exportFinanceToExcel = exportFinanceToExcel;
+    window.previewFinanceInBrowser = previewFinanceInBrowser;
 
     // Set Header Info
     const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -1421,6 +1536,7 @@
         }
         const json = await r.json();
         const flows = json.data?.flows || [];
+        rawCashFlows = flows;
 
         if (!flows.length) {
           if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:35px;color:var(--text-muted);">No cash flow records found matching filters.</td></tr>';
@@ -1509,6 +1625,7 @@
         }
         const json = await r.json();
         const flows = json.data?.flows || [];
+        rawBankFlows = flows;
 
         if (!flows.length) {
           if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:35px;color:var(--text-muted);">No bank flow records found matching filters.</td></tr>';
@@ -2032,11 +2149,20 @@
       }
     });
 
+    function signOut() {
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    }
+    window.signOut = signOut;
+
     // Initialize Page
     document.addEventListener('DOMContentLoaded', () => {
       loadFinancialSummary();
       loadBankAccounts();
       loadCashFlows();
+      loadPartiesForDatalist();
     });
   </script>
 </body>

@@ -752,6 +752,7 @@
       font-size: 0.875rem;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -1120,6 +1121,10 @@
       <div class="card" style="margin-bottom:20px;">
         <div class="section-title"><span>⚡ Quick Actions</span></div>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <a href="inv-finance.html"
+            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            <span>🏦</span> Finance & Treasury
+          </a>
           <button type="button" onclick="openOutsideCashflowModal()"
             style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;">
             <span>⚡</span> Outside Cash Flow / Adjust Balance
@@ -1237,8 +1242,12 @@
             <!-- Party / Particulars & Ref No Row -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div>
-                <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Entity / Person Name</label>
-                <input type="text" id="ocf-party-name" class="form-input" placeholder="e.g. Store Owner, Landlord, Bank..." style="width:100%;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">Team Member / Custom Name</label>
+                  <span style="font-size:0.68rem;color:var(--text-muted);">👤 Auto-complete</span>
+                </div>
+                <input type="text" id="ocf-party-name" list="dash-ocf-party-datalist" class="form-input" placeholder="Type custom name or choose Team Member..." style="width:100%;" autocomplete="off">
+                <datalist id="dash-ocf-party-datalist"></datalist>
               </div>
               <div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1424,8 +1433,10 @@
     }
 
     document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.clear();
-      window.location.href = 'index.html';
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
     });
 
     // ─── Advanced Notification Engine ──────────────────────────────────────────
@@ -1901,6 +1912,15 @@
         }
         setOcfDirection('ADD');
         onOcfModeChange();
+
+        const dl = document.getElementById('dash-ocf-party-datalist');
+        if (dl) {
+          fetch(`${API}/users`, { headers: H() }).then(r => r.ok ? r.json() : { data: [] }).then(teamJson => {
+            const team = Array.isArray(teamJson.data) ? teamJson.data : (teamJson.data?.users || teamJson.data?.members || []);
+            const teamItems = team.filter(u => u.name).map(u => `<option value="${escHtml(u.name)}">👤 Team: ${escHtml(u.name)}</option>`);
+            dl.innerHTML = teamItems.join('');
+          }).catch(() => {});
+        }
       }
     }
 
@@ -2110,6 +2130,6 @@
 
     init();
   </script>
-</body>
+  </body>
 
 </html>

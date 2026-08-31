@@ -142,6 +142,7 @@
       color: var(--text);
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -536,14 +537,14 @@
     }
 
     document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      localStorage.removeItem('auth_tenant');
-      window.location.href = 'index.html';
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
     });
 
     initCompanyDashboard();
   </script>
-</body>
+  </body>
 
 </html>

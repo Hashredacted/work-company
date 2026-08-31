@@ -693,6 +693,7 @@
       font-weight: 700;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -830,6 +831,10 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="inv-finance.html"
+            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;border-radius:8px;padding:8px 16px;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:6px;font-family:inherit;text-decoration:none;">
+            <span>🏦</span> Finance & Treasury
+          </a>
           <button type="button" onclick="openOutsideCashflowModal()"
             style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#f472b6;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:6px;font-family:inherit;">
             <span>⚡</span> Outside Cash Flow / Balance
@@ -897,9 +902,19 @@
                 <button class="filter-pill" onclick="setCustFilter('ALL', this)">All</button>
               </div>
             </div>
-            <button onclick="loadCustomerOutstandings()"
-              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
-              Refresh</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button type="button" onclick="previewCustomerReceivablesInBrowser()"
+                style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>👁️</span> View in Browser
+              </button>
+              <button type="button" onclick="exportCustomerReceivablesToExcel()"
+                style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>📥</span> Export to Excel
+              </button>
+              <button onclick="loadCustomerOutstandings()"
+                style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+                Refresh</button>
+            </div>
           </div>
           <div style="overflow-x:auto;">
             <table>
@@ -951,9 +966,19 @@
                 <button class="filter-pill" onclick="setSuppFilter('ALL', this)">All</button>
               </div>
             </div>
-            <button onclick="loadSupplierOutstandings()"
-              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
-              Refresh</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button type="button" onclick="previewSupplierPayablesInBrowser()"
+                style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>👁️</span> View in Browser
+              </button>
+              <button type="button" onclick="exportSupplierPayablesToExcel()"
+                style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>📥</span> Export to Excel
+              </button>
+              <button onclick="loadSupplierOutstandings()"
+                style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+                Refresh</button>
+            </div>
           </div>
           <div style="overflow-x:auto;">
             <table>
@@ -1034,6 +1059,14 @@
                 <option value="30" selected>Last 30 Days</option>
                 <option value="60">Last 60 Days</option>
               </select>
+              <button type="button" onclick="previewDailyCollectionsInBrowser()"
+                style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>👁️</span> View in Browser
+              </button>
+              <button type="button" onclick="exportDailyCollectionsToExcel()"
+                style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>📥</span> Export to Excel
+              </button>
               <button onclick="loadDailySummary()"
                 style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
                 Refresh</button>
@@ -1112,9 +1145,19 @@
               <input id="search-vouchers" class="form-input" type="text" placeholder="🔍 Search UTR, Voucher #, Party, Notes…"
                 oninput="loadVouchers()" style="min-width:240px;width:auto;" />
             </div>
-            <button onclick="loadVouchers()"
-              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
-              Refresh</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button type="button" onclick="previewVouchersHistoryInBrowser()"
+                style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>👁️</span> View in Browser
+              </button>
+              <button type="button" onclick="exportVouchersHistoryToExcel()"
+                style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                <span>📥</span> Export to Excel
+              </button>
+              <button onclick="loadVouchers()"
+                style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-sub);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">🔄
+                Refresh</button>
+            </div>
           </div>
           <div style="overflow-x:auto;">
             <table>
@@ -1459,8 +1502,12 @@
         <!-- Party / Particulars & Ref No Row -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;">Entity / Person Name</label>
-            <input type="text" id="ocf-party-name" class="form-input" placeholder="e.g. Store Owner, Landlord, Bank..." style="width:100%;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin:0;">Team Member / Custom Name</label>
+              <span style="font-size:0.68rem;color:var(--text-muted);">👤 Auto-complete</span>
+            </div>
+            <input type="text" id="ocf-party-name" list="ocf-party-datalist" class="form-input" placeholder="Type custom name or choose Team Member..." style="width:100%;" autocomplete="off">
+            <datalist id="ocf-party-datalist"></datalist>
           </div>
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1811,11 +1858,18 @@
 
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+          localStorage.clear();
+          window.location.href = 'index.html';
+        }
+      });
     }
 
     let rawCustomers = [];
     let rawSuppliers = [];
+    let rawDailySummary = [];
+    let rawVouchers = [];
     let custFilterMode = 'DUE';
     let suppFilterMode = 'DUE';
     let custDebounceTimer, suppDebounceTimer;
@@ -2110,6 +2164,7 @@
         }
         const json = await r.json();
         const { daily = [], today = {} } = json.data || {};
+        rawDailySummary = daily;
 
         // Update Today KPI cards
         const todayInflowEl = document.getElementById('daily-today-inflow');
@@ -2221,6 +2276,7 @@
         if (!r.ok) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">Failed to load vouchers.</td></tr>'; return; }
         const json = await r.json();
         const payments = json.data?.payments || [];
+        rawVouchers = payments;
         const counts = json.data?.counts || {};
 
         // Update counts badges
@@ -2302,6 +2358,157 @@
         console.error('Error loading vouchers:', err);
       }
     }
+
+    // ─── Export Functions for All Payments Tables ─────────────────────────────
+    
+      
+
+    // ─── Export & Browser Preview Functions for All Payments Tables ──────────
+    function getCustomerReceivablesRows() {
+      if (!rawCustomers || rawCustomers.length === 0) return null;
+      const rows = [
+        ['#', 'Customer Name', 'Phone', 'GSTIN', 'Total Invoiced (INR)', 'Total Collected (INR)', 'Outstanding (INR)', 'Credit Terms (Days)', 'Aging Status'],
+      ];
+      rawCustomers.forEach((c, idx) => {
+        rows.push([
+          idx + 1,
+          c.name || '',
+          c.phone || '',
+          c.gstin || '',
+          c.totalInvoiced || 0,
+          c.totalPaid || 0,
+          c.outstanding || 0,
+          c.paymentTerms || 0,
+          c.status || '',
+        ]);
+      });
+      return rows;
+    }
+    function exportCustomerReceivablesToExcel() {
+      const rows = getCustomerReceivablesRows();
+      if (!rows) { alert('No customer receivables data to export.'); return; }
+      downloadAsXls(rows, 'Customer_Receivables');
+    }
+    function previewCustomerReceivablesInBrowser() {
+      const rows = getCustomerReceivablesRows();
+      if (!rows) { alert('No customer receivables data to preview.'); return; }
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(rows, 'Customer Receivables & Outstandings', 'Customer_Receivables');
+      }
+    }
+    window.exportCustomerReceivablesToExcel = exportCustomerReceivablesToExcel;
+    window.previewCustomerReceivablesInBrowser = previewCustomerReceivablesInBrowser;
+
+    function getSupplierPayablesRows() {
+      if (!rawSuppliers || rawSuppliers.length === 0) return null;
+      const rows = [
+        ['#', 'Supplier Name', 'Phone', 'GSTIN', 'Total Purchased (INR)', 'Total Paid (INR)', 'Outstanding (INR)', 'Payment Terms (Days)', 'Aging Status'],
+      ];
+      rawSuppliers.forEach((s, idx) => {
+        rows.push([
+          idx + 1,
+          s.name || '',
+          s.phone || '',
+          s.gstin || '',
+          s.totalPurchased || 0,
+          s.totalPaid || 0,
+          s.outstanding || 0,
+          s.paymentTerms || 0,
+          s.status || '',
+        ]);
+      });
+      return rows;
+    }
+    function exportSupplierPayablesToExcel() {
+      const rows = getSupplierPayablesRows();
+      if (!rows) { alert('No supplier payables data to export.'); return; }
+      downloadAsXls(rows, 'Supplier_Payables');
+    }
+    function previewSupplierPayablesInBrowser() {
+      const rows = getSupplierPayablesRows();
+      if (!rows) { alert('No supplier payables data to preview.'); return; }
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(rows, 'Supplier Payables & Outstandings', 'Supplier_Payables');
+      }
+    }
+    window.exportSupplierPayablesToExcel = exportSupplierPayablesToExcel;
+    window.previewSupplierPayablesInBrowser = previewSupplierPayablesInBrowser;
+
+    function getDailyCollectionsRows() {
+      if (!rawDailySummary || rawDailySummary.length === 0) return null;
+      const rows = [
+        ['#', 'Date', 'Day', 'Inflow Received (INR)', 'Outflow Paid (INR)', 'Net Cashflow (INR)', 'Inflow Count', 'Outflow Count'],
+      ];
+      rawDailySummary.forEach((d, idx) => {
+        const dateObj = new Date(d.date + 'T00:00:00');
+        const dayName = dateObj.toLocaleDateString('en-IN', { weekday: 'short' });
+        rows.push([
+          idx + 1,
+          d.date || '',
+          dayName,
+          d.totalInflow || 0,
+          d.totalOutflow || 0,
+          d.netCashflow || 0,
+          d.inflowCount || 0,
+          d.outflowCount || 0,
+        ]);
+      });
+      return rows;
+    }
+    function exportDailyCollectionsToExcel() {
+      const rows = getDailyCollectionsRows();
+      if (!rows) { alert('No daily collections data to export.'); return; }
+      downloadAsXls(rows, 'Daily_Collections_Summary');
+    }
+    function previewDailyCollectionsInBrowser() {
+      const rows = getDailyCollectionsRows();
+      if (!rows) { alert('No daily collections data to preview.'); return; }
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(rows, 'Daily Collections & Cashflow Breakdown', 'Daily_Collections_Summary');
+      }
+    }
+    window.exportDailyCollectionsToExcel = exportDailyCollectionsToExcel;
+    window.previewDailyCollectionsInBrowser = previewDailyCollectionsInBrowser;
+
+    function getVouchersHistoryRows() {
+      if (!rawVouchers || rawVouchers.length === 0) return null;
+      const rows = [
+        ['#', 'Date', 'Time', 'Voucher / Bill #', 'Party Type', 'Party Name', 'Transaction Type', 'Payment Mode', 'Reference / UTR #', 'Amount (INR)', 'Notes'],
+      ];
+      rawVouchers.forEach((p, idx) => {
+        const dStr = p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('en-IN') : '';
+        const tStr = p.paymentDate ? new Date(p.paymentDate).toLocaleTimeString('en-IN') : '';
+        const partyName = p.partyId?.name || p.partyName || (p.partyType === 'CUSTOMER' ? 'Retail Customer' : (p.partyType === 'SUPPLIER' ? 'Supplier' : 'Other'));
+        rows.push([
+          idx + 1,
+          dStr,
+          tStr,
+          p.voucherNo || '',
+          p.partyType || '',
+          partyName,
+          p.txnType || '',
+          p.paymentMode || '',
+          p.referenceNo || '',
+          p.amount || 0,
+          p.notes || '',
+        ]);
+      });
+      return rows;
+    }
+    function exportVouchersHistoryToExcel() {
+      const rows = getVouchersHistoryRows();
+      if (!rows) { alert('No payment vouchers to export.'); return; }
+      downloadAsXls(rows, 'Payment_Vouchers_History');
+    }
+    function previewVouchersHistoryInBrowser() {
+      const rows = getVouchersHistoryRows();
+      if (!rows) { alert('No payment vouchers to preview.'); return; }
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(rows, 'Payment Vouchers & Invoices History', 'Payment_Vouchers_History');
+      }
+    }
+    window.exportVouchersHistoryToExcel = exportVouchersHistoryToExcel;
+    window.previewVouchersHistoryInBrowser = previewVouchersHistoryInBrowser;
 
     // ─── Record Payment Modal & Bill-Wise Knockoff System ──────────────────────
     function openPaymentModal(e) {
@@ -3371,6 +3578,16 @@
         }
         setOcfDirection('ADD');
         onOcfModeChange();
+
+        // Populate party datalist with team members only
+        const dl = document.getElementById('ocf-party-datalist');
+        if (dl) {
+          fetch(`${API}/users`, { headers: H() }).then(r => r.ok ? r.json() : { data: [] }).then(teamJson => {
+            const team = Array.isArray(teamJson.data) ? teamJson.data : (teamJson.data?.users || teamJson.data?.members || []);
+            const teamItems = team.filter(u => u.name).map(u => `<option value="${escHtml(u.name)}">👤 Team: ${escHtml(u.name)}</option>`);
+            dl.innerHTML = teamItems.join('');
+          }).catch(() => {});
+        }
       }
     }
 

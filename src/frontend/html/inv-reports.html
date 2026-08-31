@@ -325,6 +325,7 @@
       font-weight: 700;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -447,13 +448,25 @@
       <!-- Top Header -->
       <div
         style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
-          <div>
-            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📈
-              Inventory & Stock Reports</h1>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Stock summaries, valuation, batch
-              tracking, and item movement ledgers</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
+            <div>
+              <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📈
+                Inventory &amp; Stock Reports</h1>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Stock summaries, valuation, batch
+                tracking, and item movement ledgers</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" onclick="previewActiveReportInBrowser()"
+              style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+              <span>👁️</span> View in Browser
+            </button>
+            <button type="button" onclick="exportActiveReportToExcel()"
+              style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+              <span>📥</span> Export to Excel
+            </button>
           </div>
         </div>
       </div>
@@ -660,7 +673,12 @@
       if (str === null || str === undefined) return '';
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
-    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    });
 
     // ─── Searchable Select / Combobox Component ────────────────────────────────
     class SearchableSelect {
@@ -966,6 +984,7 @@
           return;
         }
         const { data } = await r.json();
+        rawStockReport = data || [];
         if (!data?.length) { tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text-muted);">No products found in inventory.</td></tr>`; return; }
         tbody.innerHTML = data.map((p, idx) => `
           <tr>
@@ -988,9 +1007,15 @@
       }
     }
 
+    let rawStockReport = [];
+    let rawValuationReport = [];
+    let rawExpiryReport = [];
+    let rawLedgerReport = [];
+
     async function loadValuation() {
       const r = await fetch(`${API}/inventory/reports/valuation`, { headers: H() });
       const { data } = await r.json();
+      rawValuationReport = data?.items || [];
       document.getElementById('val-kpis').innerHTML = `
         <div class="kpi"><div class="kpi-lbl">Total Stock Value</div><div class="kpi-val" style="color:#4ade80;">${inr(data.totalValue)}</div></div>
         <div class="kpi"><div class="kpi-lbl">Products</div><div class="kpi-val">${data.items?.length || 0}</div></div>`;
@@ -1008,27 +1033,11 @@
         </tr>`).join('');
     }
 
-    async function loadGST() {
-      const type = document.getElementById('gst-type').value;
-      const from = document.getElementById('gst-from').value;
-      const to = document.getElementById('gst-to').value;
-      const params = new URLSearchParams({ type, ...(from && { from }), ...(to && { to }) });
-      const r = await fetch(`${API}/inventory/reports/gst-summary?${params}`, { headers: H() });
-      const { data } = await r.json();
-      document.getElementById('gst-kpis').innerHTML = `
-        <div class="kpi"><div class="kpi-lbl">Taxable Amount</div><div class="kpi-val" style="font-size:1.2rem;">${inr(data.totalTaxable)}</div></div>
-        <div class="kpi"><div class="kpi-lbl">CGST</div><div class="kpi-val" style="color:#38bdf8;font-size:1.2rem;">${inr(data.totalCgst)}</div></div>
-        <div class="kpi"><div class="kpi-lbl">SGST</div><div class="kpi-val" style="color:#38bdf8;font-size:1.2rem;">${inr(data.totalSgst)}</div></div>
-        <div class="kpi"><div class="kpi-lbl">IGST</div><div class="kpi-val" style="color:#a78bfa;font-size:1.2rem;">${inr(data.totalIgst)}</div></div>
-        <div class="kpi"><div class="kpi-lbl">Cess</div><div class="kpi-val" style="font-size:1.2rem;">${inr(data.totalCess)}</div></div>
-        <div class="kpi"><div class="kpi-lbl">Grand Total</div><div class="kpi-val" style="color:#4ade80;">${inr(data.grandTotal)}</div></div>
-        <div class="kpi"><div class="kpi-lbl">Orders</div><div class="kpi-val">${data.count || 0}</div></div>`;
-    }
-
     async function loadExpiry() {
       const days = document.getElementById('expiry-days').value || 30;
       const r = await fetch(`${API}/inventory/reports/expiry-alerts?days=${days}`, { headers: H() });
       const { data } = await r.json();
+      rawExpiryReport = data || [];
       const tbody = document.getElementById('expiry-tbody');
       if (!data?.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#4ade80;">✅ No batches expiring within ${days} days.</td></tr>`; return; }
       tbody.innerHTML = data.map((a, idx) => {
@@ -1054,6 +1063,7 @@
       const params = new URLSearchParams({ ...(from && { from }), ...(to && { to }) });
       const r = await fetch(`${API}/inventory/reports/stock-ledger/${productId}?${params}`, { headers: H() });
       const { data } = await r.json();
+      rawLedgerReport = data || [];
       const tbody = document.getElementById('ledger-tbody');
       if (!data?.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No movements found.</td></tr>`; return; }
       tbody.innerHTML = data.map((e, idx) => `
@@ -1069,8 +1079,110 @@
         </tr>`).join('');
     }
 
+    
+      
+
+    function getActiveReportRows() {
+      const activeBtn = document.querySelector('.report-tabs .tab-btn.active');
+      const text = activeBtn ? activeBtn.textContent.toLowerCase() : '';
+      let tabName = 'stock';
+      if (text.includes('valuation')) tabName = 'valuation';
+      else if (text.includes('expiry')) tabName = 'expiry';
+      else if (text.includes('ledger')) tabName = 'ledger';
+
+      const rows = [];
+      if (tabName === 'stock') {
+        if (!rawStockReport || rawStockReport.length === 0) return null;
+        rows.push(['#', 'Product Name', 'SKU', 'Category', 'HSN Code', 'GST %', 'Unit', 'Current Stock', 'MRP (INR)', 'Purchase Price (INR)', 'Stock Value (INR)', 'Stock Status']);
+        rawStockReport.forEach((p, idx) => {
+          rows.push([
+            idx + 1,
+            p.name || '',
+            p.sku || '',
+            p.categoryId?.name || '',
+            p.hsnCode || '',
+            p.gstRate ?? 18,
+            p.unit || 'Pcs',
+            p.currentStock || 0,
+            p.mrp || 0,
+            p.purchasePrice || 0,
+            p.stockValue || 0,
+            p.isLowStock ? 'LOW' : 'OK',
+          ]);
+        });
+      } else if (tabName === 'valuation') {
+        if (!rawValuationReport || rawValuationReport.length === 0) return null;
+        rows.push(['#', 'Product Name', 'SKU', 'Unit', 'Avg Purchase Price (INR)', 'Current Stock', 'Total Valuation (INR)']);
+        rawValuationReport.forEach((i, idx) => {
+          rows.push([
+            idx + 1,
+            i.name || '',
+            i.sku || '',
+            i.unit || 'Pcs',
+            i.avgCost || 0,
+            i.inQty || 0,
+            i.stockValue || 0,
+          ]);
+        });
+      } else if (tabName === 'expiry') {
+        if (!rawExpiryReport || rawExpiryReport.length === 0) return null;
+        rows.push(['#', 'Product ID', 'Batch No', 'Expiry Date', 'Warehouse ID', 'Qty Remaining', 'Days Left']);
+        rawExpiryReport.forEach((a, idx) => {
+          const expDate = new Date(a._id.expiryDate);
+          const daysLeft = Math.ceil((expDate - Date.now()) / 86400000);
+          rows.push([
+            idx + 1,
+            a._id.productId || '',
+            a._id.batchNo || '',
+            expDate.toLocaleDateString('en-IN'),
+            a._id.warehouseId || '',
+            a.qty || 0,
+            daysLeft,
+          ]);
+        });
+      } else if (tabName === 'ledger') {
+        if (!rawLedgerReport || rawLedgerReport.length === 0) return null;
+        rows.push(['#', 'Date', 'Transaction Type', 'Warehouse', 'Batch No', 'Qty Movement', 'Unit Cost (INR)', 'Remarks']);
+        rawLedgerReport.forEach((e, idx) => {
+          rows.push([
+            idx + 1,
+            new Date(e.date).toLocaleDateString('en-IN'),
+            e.txnType || '',
+            e.warehouseId?.name || '',
+            e.batchNo || '',
+            e.qty || 0,
+            e.unitCost || 0,
+            e.remarks || '',
+          ]);
+        });
+      }
+      return { rows, tabName };
+    }
+
+    function exportActiveReportToExcel() {
+      const data = getActiveReportRows();
+      if (!data) { alert('No report data to export.'); return; }
+      downloadAsXls(data.rows, `Inventory_Report_${data.tabName.toUpperCase()}`);
+    }
+
+    function previewActiveReportInBrowser() {
+      const data = getActiveReportRows();
+      if (!data) { alert('No report data to preview.'); return; }
+      const titles = {
+        stock: 'Stock Summary Report',
+        valuation: 'Stock Valuation Report',
+        expiry: 'Expiry Tracking & Alerts Report',
+        ledger: 'Stock Movement Ledger Report',
+      };
+      if (typeof showSpreadsheetPreview === 'function') {
+        showSpreadsheetPreview(data.rows, titles[data.tabName] || 'Inventory Report', `Inventory_Report_${data.tabName.toUpperCase()}`);
+      }
+    }
+    window.exportActiveReportToExcel = exportActiveReportToExcel;
+    window.previewActiveReportInBrowser = previewActiveReportInBrowser;
+
     init();
   </script>
-</body>
+  </body>
 
 </html>

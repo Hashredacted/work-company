@@ -134,6 +134,7 @@ async function loadUsers() {
     }
     const json = await res.json();
     const users = json.data?.users || [];
+    cachedUsers = users;
 
     if (users.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No team members found.</td></tr>';
@@ -158,6 +159,58 @@ async function loadUsers() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--error); padding: 24px;">Unable to load team members. Please refresh.</td></tr>';
   }
 }
+
+let cachedUsers = [];
+
+function downloadAsXls(rows, filenamePrefix) {
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const tbl = '<table border="1">' + rows.map((row, i) =>
+    '<tr>' + row.map(c => i === 0
+      ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
+      : `<td style="padding:4px 12px;">${esc(c)}</td>`
+    ).join('') + '</tr>'
+  ).join('') + '</table>';
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getUsersRows() {
+  if (!cachedUsers || cachedUsers.length === 0) return null;
+  const rows = [
+    ['#', 'Member Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login Date'],
+  ];
+  cachedUsers.forEach((u, idx) => {
+    rows.push([
+      idx + 1,
+      u.name || '',
+      u.email || '',
+      u.phone || '',
+      u.roleId?.name || 'No Role',
+      u.isActive ? 'ACTIVE' : 'INACTIVE',
+      u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-IN') : 'Never',
+    ]);
+  });
+  return rows;
+}
+
+window.exportUsersToExcel = function () {
+  const rows = getUsersRows();
+  if (!rows) { alert('No team members found to export.'); return; }
+  downloadAsXls(rows, 'WorkSpace_Team_Members');
+};
+
+window.previewUsersInBrowser = function () {
+  const rows = getUsersRows();
+  if (!rows) { alert('No team members found to preview.'); return; }
+  if (typeof showSpreadsheetPreview === 'function') {
+    showSpreadsheetPreview(rows, 'Workspace Team Members', 'WorkSpace_Team_Members');
+  }
+};
 
 async function loadRoles() {
   const tbody = document.getElementById('roles-table-body');

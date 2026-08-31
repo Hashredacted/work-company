@@ -48,6 +48,9 @@ function actionBadge(action) {
   return `<span class="action-badge" style="background:${c.bg};color:${c.color};">${action.replace(/_/g,' ')}</span>`;
 }
 
+let cachedLogs = [];
+let cachedLogins = [];
+
 // ─── Audit Logs ───────────────────────────────────────────────────────────────
 async function loadAuditLogs() {
   const tbody = document.getElementById('audit-tbody');
@@ -62,7 +65,8 @@ async function loadAuditLogs() {
     const res = await fetch(url, { headers: authHeaders() });
     if (!res.ok) throw new Error('Unauthorized');
     const json = await res.json();
-    const logs = json.data.logs;
+    const logs = json.data.logs || [];
+    cachedLogs = logs;
 
     if (!logs || logs.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">No audit logs found.</td></tr>';
@@ -92,7 +96,8 @@ async function loadLoginHistory() {
     const res = await fetch(`${API_BASE}/audit/login-history?limit=100`, { headers: authHeaders() });
     if (!res.ok) throw new Error('Unauthorized');
     const json = await res.json();
-    const history = json.data.history;
+    const history = json.data.history || [];
+    cachedLogins = history;
 
     if (!history || history.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">No login history found.</td></tr>';
@@ -113,6 +118,81 @@ async function loadLoginHistory() {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error);padding:24px;">${err.message === 'Unauthorized' ? 'You do not have permission to view login history.' : 'Failed to load login history.'}</td></tr>`;
   }
 }
+
+function downloadAsXls(rows, filenamePrefix) {
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const tbl = '<table border="1">' + rows.map((row, i) =>
+    '<tr>' + row.map(c => i === 0
+      ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
+      : `<td style="padding:4px 12px;">${esc(c)}</td>`
+    ).join('') + '</tr>'
+  ).join('') + '</table>';
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getAuditRows() {
+  const isActivityActive = document.getElementById('section-activity')?.classList.contains('active');
+  const rows = [];
+
+  if (isActivityActive) {
+    if (!cachedLogs || cachedLogs.length === 0) return null;
+    rows.push(['#', 'Action', 'Resource', 'User Name', 'Details', 'IP Address', 'Timestamp']);
+    cachedLogs.forEach((l, idx) => {
+      rows.push([
+        idx + 1,
+        l.action || '',
+        l.resource || '',
+        l.userId ? (l.userId.name || l.userId.email || l.userId) : '',
+        l.details ? JSON.stringify(l.details) : '',
+        l.ip || '',
+        l.createdAt ? new Date(l.createdAt).toLocaleString('en-IN') : '',
+      ]);
+    });
+  } else {
+    if (!cachedLogins || cachedLogins.length === 0) return null;
+    rows.push(['#', 'User Name', 'Email', 'IP Address', 'User Agent / Device', 'Login Timestamp']);
+    cachedLogins.forEach((h, idx) => {
+      rows.push([
+        idx + 1,
+        h.userId?.name || '',
+        h.userId?.email || '',
+        h.ip || '',
+        h.userAgent || '',
+        h.loginAt ? new Date(h.loginAt).toLocaleString('en-IN') : '',
+      ]);
+    });
+  }
+  return { rows, isActivityActive };
+}
+
+window.exportAuditToExcel = function () {
+  const data = getAuditRows();
+  if (!data) {
+    alert('No audit/login records available to export.');
+    return;
+  }
+  const filenamePrefix = `WorkSpace_${data.isActivityActive ? 'Activity_Logs' : 'Login_History'}`;
+  downloadAsXls(data.rows, filenamePrefix);
+};
+
+window.previewAuditInBrowser = function () {
+  const data = getAuditRows();
+  if (!data) {
+    alert('No audit/login records available to preview.');
+    return;
+  }
+  const title = data.isActivityActive ? 'Activity Logs Audit Trail' : 'Login History Audit Trail';
+  const filenamePrefix = `WorkSpace_${data.isActivityActive ? 'Activity_Logs' : 'Login_History'}`;
+  if (typeof showSpreadsheetPreview === 'function') {
+    showSpreadsheetPreview(data.rows, title, filenamePrefix);
+  }
+};
 
 // Init
 loadAuditLogs();

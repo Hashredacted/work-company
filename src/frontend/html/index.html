@@ -46,6 +46,7 @@
       background: rgba(255, 255, 255, 0.05);
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -102,14 +103,14 @@
       <form id="login-form" class="login-form" novalidate>
 
         <div class="field-group">
-          <label class="field-label" for="email">Email address</label>
+          <label class="field-label" for="email">Email or Mobile Number</label>
           <div class="field-wrapper">
             <svg class="field-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
               <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
             </svg>
-            <input id="email" name="email" type="email" class="field-input" placeholder="you@company.com"
-              autocomplete="email" required aria-describedby="email-error" />
+            <input id="email" name="email" type="text" class="field-input" placeholder="you@company.com or 9876543210"
+              autocomplete="username" required aria-describedby="email-error" />
           </div>
           <span id="email-error" class="field-error" role="alert" aria-live="polite"></span>
         </div>
@@ -201,6 +202,6 @@
     }
   </script>
   <script src="../js/auth.js"></script>
-</body>
+  </body>
 
 </html>

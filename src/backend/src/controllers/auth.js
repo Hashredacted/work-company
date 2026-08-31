@@ -13,10 +13,7 @@ const PasswordResetToken = require('../models/PasswordResetToken');
 // ─── Validation Schemas ───────────────────────────────────────────────────────
 
 const loginSchema = z.object({
-  email: z.preprocess(
-    (val) => (typeof val === 'string' ? val.trim().toLowerCase() : val),
-    z.string().email('Invalid email')
-  ),
+  email: z.string().min(1, 'Email or mobile number is required').trim(),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -42,26 +39,69 @@ async function login(req, res, next) {
         errors: parsed.error.flatten().fieldErrors,
       });
     }
-    const { email, password } = parsed.data;
-    const cleanEmail = email.toLowerCase().trim();
+    const { email: identifier, password } = parsed.data;
+    const cleanIdentifier = identifier.trim();
+    const cleanEmail = cleanIdentifier.toLowerCase();
+    const digitsOnly = cleanIdentifier.replace(/\D/g, '');
 
-    let user = await User.findOne({ email: cleanEmail, isActive: true, deletedAt: null }).select('+password');
+    let user = null;
 
-    // Fallback: Check if user entered Company Email instead of personal Admin Email
-    if (!user) {
-      const tenant = await Tenant.findOne({ email: cleanEmail });
-      if (tenant) {
-        user = await User.findOne({ tenantId: tenant._id, isActive: true, deletedAt: null }).select('+password');
+    // 1. Direct Email Match
+    if (cleanEmail.includes('@')) {
+      user = await User.findOne({ email: cleanEmail, isActive: true, deletedAt: null }).select('+password');
+      if (!user) {
+        const tenant = await Tenant.findOne({ email: cleanEmail });
+        if (tenant) {
+          user = await User.findOne({ tenantId: tenant._id, isActive: true, deletedAt: null }).select('+password');
+        }
+      }
+    } else if (digitsOnly.length >= 7) {
+      // 2. Mobile Phone Number Match (Matches exact phone, 10-digit suffix, or with standard country codes)
+      const phoneQueries = [
+        { phone: cleanIdentifier },
+        { phone: digitsOnly },
+        { phone: digitsOnly.slice(-10) },
+        { phone: `+91${digitsOnly.slice(-10)}` },
+      ];
+
+      // Check User table directly by phone
+      user = await User.findOne({
+        $or: phoneQueries,
+        isActive: true,
+        deletedAt: null,
+      }).select('+password');
+
+      // Fallback: Check Tenant by phone and find company admin user
+      if (!user) {
+        const tenant = await Tenant.findOne({
+          $or: phoneQueries,
+          deletedAt: null,
+        });
+        if (tenant) {
+          user = await User.findOne({ tenantId: tenant._id, isActive: true, deletedAt: null }).select('+password');
+        }
       }
     }
 
+    // 3. General Fallback
     if (!user) {
-      return res.status(401).json({ data: null, message: 'Invalid email or password', errors: null });
+      user = await User.findOne({
+        $or: [
+          { email: cleanEmail },
+          { phone: cleanIdentifier },
+        ],
+        isActive: true,
+        deletedAt: null,
+      }).select('+password');
+    }
+
+    if (!user) {
+      return res.status(401).json({ data: null, message: 'Invalid email/phone or password', errors: null });
     }
 
     const valid = await user.comparePassword(password);
     if (!valid) {
-      return res.status(401).json({ data: null, message: 'Invalid email or password', errors: null });
+      return res.status(401).json({ data: null, message: 'Invalid email/phone or password', errors: null });
     }
 
     const lastRecord = await LoginHistory.findOne({ userId: user._id })
@@ -73,8 +113,8 @@ async function login(req, res, next) {
       LoginHistory.create({
         userId:    user._id,
         tenantId:  user.tenantId || null,
-        ip:        req.ip,
-        userAgent: req.headers['user-agent'] || null,
+        ip:        req.ip || '127.0.0.1',
+        userAgent: req.headers?.['user-agent'] || null,
         loginAt:   new Date(),
       }),
       AuditLog.create({
@@ -84,8 +124,8 @@ async function login(req, res, next) {
         resource:  'auth',
         resourceId: user._id.toString(),
         details:   { email: user.email },
-        ip:        req.ip,
-        userAgent: req.headers['user-agent'] || null,
+        ip:        req.ip || '127.0.0.1',
+        userAgent: req.headers?.['user-agent'] || null,
       }),
     ]);
 

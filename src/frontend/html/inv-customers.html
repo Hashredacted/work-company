@@ -213,6 +213,7 @@
       padding-top: 14px;
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -351,8 +352,18 @@
         </div>
       </div>
 
-      <div class="toolbar">
-        <input id="search" class="search-box" type="text" placeholder="🔍 Search name or GSTIN…" oninput="debounce()" />
+      <div class="toolbar" style="display:flex;gap:10px;justify-content:space-between;align-items:center;">
+        <input id="search" class="search-box" type="text" placeholder="🔍 Search name or GSTIN…" oninput="debounce()" style="flex:1;" />
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" onclick="previewCustomersInBrowser()"
+            style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+            <span>👁️</span> View in Browser
+          </button>
+          <button type="button" onclick="exportCustomersToExcel()"
+            style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+            <span>📥</span> Export to Excel
+          </button>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
@@ -551,7 +562,12 @@
       const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
       return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
     }
-    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    });
     let debounceTimer;
     function debounce() { clearTimeout(debounceTimer); debounceTimer = setTimeout(load, 300); }
 
@@ -590,6 +606,46 @@
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load customers.</td></tr>`;
       }
     }
+
+    
+      
+
+    function getCustomersRows() {
+      const list = (typeof rawCustomersList !== 'undefined' && rawCustomersList) ? rawCustomersList : [];
+      if (!list.length) return null;
+      const rows = [
+        ['#', 'Customer Name', 'GSTIN', 'State', 'State Code', 'City', 'Address', 'Contact Person', 'Phone', 'Email', 'Credit Limit (INR)', 'Payment Terms (Days)'],
+      ];
+      list.forEach((c, idx) => {
+        rows.push([
+          idx + 1,
+          c.name || '',
+          c.gstin || '',
+          c.state || '',
+          c.stateCode || '',
+          c.city || '',
+          c.address || '',
+          c.contactName || '',
+          c.phone || '',
+          c.email || '',
+          c.creditLimit || 0,
+          c.paymentTerms || 0,
+        ]);
+      });
+      return rows;
+    }
+
+    function exportCustomersToExcel() {
+      const rows = getCustomersRows();
+      downloadAsXls(rows, 'Inventory_Customers');
+    }
+
+    function previewCustomersInBrowser() {
+      const rows = getCustomersRows();
+      showSpreadsheetPreview(rows, 'Customer Master Directory', 'Inventory_Customers');
+    }
+    window.exportCustomersToExcel = exportCustomersToExcel;
+    window.previewCustomersInBrowser = previewCustomersInBrowser;
 
     function openModal(d = null, e = null) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();

@@ -174,6 +174,7 @@
       box-shadow: var(--shadow);
     }
   </style>
+  <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
@@ -226,7 +227,15 @@
           <p style="font-size: 0.8rem; color: var(--text-muted);">Manage all user accounts scoped to your organization.
           </p>
         </div>
-        <button class="btn-create" onclick="openAddUserModal()">+ Invite Member</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" onclick="previewUsersInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <span>👁️</span> View in Browser
+          </button>
+          <button type="button" onclick="exportUsersToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 14px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <span>📥</span> Export to Excel
+          </button>
+          <button class="btn-create" onclick="openAddUserModal()">+ Invite Member</button>
+        </div>
       </div>
 
       <div class="table-box">

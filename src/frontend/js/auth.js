@@ -77,10 +77,13 @@ form.addEventListener('submit', async (e) => {
   const email    = emailInput.value.trim();
   const password = passwordInput.value;
 
-  // Client-side validation
+  // Client-side validation: accepts valid email OR phone number (7-15 digits)
   let hasError = false;
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    emailError.textContent = 'Please enter a valid email address.';
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isPhone = /^[+]?[\d\s-]{7,15}$/.test(email) && email.replace(/\D/g, '').length >= 7;
+
+  if (!email || (!isEmail && !isPhone)) {
+    emailError.textContent = 'Please enter a valid email address or mobile number.';
     emailInput.classList.add('invalid');
     hasError = true;
   }

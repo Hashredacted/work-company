@@ -87,6 +87,8 @@ async function loadKPIStats() {
 }
 
 // ─── Load Companies List ───────────────────────────────────────────────────────
+let cachedCompanies = [];
+
 async function loadCompanies() {
   try {
     const search = searchInput.value.trim();
@@ -100,14 +102,69 @@ async function loadCompanies() {
     if (!res.ok) return;
 
     const json = await res.json();
-    const companies = json.data.companies;
+    const companies = json.data.companies || [];
+    cachedCompanies = companies;
 
     renderTable(companies);
   } catch (err) {
     console.error('Error loading companies:', err);
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error); padding: 24px;">Failed to load companies directory.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error); padding: 24px;">Failed to load companies directory.</td></tr>`;
   }
 }
+
+function downloadAsXls(rows, filenamePrefix) {
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const tbl = '<table border="1">' + rows.map((row, i) =>
+    '<tr>' + row.map(c => i === 0
+      ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
+      : `<td style="padding:4px 12px;">${esc(c)}</td>`
+    ).join('') + '</tr>'
+  ).join('') + '</table>';
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getCompaniesRows() {
+  if (!cachedCompanies || cachedCompanies.length === 0) return null;
+  const rows = [
+    ['#', 'Company Name', 'GST / Tax ID', 'Contact Email', 'Phone', 'Status', 'Registered Date', 'Trial End Date', 'Address'],
+  ];
+  cachedCompanies.forEach((c, idx) => {
+    rows.push([
+      idx + 1,
+      c.name || '',
+      c.gst || 'No GST',
+      c.email || '',
+      c.phone || '',
+      c.status || '',
+      c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN') : '',
+      c.trialEndsAt ? new Date(c.trialEndsAt).toLocaleDateString('en-IN') : '',
+      c.address || '',
+    ]);
+  });
+  return rows;
+}
+
+function exportCompaniesToExcel() {
+  const rows = getCompaniesRows();
+  if (!rows) { alert('No companies available to export.'); return; }
+  downloadAsXls(rows, 'WorkSpace_Companies');
+}
+
+function previewCompaniesInBrowser() {
+  const rows = getCompaniesRows();
+  if (!rows) { alert('No companies available to preview.'); return; }
+  if (typeof showSpreadsheetPreview === 'function') {
+    showSpreadsheetPreview(rows, 'Company Management Directory', 'WorkSpace_Companies');
+  }
+}
+window.exportCompaniesToExcel = exportCompaniesToExcel;
+window.previewCompaniesInBrowser = previewCompaniesInBrowser;
 
 // ─── Render Table Rows ─────────────────────────────────────────────────────────
 function renderTable(companies) {
@@ -164,11 +221,11 @@ window.changeStatus = async function (companyId, newStatus) {
   }
 };
 
-// ─── Events ───────────────────────────────────────────────────────────────────
 logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('auth_user');
-  window.location.href = 'index.html';
+  if (confirm('Are you sure you want to sign out of WorkSpace?')) {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
 });
 
 searchInput.addEventListener('input', debounce(loadCompanies, 300));
