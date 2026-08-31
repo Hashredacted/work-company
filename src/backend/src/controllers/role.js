@@ -10,7 +10,7 @@ const AVAILABLE_PERMISSIONS = [
   { resource: 'company', action: 'read', description: 'View company profile and settings' },
   { resource: 'company', action: 'update', description: 'Edit company profile and settings' },
   { resource: 'user', action: 'read', description: 'View team members' },
-  { resource: 'user', action: 'create', description: 'Invite / add new team members' },
+  { resource: 'user', action: 'create', description: 'Add / add new team members' },
   { resource: 'user', action: 'update', description: 'Edit team members and assign roles' },
   { resource: 'user', action: 'delete', description: 'Deactivate / remove team members' },
   { resource: 'role', action: 'read', description: 'View roles and permission sets' },
@@ -31,12 +31,12 @@ const AVAILABLE_PERMISSIONS = [
 ];
 
 const createRoleSchema = z.object({
-  name:        z.string().min(2, 'Role name must be at least 2 characters'),
+  name: z.string().min(2, 'Role name must be at least 2 characters'),
   permissions: z.array(z.string()).min(1, 'At least one permission must be assigned'),
 });
 
 const updateRoleSchema = z.object({
-  name:        z.string().min(2).optional(),
+  name: z.string().min(2).optional(),
   permissions: z.array(z.string()).min(1).optional(),
 });
 

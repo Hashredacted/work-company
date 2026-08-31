@@ -1225,12 +1225,17 @@
         const isReceivable = activePartyType === 'CUSTOMER';
         const color = isReceivable ? 'var(--receivable)' : 'var(--payable)';
 
-        const badgeClass = `status-${p.status || 'CLEARED'}`;
-        const statusLabel = p.status === 'CRITICAL' ? `🚨 CRITICAL (${p.daysOverdue}d)`
-          : p.status === 'OVERDUE' ? `🟠 OVERDUE (${p.daysOverdue}d)`
-            : p.status === 'DUE_SOON' ? `🟡 DUE SOON`
-              : p.status === 'CURRENT' ? `🟢 CURRENT`
-                : `⚪ CLEARED`;
+        const daysOverdue = Number(p.daysOverdue || 0);
+        const badgeClass = (p.outstanding <= 0 || p.status === 'CLEARED') ? 'status-CLEARED' : `status-${p.status || 'CURRENT'}`;
+        const statusLabel = (p.outstanding <= 0 || p.status === 'CLEARED')
+          ? `⚪ CLEARED`
+          : p.status === 'CRITICAL'
+            ? `🚨 CRITICAL${daysOverdue > 0 ? ` (${daysOverdue}d)` : ''}`
+            : p.status === 'OVERDUE'
+              ? `🟠 OVERDUE${daysOverdue > 0 ? ` (${daysOverdue}d)` : ''}`
+              : p.status === 'DUE_SOON'
+                ? `🟡 DUE SOON`
+                : `🟢 CURRENT`;
 
         const typeBadge = isReceivable
           ? `<span style="background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:3px;">📥 RECEIVABLE · लेना</span>`
@@ -1379,7 +1384,9 @@
                     ${inr(b.pendingAmount)}
                   </td>
                   <td>
-                    <span class="status-badge ${b.isOverdue ? 'status-OVERDUE' : 'status-CURRENT'}">${b.isOverdue ? 'OVERDUE' : 'UNPAID'}</span>
+                    <span class="status-badge ${b.isOverdue ? (b.overdueDays > 30 ? 'status-CRITICAL' : 'status-OVERDUE') : 'status-CURRENT'}">
+                      ${b.isOverdue ? (b.overdueDays > 30 ? `🚨 CRITICAL (${b.overdueDays}d)` : `🟠 OVERDUE (${b.overdueDays}d)`) : '🟢 WITHIN TERMS'}
+                    </span>
                   </td>
                   <td style="text-align:center;">
                     <button class="btn-table-action" onclick="openVoucherModal('${b.voucherNo}', event)">🧾 View Doc</button>

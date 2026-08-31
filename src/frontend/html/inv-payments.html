@@ -2017,6 +2017,18 @@
         totColl += c.totalSettled || 0;
         totOut += c.outstanding || 0;
 
+        const cDaysOverdue = Number(c.daysOverdue || 0);
+        const cBadgeClass = (c.outstanding <= 0 || c.status === 'CLEARED') ? 'status-CLEARED' : `status-${c.status || 'CURRENT'}`;
+        const cStatusLabel = (c.outstanding <= 0 || c.status === 'CLEARED')
+          ? `⚪ CLEARED`
+          : c.status === 'CRITICAL'
+            ? `🚨 CRITICAL${cDaysOverdue > 0 ? ` (${cDaysOverdue}d)` : ''}`
+            : c.status === 'OVERDUE'
+              ? `🟠 OVERDUE${cDaysOverdue > 0 ? ` (${cDaysOverdue}d)` : ''}`
+              : c.status === 'DUE_SOON'
+                ? `🟡 DUE SOON`
+                : `🟢 CURRENT`;
+
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
@@ -2036,7 +2048,7 @@
               <div style="font-size:0.68rem;font-weight:700;color:#38bdf8;margin-top:1px;">${c.outstanding > 0 ? '📥 RECEIVABLE (LENA)' : 'CLEARED'}</div>
             </td>
             <td>${c.paymentTerms} Days</td>
-            <td><span class="status-badge status-${c.status}">${escHtml(c.status.replace('_', ' '))}</span></td>
+            <td><span class="status-badge ${cBadgeClass}">${cStatusLabel}</span></td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
               <button onclick="openRecordPaymentForParty('CUSTOMER', '${c._id}', event)" class="btn-action btn-pay">💵 Receive</button>
               <button onclick="openStatement('CUSTOMER', '${c._id}', event)" class="btn-action">📜 Statement</button>
@@ -2113,6 +2125,18 @@
         totPaid += s.totalSettled || 0;
         totOut += s.outstanding || 0;
 
+        const sDaysOverdue = Number(s.daysOverdue || 0);
+        const sBadgeClass = (s.outstanding <= 0 || s.status === 'CLEARED') ? 'status-CLEARED' : `status-${s.status || 'CURRENT'}`;
+        const sStatusLabel = (s.outstanding <= 0 || s.status === 'CLEARED')
+          ? `⚪ CLEARED`
+          : s.status === 'CRITICAL'
+            ? `🚨 CRITICAL${sDaysOverdue > 0 ? ` (${sDaysOverdue}d)` : ''}`
+            : s.status === 'OVERDUE'
+              ? `🟠 OVERDUE${sDaysOverdue > 0 ? ` (${sDaysOverdue}d)` : ''}`
+              : s.status === 'DUE_SOON'
+                ? `🟡 DUE SOON`
+                : `🟢 CURRENT`;
+
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
@@ -2132,7 +2156,7 @@
               <div style="font-size:0.68rem;font-weight:700;color:#fb7185;margin-top:1px;">${s.outstanding > 0 ? '📤 PAYABLE (DENA)' : 'CLEARED'}</div>
             </td>
             <td>${s.paymentTerms} Days</td>
-            <td><span class="status-badge status-${s.status}">${escHtml(s.status.replace('_', ' '))}</span></td>
+            <td><span class="status-badge ${sBadgeClass}">${sStatusLabel}</span></td>
             <td style="display:flex;gap:6px;flex-wrap:wrap;">
               <button onclick="openRecordPaymentForParty('SUPPLIER', '${s._id}', event)" class="btn-action btn-pay">💸 Pay</button>
               <button onclick="openStatement('SUPPLIER', '${s._id}', event)" class="btn-action">📜 Statement</button>

@@ -34,7 +34,7 @@
 
 ## 3. Team & RBAC Management (`/api/users`, `/api/roles`)
 - `GET /api/users`: List team members for current tenant.
-- `POST /api/users`: Invite/create team member.
+- `POST /api/users`: Add/create team member.
 - `PUT /api/users/:id`: Update team member role/status.
 - `DELETE /api/users/:id`: Soft-delete team member.
 - `GET /api/roles`: List system and custom tenant roles.

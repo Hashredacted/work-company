@@ -153,7 +153,8 @@
 
   <div class="dashboard-container">
 
-    <header class="top-nav" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap;">
+    <header class="top-nav"
+      style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap;">
       <div class="brand" style="display:flex;align-items:center;gap:12px;min-width:0;">
         <div class="brand-logo" style="flex-shrink:0;">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -168,26 +169,46 @@
           </svg>
         </div>
         <div style="min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span id="company-header-name" class="brand-name" style="font-size:1.15rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My Company</span>
-          <span id="role-badge" style="font-size:0.72rem;color:#4ade80;font-weight:700;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);padding:2px 8px;border-radius:12px;font-family:monospace;">company_admin</span>
+          <span id="company-header-name" class="brand-name"
+            style="font-size:1.15rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My
+            Company</span>
+          <span id="role-badge"
+            style="font-size:0.72rem;color:#4ade80;font-weight:700;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);padding:2px 8px;border-radius:12px;font-family:monospace;">company_admin</span>
         </div>
       </div>
 
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <nav style="display:flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--border);padding:4px;border-radius:10px;">
-          <a href="users.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">👥 Team</a>
-          <a href="inv-dashboard.html" style="color:#ffffff;background:var(--primary);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;box-shadow:0 2px 8px rgba(99,102,241,0.35);display:inline-flex;align-items:center;gap:5px;">📦 Inventory</a>
-          <a href="billing.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">💳 Billing</a>
-          <a href="audit.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">🔍 Audit</a>
-          <a href="profile.html" style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">👤 Profile</a>
+        <nav
+          style="display:flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--border);padding:4px;border-radius:10px;">
+          <a href="users.html"
+            style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">👥
+            Team</a>
+          <a href="inv-dashboard.html"
+            style="color:#ffffff;background:var(--primary);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;box-shadow:0 2px 8px rgba(99,102,241,0.35);display:inline-flex;align-items:center;gap:5px;">📦
+            Inventory</a>
+          <a href="billing.html"
+            style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">💳
+            Billing</a>
+          <a href="audit.html"
+            style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">🔍
+            Audit</a>
+          <a href="profile.html"
+            style="color:var(--text-sub);font-size:0.8rem;font-weight:600;text-decoration:none;padding:6px 12px;border-radius:6px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;">👤
+            Profile</a>
         </nav>
-        
-        <div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:5px 12px 5px 8px;border-radius:20px;">
-          <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">👤</div>
-          <span id="user-display-name" style="font-size:0.82rem;font-weight:600;color:var(--text);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">User</span>
+
+        <div
+          style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:5px 12px 5px 8px;border-radius:20px;">
+          <div
+            style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">
+            👤</div>
+          <span id="user-display-name"
+            style="font-size:0.82rem;font-weight:600;color:var(--text);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">User</span>
         </div>
 
-        <button id="logout-btn" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;">Sign Out</button>
+        <button id="logout-btn"
+          style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;">Sign
+          Out</button>
       </div>
     </header>
 
@@ -316,7 +337,7 @@
             <span>Workspace Operations</span>
           </div>
           <p style="font-size: 0.875rem; color: var(--text-sub); line-height: 1.5; margin-bottom: 20px;">
-            Manage team access, custom permissions, and invite colleagues to your tenant workspace.
+            Manage team access, custom permissions, and Add colleagues to your tenant workspace.
           </p>
           <div
             style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
@@ -545,6 +566,6 @@
 
     initCompanyDashboard();
   </script>
-  </body>
+</body>
 
 </html>

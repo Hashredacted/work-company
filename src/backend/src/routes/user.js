@@ -15,7 +15,7 @@ const router = Router();
 // GET /api/users — List tenant users
 router.get('/', authenticate, resolveTenant, authorize('user:read'), listUsers);
 
-// POST /api/users — Create / Invite team member
+// POST /api/users — Create / Add team member
 router.post('/', authenticate, resolveTenant, authorize('user:create'), createUser);
 
 // GET /api/users/:id — View single user

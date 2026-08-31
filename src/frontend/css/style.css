@@ -944,3 +944,71 @@ td {
   /* Thin semi-transparent white */
   padding: 10px 14px;
 }
+
+/* ─── Universal Aging & Transaction Status Badges ───────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.status-CURRENT,
+.status-CURRENT_0_15 {
+  background: rgba(16, 185, 129, 0.14);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-DUE_SOON,
+.status-DUE_16_30 {
+  background: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.32);
+}
+
+.status-OVERDUE,
+.status-OVERDUE_31_60 {
+  background: rgba(249, 115, 22, 0.16);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.38);
+}
+
+.status-CRITICAL,
+.status-CRITICAL_60_PLUS {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  animation: pulseCritical 2s infinite;
+}
+
+.status-CLEARED,
+.status-PAID {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.status-PARTIALLY_PAID {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.status-UNPAID {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+@keyframes pulseCritical {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.82; transform: scale(0.98); }
+}

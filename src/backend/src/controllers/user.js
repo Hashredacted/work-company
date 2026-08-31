@@ -6,15 +6,15 @@ const Role = require('../models/Role');
 const AuditLog = require('../models/AuditLog');
 
 const createUserSchema = z.object({
-  name:     z.string().min(2, 'Name must be at least 2 characters'),
-  email:    z.string().email('Invalid email address'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  roleId:   z.string().min(1, 'Role must be selected'),
+  roleId: z.string().min(1, 'Role must be selected'),
 });
 
 const updateUserSchema = z.object({
-  name:     z.string().min(2).optional(),
-  roleId:   z.string().optional(),
+  name: z.string().min(2).optional(),
+  roleId: z.string().optional(),
   isActive: z.boolean().optional(),
   password: z.string().min(6).optional(),
 });
@@ -77,7 +77,7 @@ async function listUsers(req, res, next) {
 }
 
 // ─── POST /api/users ─────────────────────────────────────────────────────────
-// Invite / Create user in the current tenant
+// Add / Create user in the current tenant
 
 async function createUser(req, res, next) {
   try {
