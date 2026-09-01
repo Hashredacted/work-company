@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -285,8 +286,13 @@
 
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="page-container">
     <header class="top-nav">
@@ -306,6 +312,9 @@
         <span class="brand-name">WorkSpace</span>
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
+        <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+          <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+        </button>
         <button id="back-btn" onclick="goBack()"
           style="background:none;border:1px solid var(--border);color:var(--text-sub);font-size:0.85rem;padding:6px 12px;border-radius:6px;cursor:pointer;">←
           Dashboard</button>

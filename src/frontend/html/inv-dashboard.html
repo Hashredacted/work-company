@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -319,7 +320,7 @@
       top: calc(100% + 10px);
       width: 430px;
       max-width: 94vw;
-      background: #111115;
+      background: var(--surface);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 16px;
       box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -625,7 +626,7 @@
 
     .toast-alert {
       pointer-events: auto;
-      background: #18181c;
+      background: var(--surface-2);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
       padding: 14px 18px;
@@ -756,9 +757,15 @@
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
@@ -823,10 +830,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
@@ -887,6 +894,11 @@
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
+          <!-- Theme Switcher -->
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
+
           <!-- Company Switcher -->
           <div id="company-selector-wrap" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">
             <span style="font-size:0.75rem;font-weight:700;color:var(--text-muted);">🏢 Company:</span>
@@ -958,10 +970,10 @@
             </div>
           </div>
 
-          <a href="inv-products.html?action=stock&type=IN"
+          <a href="inv-invoice.html?type=purchase"
             style="background:var(--primary);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600;padding:8px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">+
             Quick Stock In</a>
-          <a href="inv-products.html?action=stock&type=OUT"
+          <a href="inv-invoice.html?type=sales"
             style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);text-decoration:none;font-size:0.8rem;font-weight:600;padding:8px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">-
             Quick Stock Out</a>
         </div>
@@ -977,7 +989,7 @@
       <div class="dash-exec-grid">
         
         <!-- 1. TOTAL / MASTER -->
-        <div class="dash-exec-card" style="border-top:3px solid #6366f1;">
+        <div class="dash-exec-card stagger-1" style="border-top:3px solid #6366f1;">
           <div class="dash-card-header">
             <div class="dash-card-title">
               <span class="dash-card-icon">📦</span>
@@ -1006,7 +1018,7 @@
         </div>
 
         <!-- 2. OUTSTANDING -->
-        <div class="dash-exec-card" style="border-top:3px solid #fbbf24;">
+        <div class="dash-exec-card stagger-2" style="border-top:3px solid #fbbf24;">
           <div class="dash-card-header">
             <div class="dash-card-title">
               <span class="dash-card-icon">💰</span>
@@ -1046,7 +1058,7 @@
         </div>
 
         <!-- 3. RETAIL / TRADING -->
-        <div class="dash-exec-card" style="border-top:3px solid #38bdf8;">
+        <div class="dash-exec-card stagger-3" style="border-top:3px solid #38bdf8;">
           <div class="dash-card-header">
             <div class="dash-card-title">
               <span class="dash-card-icon">📈</span>
@@ -1086,7 +1098,7 @@
         </div>
 
         <!-- 4. ACCOUNT (Cash & Bank) -->
-        <div class="dash-exec-card" style="border-top:3px solid #4ade80;">
+        <div class="dash-exec-card stagger-4" style="border-top:3px solid #4ade80;">
           <div class="dash-card-header">
             <div class="dash-card-title">
               <span class="dash-card-icon">🏦</span>
@@ -1644,11 +1656,35 @@
         const { data } = await dashRes.json();
         const lowData = lowRes.ok ? (await lowRes.json()).data : [];
 
+        // ─── Counter Animation Helper ───
+        function animCount(id, target, prefix = '', suffix = '', isCur = false) {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const num = Number(target) || 0;
+          if (num === 0) {
+            el.textContent = isCur ? '₹0' : (prefix + '0' + suffix);
+            return;
+          }
+          const start = performance.now();
+          function step(now) {
+            const p = Math.min((now - start) / 1200, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            const val = Math.round(eased * num);
+            if (isCur) {
+              el.textContent = (val < 0 ? '-₹' : '₹') + Math.abs(val).toLocaleString('en-IN');
+            } else {
+              el.textContent = prefix + val.toLocaleString('en-IN') + suffix;
+            }
+            if (p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        }
+
         // 1. Total (Master)
-        document.getElementById('kpi-total-items').textContent = data.total?.items ?? data.totalProducts ?? 0;
-        document.getElementById('kpi-total-suppliers').textContent = data.total?.suppliers ?? 0;
-        document.getElementById('kpi-total-customers').textContent = data.total?.customers ?? 0;
-        document.getElementById('kpi-stock-val-sub').textContent = `Stock Value: ${inr(data.stockValue)}`;
+        animCount('kpi-total-items', data.total?.items ?? data.totalProducts ?? 0);
+        animCount('kpi-total-suppliers', data.total?.suppliers ?? 0);
+        animCount('kpi-total-customers', data.total?.customers ?? 0);
+        animCount('kpi-stock-val-sub', data.stockValue || 0, 'Stock Value: ₹', '', false);
 
         // 2. Outstanding
         const sDue = data.outstanding?.suppliers?.due || 0;
@@ -1657,20 +1693,20 @@
         cachedTotalCustDue = cDue;
         cachedTotalSupDue = sDue;
 
-        document.getElementById('kpi-sup-payed').textContent = inr(data.outstanding?.suppliers?.payed);
-        document.getElementById('kpi-sup-due').textContent = inr(sDue);
-        document.getElementById('kpi-cust-recieved').textContent = inr(data.outstanding?.customers?.recieved);
-        document.getElementById('kpi-cust-due').textContent = inr(cDue);
+        animCount('kpi-sup-payed', data.outstanding?.suppliers?.payed || 0, '', '', true);
+        animCount('kpi-sup-due', sDue, '', '', true);
+        animCount('kpi-cust-recieved', data.outstanding?.customers?.recieved || 0, '', '', true);
+        animCount('kpi-cust-due', cDue, '', '', true);
 
         // 3. Retail (Trading)
-        document.getElementById('kpi-sales-bills').textContent = `${data.retail?.sales?.bills ?? 0} Bills`;
-        document.getElementById('kpi-sales-amount').textContent = inr(data.retail?.sales?.totalAmount);
-        document.getElementById('kpi-purch-bills').textContent = `${data.retail?.purchased?.bills ?? 0} Bills`;
-        document.getElementById('kpi-purch-amount').textContent = inr(data.retail?.purchased?.totalAmount);
+        animCount('kpi-sales-bills', data.retail?.sales?.bills ?? 0, '', ' Bills');
+        animCount('kpi-sales-amount', data.retail?.sales?.totalAmount || 0, '', '', true);
+        animCount('kpi-purch-bills', data.retail?.purchased?.bills ?? 0, '', ' Bills');
+        animCount('kpi-purch-amount', data.retail?.purchased?.totalAmount || 0, '', '', true);
 
         // 4. Account
-        document.getElementById('kpi-cash-balance').textContent = inr(data.account?.cashBalance);
-        document.getElementById('kpi-bank-balance').textContent = inr(data.account?.bankBalance);
+        animCount('kpi-cash-balance', data.account?.cashBalance || 0, '', '', true);
+        animCount('kpi-bank-balance', data.account?.bankBalance || 0, '', '', true);
 
         // ─── Assemble Unified Notifications ───
         allNotifications = [];
@@ -1913,12 +1949,13 @@
         setOcfDirection('ADD');
         onOcfModeChange();
 
-        const dl = document.getElementById('dash-ocf-party-datalist');
-        if (dl) {
+        // Init custom autocomplete for party name with team members
+        const partyInput = document.getElementById('ocf-party-name');
+        if (partyInput && typeof initAutocomplete === 'function' && !partyInput._acRefresh) {
           fetch(`${API}/users`, { headers: H() }).then(r => r.ok ? r.json() : { data: [] }).then(teamJson => {
             const team = Array.isArray(teamJson.data) ? teamJson.data : (teamJson.data?.users || teamJson.data?.members || []);
-            const teamItems = team.filter(u => u.name).map(u => `<option value="${escHtml(u.name)}">👤 Team: ${escHtml(u.name)}</option>`);
-            dl.innerHTML = teamItems.join('');
+            const teamNames = team.filter(u => u.name).map(u => u.name);
+            initAutocomplete(partyInput, () => teamNames);
           }).catch(() => {});
         }
       }
@@ -2130,6 +2167,7 @@
 
     init();
   </script>
-  </body>
+    <script src="../js/inv-bg-animation.js"></script>
+</body>
 
 </html>

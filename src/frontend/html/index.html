@@ -9,9 +9,447 @@
     content="Sign in to your WorkSpace account. Secure multi-tenant login with role-based access control." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
+    /* ─── Full-screen split layout ─────────────────────────────────────────────── */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .login-split {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* ─── LEFT HERO PANEL ──────────────────────────────────────────────────────── */
+    .hero-panel {
+      flex: 1 1 55%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 64px;
+      background: radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 60% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+        var(--bg);
+    }
+
+    /* canvas behind hero */
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Brand mark */
+    .hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 52px;
+      animation: heroFadeUp 0.6s ease both;
+    }
+
+    .hero-logo-ring {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.15), 0 0 30px rgba(99, 102, 241, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logoPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.15), 0 0 30px rgba(99, 102, 241, 0.35);
+      }
+
+      50% {
+        box-shadow: 0 0 0 12px rgba(99, 102, 241, 0.08), 0 0 50px rgba(99, 102, 241, 0.55);
+      }
+    }
+
+    .hero-brand-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+
+    .hero-brand-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 2px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Headline with typewriter */
+    .hero-headline {
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      color: var(--text);
+      margin-bottom: 20px;
+      animation: heroFadeUp 0.6s ease 0.1s both;
+    }
+
+    .hero-headline .gradient-word {
+      background: linear-gradient(135deg, #818cf8 0%, #a78bfa 40%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .typewriter-line {
+      display: inline-block;
+      border-right: 3px solid #6366f1;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typeIn 1.8s steps(22, end) 0.6s forwards, blinkCaret 0.75s step-end 0.6s 8;
+    }
+
+    @keyframes typeIn {
+      from {
+        width: 0;
+      }
+
+      to {
+        width: 100%;
+      }
+    }
+
+    @keyframes blinkCaret {
+
+      0%,
+      100% {
+        border-color: #6366f1;
+      }
+
+      50% {
+        border-color: transparent;
+      }
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 460px;
+      margin-bottom: 40px;
+      animation: heroFadeUp 0.6s ease 0.2s both;
+    }
+
+    /* Floating feature pills */
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 48px;
+      animation: heroFadeUp 0.6s ease 0.3s both;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid;
+      backdrop-filter: blur(8px);
+      animation: pillFloat var(--dur, 4s) ease-in-out infinite alternate;
+      animation-delay: var(--del, 0s);
+    }
+
+    .pill-indigo {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: #a5b4fc;
+      --dur: 4.2s;
+      --del: 0s;
+    }
+
+    .pill-violet {
+      background: rgba(139, 92, 246, 0.12);
+      border-color: rgba(139, 92, 246, 0.35);
+      color: #c4b5fd;
+      --dur: 5.1s;
+      --del: 0.4s;
+    }
+
+    .pill-cyan {
+      background: rgba(6, 182, 212, 0.10);
+      border-color: rgba(6, 182, 212, 0.30);
+      color: #67e8f9;
+      --dur: 4.7s;
+      --del: 0.8s;
+    }
+
+    .pill-green {
+      background: rgba(16, 185, 129, 0.10);
+      border-color: rgba(16, 185, 129, 0.30);
+      color: #6ee7b7;
+      --dur: 3.9s;
+      --del: 0.2s;
+    }
+
+    .pill-amber {
+      background: rgba(245, 158, 11, 0.10);
+      border-color: rgba(245, 158, 11, 0.28);
+      color: #fcd34d;
+      --dur: 5.5s;
+      --del: 0.6s;
+    }
+
+    @keyframes pillFloat {
+      from {
+        transform: translateY(0px);
+      }
+
+      to {
+        transform: translateY(-5px);
+      }
+    }
+
+    /* Stat counters row */
+    .stat-row {
+      display: flex;
+      gap: 36px;
+      animation: heroFadeUp 0.6s ease 0.45s both;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .stat-num {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-num .stat-accent {
+      color: #818cf8;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .stat-divider {
+      width: 1px;
+      background: var(--border);
+      align-self: stretch;
+    }
+
+    /* Floating card decorations */
+    .deco-card {
+      position: absolute;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 14px;
+      backdrop-filter: blur(6px);
+      background: rgba(99, 102, 241, 0.05);
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      pointer-events: none;
+      animation: decoFloat var(--ddur, 7s) ease-in-out infinite alternate;
+    }
+
+    .deco-card-1 {
+      top: 8%;
+      right: 4%;
+      width: 190px;
+      --ddur: 7s;
+      animation-delay: 0s;
+    }
+
+    .deco-card-2 {
+      bottom: 14%;
+      right: 6%;
+      width: 170px;
+      --ddur: 9s;
+      animation-delay: 1.2s;
+    }
+
+    .deco-card-3 {
+      top: 42%;
+      right: 2%;
+      width: 155px;
+      --ddur: 8s;
+      animation-delay: 0.6s;
+    }
+
+    @keyframes decoFloat {
+      from {
+        transform: translateY(0) rotate(-1deg);
+      }
+
+      to {
+        transform: translateY(-18px) rotate(1deg);
+      }
+    }
+
+    .deco-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .deco-value {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .deco-sub {
+      font-size: 0.68rem;
+      color: #4ade80;
+      margin-top: 2px;
+    }
+
+    .deco-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+
+    .deco-badge-green {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+
+    .deco-badge-blue {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    /* Orbiting ring */
+    .orbit-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      pointer-events: none;
+    }
+
+    .orbit-1 {
+      width: 500px;
+      height: 500px;
+      top: -120px;
+      left: -200px;
+      animation: orbitSpin 30s linear infinite;
+    }
+
+    .orbit-2 {
+      width: 380px;
+      height: 380px;
+      top: -60px;
+      left: -140px;
+      animation: orbitSpin 22s linear infinite reverse;
+    }
+
+    .orbit-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #6366f1;
+      box-shadow: 0 0 10px #6366f1;
+    }
+
+    @keyframes orbitSpin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes heroFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── RIGHT LOGIN PANEL ─────────────────────────────────────────────────────── */
+    .login-panel {
+      flex: 0 0 420px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 40px;
+      background: rgba(17, 17, 20, 0.85);
+      border-left: 1px solid var(--border);
+      backdrop-filter: blur(24px);
+      overflow-y: auto;
+      position: relative;
+      z-index: 2;
+      animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ─── Auth tabs ─────────────────────────────────────────────────────────────── */
     .auth-tab-switch {
       display: flex;
       width: 100%;
@@ -21,6 +459,7 @@
       padding: 4px;
       margin-bottom: 20px;
       gap: 4px;
+      animation: heroFadeUp 0.5s ease 0.15s both;
     }
 
     .auth-tab-btn {
@@ -37,7 +476,7 @@
 
     .auth-tab-btn.active {
       background: var(--primary, #6366f1);
-      color: #ffffff;
+      color: #fff;
       box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
     }
 
@@ -45,48 +484,503 @@
       color: var(--text);
       background: rgba(255, 255, 255, 0.05);
     }
+
+    /* Login header */
+    .login-header {
+      margin-bottom: 24px;
+      animation: heroFadeUp 0.5s ease 0.2s both;
+    }
+
+    .login-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .login-subtitle {
+      margin-top: 5px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Input group styles */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: heroFadeUp 0.5s ease 0.28s both;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .field-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-sub);
+    }
+
+    .field-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .field-wrapper:focus-within .field-icon {
+      color: var(--primary);
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 12px 44px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.9375rem;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .field-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .field-input.invalid {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+    }
+
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-pw:hover {
+      color: var(--text);
+    }
+
+    .field-error {
+      font-size: 0.75rem;
+      color: var(--error);
+      min-height: 16px;
+    }
+
+    .forgot-link {
+      font-size: 0.8rem;
+      color: #818cf8;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Submit button */
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);
+      position: relative;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover::before {
+      opacity: 1;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(99, 102, 241, 0.6);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Previous login banner */
+    .prev-login-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--info-bg);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #a5b4fc;
+      margin-bottom: 16px;
+    }
+
+    .prev-login-banner[hidden] {
+      display: none;
+    }
+
+    .form-error {
+      background: var(--error-bg);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--error);
+    }
+
+    .form-error[hidden] {
+      display: none;
+    }
+
+    /* Quick-fill demo bar */
+    .demo-bar {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      animation: heroFadeUp 0.5s ease 0.4s both;
+    }
+
+    .demo-bar-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-align: center;
+      letter-spacing: 0.06em;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .demo-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 0.72rem;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font-family: var(--font);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .demo-btn:hover {
+      background: var(--surface-3);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .demo-btn-name {
+      font-weight: 700;
+    }
+
+    .login-footer {
+      margin-top: 16px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-align: center;
+      animation: heroFadeUp 0.5s ease 0.5s both;
+    }
+
+    .login-footer a {
+      color: #818cf8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .login-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .security-note {
+      margin-top: 14px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      opacity: 0.7;
+    }
+
+    /* Light mode adjustments */
+    [data-theme="light"] .hero-panel {
+      background: radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.10) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
+        #f8fafc;
+    }
+
+    [data-theme="light"] .login-panel {
+      background: rgba(255, 255, 255, 0.92);
+      border-left-color: #e2e8f0;
+    }
+
+    [data-theme="light"] .pill-indigo {
+      background: rgba(99, 102, 241, 0.08);
+      color: #4f46e5;
+    }
+
+    [data-theme="light"] .pill-violet {
+      background: rgba(139, 92, 246, 0.08);
+      color: #7c3aed;
+    }
+
+    [data-theme="light"] .pill-cyan {
+      background: rgba(6, 182, 212, 0.07);
+      color: #0891b2;
+    }
+
+    [data-theme="light"] .pill-green {
+      background: rgba(16, 185, 129, 0.07);
+      color: #059669;
+    }
+
+    [data-theme="light"] .pill-amber {
+      background: rgba(245, 158, 11, 0.08);
+      color: #b45309;
+    }
+
+    /* Mobile: stack vertically */
+    @media (max-width: 860px) {
+
+      html,
+      body {
+        overflow: auto;
+      }
+
+      .login-split {
+        flex-direction: column;
+      }
+
+      .hero-panel {
+        flex: none;
+        padding: 40px 28px 32px;
+        min-height: auto;
+      }
+
+      .hero-headline {
+        font-size: 1.9rem;
+      }
+
+      .hero-desc {
+        display: none;
+      }
+
+      .deco-card {
+        display: none;
+      }
+
+      .stat-row {
+        gap: 20px;
+      }
+
+      .login-panel {
+        flex: none;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding: 36px 28px 48px;
+      }
+    }
   </style>
   <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
-
-  <!-- Background grid + blobs -->
+  <!-- Background layers (reused from global CSS) -->
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
-  <main class="auth-layout">
+  <div class="login-split">
 
-    <!-- Brand -->
-    <div class="brand" aria-label="Platform brand">
-      <div class="brand-logo">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-          <rect width="28" height="28" rx="8" fill="url(#brandGrad)" />
-          <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
-          <defs>
-            <linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28">
-              <stop offset="0%" stop-color="#6366f1" />
-              <stop offset="100%" stop-color="#8b5cf6" />
-            </linearGradient>
-          </defs>
-        </svg>
+    <!-- ═══════════════ LEFT HERO PANEL ═══════════════ -->
+    <section class="hero-panel" aria-label="Platform overview">
+      <!-- Particle canvas -->
+      <canvas id="hero-canvas"></canvas>
+
+      <!-- Orbiting rings -->
+      <div class="orbit-ring orbit-1">
+        <div class="orbit-dot"></div>
       </div>
-      <span class="brand-name">WorkSpace</span>
-    </div>
+      <div class="orbit-ring orbit-2"></div>
 
-    <!-- Card -->
-    <div class="card" role="region" aria-label="Login form">
+      <!-- Floating deco cards -->
+      <!-- <div class="deco-card deco-card-1" aria-hidden="true">
+        <div class="deco-label">Total Revenue</div>
+        <div class="deco-value" id="deco-rev">₹0</div>
+        <div class="deco-sub">↑ 18% this month</div>
+      </div> -->
+      <div class="deco-card deco-card-2" aria-hidden="true">
+        <div class="deco-label">Active Companies</div>
+        <div class="deco-value" id="deco-cos">0</div>
+        <div class="deco-sub"><span class="deco-badge deco-badge-green">● Live</span></div>
+      </div>
+      <div class="deco-card deco-card-3" aria-hidden="true">
+        <div class="deco-label">Invoices Today</div>
+        <div class="deco-value" id="deco-inv">0</div>
+        <div class="deco-sub"><span class="deco-badge deco-badge-blue">Real-time</span></div>
+      </div>
 
-      <!-- Top Switcher: Sign In vs Register Company -->
+      <!-- Main content -->
+      <div class="hero-content">
+        <!-- Brand -->
+        <div class="hero-brand">
+          <div class="hero-logo-ring">
+            <svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <rect width="28" height="28" rx="8" fill="url(#hG)" />
+              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.92" />
+              <defs>
+                <linearGradient id="hG" x1="0" y1="0" x2="28" y2="28">
+                  <stop offset="0%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div>
+            <div class="hero-brand-text">WorkSpace</div>
+            <div class="hero-brand-sub">Business ERP Platform</div>
+          </div>
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
+            style="margin-left:auto;">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="hero-headline">
+          Run your business<br>
+          <span class="gradient-word"><span class="typewriter-line">smarter, not harder.</span></span>
+        </h1>
+
+        <p class="hero-desc">
+          One platform for GST invoicing, inventory, khata ledger, multi-bank finance,
+          and role-based team management — built for Indian businesses.
+        </p>
+
+        <!-- Feature pills -->
+        <div class="feature-pills" aria-label="Key features">
+          <span class="pill pill-indigo">🧾 GST Invoicing</span>
+          <span class="pill pill-violet">📦 Inventory</span>
+          <span class="pill pill-cyan">📊 Live Reports</span>
+          <span class="pill pill-green">💳 Multi-Bank</span>
+          <span class="pill pill-amber">🔐 Role-Based Access</span>
+          <span class="pill pill-indigo">📱 Khata Ledger</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-row" aria-label="Platform statistics">
+          <div class="stat-item">
+            <div class="stat-num" id="stat-invoices">0<span class="stat-accent">+</span></div>
+            <div class="stat-label">Invoices generated</div>
+          </div>
+          <div class="stat-divider" aria-hidden="true"></div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-companies">0<span class="stat-accent">+</span></div>
+            <div class="stat-label">Companies onboarded</div>
+          </div>
+          <div class="stat-divider" aria-hidden="true"></div>
+          <div class="stat-item">
+            <div class="stat-num">99<span class="stat-accent">%</span></div>
+            <div class="stat-label">Uptime SLA</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ RIGHT LOGIN PANEL ═══════════════ -->
+    <aside class="login-panel" role="complementary" aria-label="Sign in">
+
+      <!-- Top Switcher -->
       <div class="auth-tab-switch" role="tablist">
         <a href="index.html" class="auth-tab-btn active" role="tab" aria-selected="true">Sign In</a>
         <a href="register.html" class="auth-tab-btn" role="tab" aria-selected="false">Register Company</a>
       </div>
 
-      <div class="card-header" style="margin-bottom: 20px;">
-        <h1 class="card-title">Welcome back</h1>
-        <p class="card-subtitle">Sign in to your company ERP & Khata workspace</p>
+      <!-- Header -->
+      <div class="login-header">
+        <div class="login-title">Welcome back 👋</div>
+        <div class="login-subtitle">Sign in to your ERP &amp; Khata workspace</div>
       </div>
 
       <!-- Previous login notice -->
@@ -143,65 +1037,163 @@
         <!-- General error -->
         <div id="form-error" class="form-error" role="alert" aria-live="assertive" hidden></div>
 
-        <button type="submit" id="submit-btn" class="btn-primary" style="margin-top: 4px;">
-          <span id="btn-text">Sign in to WorkSpace</span>
+        <button type="submit" id="submit-btn" class="btn-primary" style="margin-top:4px;">
+          <span id="btn-text">Sign in to WorkSpace →</span>
           <span id="btn-spinner" class="spinner" hidden aria-hidden="true"></span>
         </button>
 
       </form>
 
-      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
-        <div
-          style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; text-align: center;">
-          ⚡ Quick-Fill Demo Roles</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <button type="button" onclick="fillCreds('admin@platform.com', 'Admin@1234')"
-            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
-            <div style="font-weight: 600; color: #a855f7;">Super Admin</div>
-            <div style="color: var(--text-muted); font-size: 0.68rem;">Platform wide</div>
+      <!-- Quick-fill demo -->
+      <div class="demo-bar">
+        <div class="demo-bar-label">⚡ Quick-Fill Demo Roles</div>
+        <div class="demo-grid">
+          <button type="button" class="demo-btn" onclick="fillCreds('admin@platform.com','Admin@1234')">
+            <div class="demo-btn-name" style="color:#a855f7;">Super Admin</div>
+            <div style="color:var(--text-muted);font-size:0.68rem;">Platform wide</div>
           </button>
-          <button type="button" onclick="fillCreds('admin@acme.com', 'Password@123')"
-            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
-            <div style="font-weight: 600; color: #38bdf8;">Company Admin</div>
-            <div style="color: var(--text-muted); font-size: 0.68rem;">Acme Retail Store</div>
+          <button type="button" class="demo-btn" onclick="fillCreds('admin@acme.com','Password@123')">
+            <div class="demo-btn-name" style="color:#38bdf8;">Company Admin</div>
+            <div style="color:var(--text-muted);font-size:0.68rem;">Acme Retail</div>
           </button>
-          <button type="button" onclick="fillCreds('user@acme.com', 'Password@123')"
-            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
-            <div style="font-weight: 600; color: #4ade80;">Standard User</div>
-            <div style="color: var(--text-muted); font-size: 0.68rem;">Restricted Role</div>
+          <button type="button" class="demo-btn" onclick="fillCreds('user@acme.com','Password@123')">
+            <div class="demo-btn-name" style="color:#4ade80;">Standard User</div>
+            <div style="color:var(--text-muted);font-size:0.68rem;">Restricted Role</div>
           </button>
-          <button type="button" onclick="fillCreds('admin@nexus.com', 'Password@123')"
-            style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; color: var(--text); cursor: pointer; text-align: left;">
-            <div style="font-weight: 600; color: #fbbf24;">Active Admin</div>
-            <div style="color: var(--text-muted); font-size: 0.68rem;">Nexus Digital Labs</div>
+          <button type="button" class="demo-btn" onclick="fillCreds('admin@nexus.com','Password@123')">
+            <div class="demo-btn-name" style="color:#fbbf24;">Active Admin</div>
+            <div style="color:var(--text-muted);font-size:0.68rem;">Nexus Digital</div>
           </button>
         </div>
       </div>
 
-      <p style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
-        Need to onboard your organization? <a href="register.html" class="forgot-link"
-          style="color: #818cf8; font-weight: 600;">Start 7-Day Free Trial →</a>
+      <p class="login-footer">
+        New to WorkSpace? <a href="register.html">Start 7-Day Free Trial →</a>
       </p>
+      <p class="security-note">🔒 Protected by end-to-end encryption &amp; multi-tenant isolation</p>
+    </aside>
 
-    </div>
-
-    <p class="footer-note">
-      Protected by end-to-end encryption &amp; multi-tenant isolation.
-    </p>
-
-  </main>
+  </div><!-- /.login-split -->
 
   <script>
+    /* ── Quick fill ── */
     function fillCreds(email, pw) {
       document.getElementById('email').value = email;
       document.getElementById('password').value = pw;
-      document.getElementById('email-error').textContent = '';
-      document.getElementById('password-error').textContent = '';
-      document.getElementById('email').classList.remove('invalid');
-      document.getElementById('password').classList.remove('invalid');
+      ['email-error', 'password-error'].forEach(id => document.getElementById(id).textContent = '');
+      ['email', 'password'].forEach(id => document.getElementById(id).classList.remove('invalid'));
     }
+
+    /* ── Animated stat counters ── */
+    function animateCount(el, target, prefix, suffix, duration) {
+      if (!el) return;
+      const start = performance.now();
+      function frame(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const val = Math.round(eased * target);
+        el.innerHTML = prefix + val.toLocaleString('en-IN') + '<span class="stat-accent">' + suffix + '</span>';
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function animateDecoCount(el, target, prefix) {
+      if (!el) return;
+      const start = performance.now();
+      function frame(now) {
+        const p = Math.min((now - start) / 1800, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = prefix + Math.round(eased * target).toLocaleString('en-IN');
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    setTimeout(() => {
+      animateCount(document.getElementById('stat-invoices'), 12480, '', '+', 1800);
+      animateCount(document.getElementById('stat-companies'), 340, '', '+', 1600);
+      animateDecoCount(document.getElementById('deco-rev'), 2470000, '₹');
+      animateDecoCount(document.getElementById('deco-cos'), 48, '');
+      animateDecoCount(document.getElementById('deco-inv'), 124, '');
+    }, 500);
+
+    /* ── Hero canvas particle field ── */
+    (function () {
+      const canvas = document.getElementById('hero-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [];
+
+      const COLORS = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'];
+
+      function resize() {
+        W = canvas.width = canvas.offsetWidth;
+        H = canvas.height = canvas.offsetHeight;
+      }
+
+      function Particle() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = 1.2 + Math.random() * 2.5;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.alpha = 0.18 + Math.random() * 0.28;
+      }
+
+      function spawn(n) {
+        particles = [];
+        for (let i = 0; i < n; i++) particles.push(new Particle());
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+          // Draw connections
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dx = p.x - q.x, dy = p.y - q.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 110) {
+              ctx.save();
+              ctx.globalAlpha = (1 - dist / 110) * 0.12;
+              ctx.strokeStyle = p.color;
+              ctx.lineWidth = 0.8;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+
+          // Draw dot
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        requestAnimationFrame(draw);
+      }
+
+      window.addEventListener('resize', () => { resize(); spawn(60); });
+      resize();
+      spawn(60);
+      draw();
+    })();
   </script>
   <script src="../js/auth.js"></script>
-  </body>
+</body>
 
 </html>

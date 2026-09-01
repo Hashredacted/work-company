@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -148,8 +149,13 @@
 <body>
 
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="dashboard-container">
 
@@ -206,6 +212,9 @@
             style="font-size:0.82rem;font-weight:600;color:var(--text);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">User</span>
         </div>
 
+        <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+          <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+        </button>
         <button id="logout-btn"
           style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;">Sign
           Out</button>

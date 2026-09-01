@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -346,7 +347,7 @@
     }
 
     thead th {
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--surface);
       color: var(--text-muted);
       font-size: 0.72rem;
       font-weight: 700;
@@ -357,7 +358,8 @@
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 2;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
     tbody td {
@@ -415,8 +417,15 @@
     }
 
     @keyframes pulseCritical {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.75; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.75;
+      }
     }
 
     .bill-pill {
@@ -598,9 +607,15 @@
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
@@ -665,10 +680,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
@@ -725,6 +740,11 @@
             <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Consolidated ledger balances, aging
               buckets, and party knockoffs</div>
           </div>
+        </div>
+        <div>
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
         </div>
       </div>
 
@@ -812,9 +832,15 @@
         <input id="party-search" class="search-box" type="text" placeholder="🔍 Search name, phone, GSTIN…"
           oninput="debounceSearch()" />
         <div class="filter-actions">
-          <a href="inv-finance.html" class="btn-action" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:#a5b4fc;border-color:rgba(99,102,241,0.35);font-weight:700;">🏦 Treasury Books</a>
-          <button class="btn-action" onclick="previewOutstandingsInBrowser()" style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.35);font-weight:700;display:inline-flex;align-items:center;gap:6px;"><span>👁️</span> View in Browser</button>
-          <button class="btn-action" onclick="exportToCsv()" style="background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.35);font-weight:700;display:inline-flex;align-items:center;gap:6px;"><span>📥</span> Export to Excel</button>
+          <a href="inv-finance.html" class="btn-action"
+            style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:#a5b4fc;border-color:rgba(99,102,241,0.35);font-weight:700;">🏦
+            Treasury Books</a>
+          <button class="btn-action" onclick="previewOutstandingsInBrowser()"
+            style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.35);font-weight:700;display:inline-flex;align-items:center;gap:6px;"><span>👁️</span>
+            View in Browser</button>
+          <button class="btn-action" onclick="exportToCsv()"
+            style="background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.35);font-weight:700;display:inline-flex;align-items:center;gap:6px;"><span>📥</span>
+            Export to Excel</button>
           <button class="btn-action" onclick="window.print()">🖨️ Print Report</button>
         </div>
       </div>
@@ -1226,15 +1252,28 @@
         const color = isReceivable ? 'var(--receivable)' : 'var(--payable)';
 
         const daysOverdue = Number(p.daysOverdue || 0);
-        const badgeClass = (p.outstanding <= 0 || p.status === 'CLEARED') ? 'status-CLEARED' : `status-${p.status || 'CURRENT'}`;
-        const statusLabel = (p.outstanding <= 0 || p.status === 'CLEARED')
+        let status = p.status || 'CURRENT';
+        if (p.outstanding <= 0) {
+          status = 'CLEARED';
+        } else if (daysOverdue > 60) {
+          status = 'CRITICAL';
+        } else if (daysOverdue > 30) {
+          status = 'OVERDUE';
+        } else if (daysOverdue > 0) {
+          status = 'DUE_SOON';
+        } else if (status !== 'DUE_SOON') {
+          status = 'CURRENT';
+        }
+
+        const badgeClass = `status-${status}`;
+        const statusLabel = status === 'CLEARED'
           ? `⚪ CLEARED`
-          : p.status === 'CRITICAL'
-            ? `🚨 CRITICAL${daysOverdue > 0 ? ` (${daysOverdue}d)` : ''}`
-            : p.status === 'OVERDUE'
-              ? `🟠 OVERDUE${daysOverdue > 0 ? ` (${daysOverdue}d)` : ''}`
-              : p.status === 'DUE_SOON'
-                ? `🟡 DUE SOON`
+          : status === 'CRITICAL'
+            ? `🚨 CRITICAL (${daysOverdue}d)`
+            : status === 'OVERDUE'
+              ? `🟠 OVERDUE (${daysOverdue}d)`
+              : status === 'DUE_SOON'
+                ? `🟡 DUE SOON${daysOverdue > 0 ? ` (${daysOverdue}d)` : ''}`
                 : `🟢 CURRENT`;
 
         const typeBadge = isReceivable
@@ -1250,12 +1289,12 @@
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
-            <td>
+            <td style="min-width:180px;">
               <div style="font-weight:700;color:var(--text);font-size:0.9rem;">${escHtml(p.name)}</div>
               <div>${typeBadge}</div>
-              <div style="font-size:0.74rem;color:var(--text-muted);margin-top:2px;">
-                ${p.contactName ? escHtml(p.contactName) + ' · ' : ''}
-                ${p.phone ? `📞 <a href="tel:${escHtml(p.phone)}" style="color:var(--text-sub);text-decoration:none;">${escHtml(p.phone)}</a>` : 'No phone'}
+              <div style="font-size:0.74rem;color:var(--text-muted);margin-top:4px;line-height:1.4;">
+                ${p.contactName ? `<div>👤 ${escHtml(p.contactName)}</div>` : ''}
+                ${p.phone ? `<div style="white-space:nowrap;margin-top:1px;">📞 <a href="tel:${escHtml(p.phone)}" style="color:var(--text-sub);text-decoration:none;">${escHtml(p.phone)}</a></div>` : ''}
               </div>
             </td>
             <td>
@@ -1817,8 +1856,8 @@
     }
 
     // ─── Export to CSV ────────────────────────────────────────────────────────
-    
-      
+
+
 
     function getOutstandingsRows() {
       if (!rawOutstandings || rawOutstandings.length === 0) return null;
@@ -1874,6 +1913,7 @@
 
     init();
   </script>
+  <script src="../js/inv-bg-animation.js"></script>
 </body>
 
 </html>

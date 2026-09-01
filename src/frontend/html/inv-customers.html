@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -150,7 +151,7 @@
     }
 
     .modal {
-      background: #14162b;
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
@@ -212,14 +213,136 @@
       border-top: 1px solid var(--border);
       padding-top: 14px;
     }
+
+    /* Statement Modal Specifics */
+    .party-info-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .party-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .party-kpi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .party-kpi-lbl {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .party-kpi-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+
+    .bill-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.12);
+      color: #818cf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 4px;
+      margin-top: 2px;
+    }
+
+    .quick-period-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .quick-period-btn.active,
+    .quick-period-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .app-layout, .top-nav, .toolbar, .btn-theme-toggle, button, #inv-bg-canvas, .bg-grid, .bg-noise, .blob, #cus-modal {
+        display: none !important;
+      }
+      #statement-modal {
+        display: block !important;
+        position: static !important;
+        background: transparent !important;
+        padding: 0 !important;
+      }
+      #statement-modal .modal {
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        font-size: 11px !important;
+      }
+      th, td {
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+        padding: 6px 8px !important;
+      }
+      .party-info-card {
+        border: 1px solid #ccc !important;
+        background: #fafafa !important;
+        color: #000 !important;
+      }
+      .party-kpi-box {
+        border: 1px solid #ccc !important;
+        background: #fff !important;
+      }
+    }
   </style>
   <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
@@ -284,10 +407,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
@@ -345,7 +468,10 @@
               profiles, credit terms, and GST details</div>
           </div>
         </div>
-        <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
           <button onclick="openModal()"
             style="background:var(--primary);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+
             Add Customer</button>
@@ -442,6 +568,53 @@
       </form>
     </div>
   </div>
+
+  <!-- Customer Khata Statement / Ledger Modal -->
+  <div class="modal-overlay" id="statement-modal" style="z-index:1100;">
+    <div class="modal" style="max-width:960px;width:95%;">
+      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;">
+          <span>📜</span> Customer Khata Statement (खाता बही)
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" onclick="window.print()" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
+            <span>🖨️</span> Print
+          </button>
+          <button type="button" onclick="exportModalStatementToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
+            <span>📥</span> Excel
+          </button>
+          <button type="button" onclick="closeStatementModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:0 6px;">✕</button>
+        </div>
+      </div>
+
+      <!-- Quick Date Range Filters inside modal -->
+      <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;background:var(--surface-2);padding:12px;border-radius:8px;border:1px solid var(--border);">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Period Presets</label>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button type="button" class="quick-period-btn active" onclick="setModalPeriod('all', this)">All Time</button>
+            <button type="button" class="quick-period-btn" onclick="setModalPeriod('this_month', this)">This Month</button>
+            <button type="button" class="quick-period-btn" onclick="setModalPeriod('last_month', this)">Last Month</button>
+            <button type="button" class="quick-period-btn" onclick="setModalPeriod('this_fy', this)">This FY</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">From Date</label>
+          <input id="modal-stmt-from" class="form-input" type="date" style="padding:6px 10px;font-size:0.8rem;" onchange="refreshCurrentModalStatement()" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">To Date</label>
+          <input id="modal-stmt-to" class="form-input" type="date" style="padding:6px 10px;font-size:0.8rem;" onchange="refreshCurrentModalStatement()" />
+        </div>
+        <button type="button" onclick="refreshCurrentModalStatement()" style="background:var(--primary);color:#fff;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">Apply Range</button>
+      </div>
+
+      <div id="statement-modal-content">
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">Loading Khata statement…</div>
+      </div>
+    </div>
+  </div>
+
   <script>
     'use strict';
     const API = 'http://localhost:5000/api';
@@ -562,6 +735,15 @@
       const formatted = Math.abs(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
       return num < 0 ? `-₹${formatted}` : `₹${formatted}`;
     }
+    function escHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+    function fmtDate(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     document.getElementById('logout-btn').addEventListener('click', () => {
       if (confirm('Are you sure you want to sign out of WorkSpace?')) {
         localStorage.clear();
@@ -599,16 +781,22 @@
             <td>${c.contactName || '—'}</td>
             <td>${c.phone || '—'}</td>
             <td>${c.creditLimit ? inr(c.creditLimit) : 'COD'}</td>
-            <td><button onclick="editCustomer('${c._id}')" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">Edit</button></td>
+            <td>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <button onclick="openCustomerLedger('${c._id}', event)" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#34d399;padding:4px 9px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;" title="View Khata Bahi Statement">
+                  <span>📜</span> Ledger
+                </button>
+                <button onclick="editCustomer('${c._id}', event)" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;padding:4px 9px;border-radius:6px;cursor:pointer;font-size:0.78rem;">
+                  Edit
+                </button>
+              </div>
+            </td>
           </tr>`).join('');
       } catch (err) {
         console.error(err);
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load customers.</td></tr>`;
       }
     }
-
-    
-      
 
     function getCustomersRows() {
       const list = (typeof rawCustomersList !== 'undefined' && rawCustomersList) ? rawCustomersList : [];
@@ -688,8 +876,206 @@
       isCusBackdropDown = false;
     });
 
+    // ─── Customer Khata Statement Modal Logic ─────────────────────────────────
+    let currentModalCustomerId = null;
+    let currentModalStatementData = null;
+
+    async function openCustomerLedger(customerId, e = null) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      currentModalCustomerId = customerId;
+      document.getElementById('modal-stmt-from').value = '';
+      document.getElementById('modal-stmt-to').value = '';
+      document.querySelectorAll('#statement-modal .quick-period-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+      document.getElementById('statement-modal').classList.add('show');
+      await refreshCurrentModalStatement();
+    }
+
+    function closeStatementModal() {
+      document.getElementById('statement-modal').classList.remove('show');
+    }
+
+    function setModalPeriod(period, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.quick-period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const fromEl = document.getElementById('modal-stmt-from');
+      const toEl = document.getElementById('modal-stmt-to');
+      const now = new Date();
+
+      if (period === 'all') {
+        fromEl.value = '';
+        toEl.value = '';
+      } else if (period === 'this_month') {
+        const first = new Date(now.getFullYear(), now.getMonth(), 1);
+        fromEl.value = first.toISOString().split('T')[0];
+        toEl.value = now.toISOString().split('T')[0];
+      } else if (period === 'last_month') {
+        const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const last = new Date(now.getFullYear(), now.getMonth(), 0);
+        fromEl.value = first.toISOString().split('T')[0];
+        toEl.value = last.toISOString().split('T')[0];
+      } else if (period === 'this_fy') {
+        const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        const first = new Date(fyStartYear, 3, 1);
+        fromEl.value = first.toISOString().split('T')[0];
+        toEl.value = now.toISOString().split('T')[0];
+      }
+      refreshCurrentModalStatement();
+    }
+
+    async function refreshCurrentModalStatement() {
+      if (!currentModalCustomerId) return;
+      const container = document.getElementById('statement-modal-content');
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Loading Khata statement…</div>';
+
+      const from = document.getElementById('modal-stmt-from').value;
+      const to = document.getElementById('modal-stmt-to').value;
+      const params = new URLSearchParams({ partyType: 'CUSTOMER', partyId: currentModalCustomerId, ...(from && { from }), ...(to && { to }) });
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/statement?${params}`, { headers: H() });
+        const json = await r.json();
+        if (!r.ok) {
+          container.innerHTML = `<div style="color:var(--error);padding:20px;text-align:center;">${json.message || 'Failed to load statement.'}</div>`;
+          return;
+        }
+
+        currentModalStatementData = json.data || {};
+        const { party, company, statement, summary } = currentModalStatementData;
+
+        container.innerHTML = `
+          <div class="party-info-card">
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:2px;">CUSTOMER ACCOUNT</div>
+              <div style="font-size:1.2rem;font-weight:800;color:var(--text);">${escHtml(party?.name)}</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
+                GSTIN: <strong style="color:var(--text);font-family:monospace;">${escHtml(party?.gstin || 'Unregistered')}</strong> · 
+                Phone: ${escHtml(party?.phone || '—')} · 
+                Email: ${escHtml(party?.email || '—')}
+              </div>
+              <div style="font-size:0.78rem;color:var(--text-sub);margin-top:2px;">${escHtml([party?.billingAddress, party?.city, party?.state].filter(Boolean).join(', '))}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px;">ISSUED BY</div>
+              <div style="font-size:0.95rem;font-weight:700;color:var(--text);">${escHtml(company?.name || 'WorkSpace Business')}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">GSTIN: ${escHtml(company?.gstin || '—')}</div>
+            </div>
+          </div>
+
+          <div class="party-kpi-grid">
+            <div class="party-kpi-box">
+              <div class="party-kpi-lbl">Opening Balance</div>
+              <div class="party-kpi-val" style="color:var(--text);">${inr(summary?.openingBalance)} <span style="font-size:0.75rem;">${escHtml(summary?.openingBalanceType || 'Dr')}</span></div>
+            </div>
+            <div class="party-kpi-box">
+              <div class="party-kpi-lbl">Total Invoiced (Debits)</div>
+              <div class="party-kpi-val" style="color:#f87171;">${inr(summary?.totalDebit)}</div>
+            </div>
+            <div class="party-kpi-box">
+              <div class="party-kpi-lbl">Total Received (Credits)</div>
+              <div class="party-kpi-val" style="color:#4ade80;">${inr(summary?.totalCredit)}</div>
+            </div>
+            <div class="party-kpi-box" style="background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.3);">
+              <div class="party-kpi-lbl">Net Closing Due</div>
+              <div class="party-kpi-val" style="color:#a5b4fc;">${inr(summary?.closingBalance)} <span style="font-size:0.75rem;">${escHtml(summary?.closingBalanceType || 'Dr')}</span></div>
+            </div>
+          </div>
+
+          <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:40px;text-align:center;">#</th>
+                  <th>Date</th>
+                  <th>Voucher #</th>
+                  <th>Particulars & Knockoffs</th>
+                  <th>Mode</th>
+                  <th>Ref / UTR</th>
+                  <th style="text-align:right;">Debit (₹ Dr)</th>
+                  <th style="text-align:right;">Credit (₹ Cr)</th>
+                  <th style="text-align:right;">Running Due (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(statement && statement.length) ? statement.map((row, idx) => {
+                  const billLinks = (row.allocatedBills && row.allocatedBills.length)
+                    ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+                    : '';
+
+                  return `
+                    <tr>
+                      <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+                      <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+                      <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
+                      <td>
+                        <div style="font-weight:500;">${escHtml(row.notes || row.txnType)}</div>
+                        ${billLinks}
+                      </td>
+                      <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
+                      <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+                      <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
+                      <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+                    </tr>`;
+                }).join('') : '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history for this customer in selected date window.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px dashed var(--border);font-size:0.75rem;color:var(--text-muted);">
+            <div>Generated by WorkSpace Inventory ERP · Verified Double-Entry Khata Statement</div>
+            <div>Authorized Signatory ___________________</div>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = '<div style="color:var(--error);padding:20px;text-align:center;">Server error generating statement.</div>';
+      }
+    }
+
+    function exportModalStatementToExcel() {
+      if (!currentModalStatementData?.statement || !currentModalStatementData.statement.length) {
+        alert('No transaction data to export.');
+        return;
+      }
+      const rows = [
+        ['#', 'Date', 'Voucher #', 'Particulars', 'Payment Mode', 'Ref / UTR', 'Debit (INR)', 'Credit (INR)', 'Running Due (INR)', 'Balance Type'],
+      ];
+      currentModalStatementData.statement.forEach((e, idx) => {
+        rows.push([
+          idx + 1,
+          fmtDate(e.date),
+          e.voucherNo || '',
+          e.notes || e.txnType || '',
+          e.paymentMode || '',
+          e.referenceNo || '',
+          e.debit || 0,
+          e.credit || 0,
+          e.runningBalance || 0,
+          e.balanceType || '',
+        ]);
+      });
+      const name = (currentModalStatementData.party?.name || 'Customer').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadAsXls(rows, `Statement_${name}`);
+    }
+
+    const stmtModalOverlay = document.getElementById('statement-modal');
+    let isStmtBackdropDown = false;
+    stmtModalOverlay.addEventListener('mousedown', e => {
+      isStmtBackdropDown = (e.target === stmtModalOverlay);
+    });
+    stmtModalOverlay.addEventListener('mouseup', e => {
+      if (isStmtBackdropDown && e.target === stmtModalOverlay) {
+        closeStatementModal();
+      }
+      isStmtBackdropDown = false;
+    });
+
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        closeModal();
+        closeStatementModal();
+      }
     });
 
     // Window bindings
@@ -697,6 +1083,11 @@
     window.closeModal = closeModal;
     window.editCustomer = editCustomer;
     window.saveCustomer = saveCustomer;
+    window.openCustomerLedger = openCustomerLedger;
+    window.closeStatementModal = closeStatementModal;
+    window.setModalPeriod = setModalPeriod;
+    window.refreshCurrentModalStatement = refreshCurrentModalStatement;
+    window.exportModalStatementToExcel = exportModalStatementToExcel;
 
     async function saveCustomer(e) {
       e.preventDefault();
@@ -742,6 +1133,7 @@
     }
     load();
   </script>
+  <script src="../js/inv-bg-animation.js"></script>
 </body>
 
 </html>

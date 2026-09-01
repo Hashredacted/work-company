@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     .auth-layout {
       max-width: 640px;
@@ -163,8 +164,13 @@
 <body>
 
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <main class="auth-layout">
 
@@ -184,7 +190,10 @@
       <span class="brand-name">WorkSpace</span>
     </div>
 
-    <div class="card" role="region" aria-label="Company registration form">
+            <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+          <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+        </button>
+<div class="card" role="region" aria-label="Company registration form">
 
       <!-- Top Switcher: Sign In vs Register Company -->
       <div class="auth-tab-switch" role="tablist">

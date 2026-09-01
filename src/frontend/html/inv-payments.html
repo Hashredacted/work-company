@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -244,7 +245,7 @@
     }
 
     .modal {
-      background: #121218;
+      background: var(--surface);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius);
       width: 100%;
@@ -325,6 +326,10 @@
       letter-spacing: 0.5px;
       border-bottom: 1px solid var(--border);
       text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
     td {
@@ -463,7 +468,7 @@
 
     /* Bill Allocation Box in Modal */
     .bill-alloc-box {
-      background: #181926;
+      background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 14px;
@@ -697,9 +702,15 @@
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
@@ -764,10 +775,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="javascript:void(0)" onclick="switchTab('suppliers')" id="nav-sub-payments" class="nav-subitem">
@@ -830,7 +841,10 @@
               settlements, and download khata statements</div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
           <a href="inv-finance.html"
             style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;border-radius:8px;padding:8px 16px;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:6px;font-family:inherit;text-decoration:none;">
             <span>🏦</span> Finance & Treasury
@@ -1648,214 +1662,6 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // ─── Searchable Select / Combobox Component ────────────────────────────────
-    class SearchableSelect {
-      constructor(selectEl, placeholder = 'Type to search & narrow down…') {
-        if (!selectEl) return;
-        this.selectEl = selectEl;
-        this.placeholder = placeholder;
-        this.highlightIndex = -1;
-        this.init();
-      }
-
-      init() {
-        if (this.selectEl._searchable) {
-          this.selectEl._searchable.placeholder = this.placeholder;
-          if (this.selectEl._searchable.searchInput) {
-            this.selectEl._searchable.searchInput.placeholder = this.placeholder;
-          }
-          this.selectEl._searchable.refresh();
-          return;
-        }
-        this.selectEl._searchable = this;
-        this.selectEl.style.display = 'none';
-
-        this.wrap = document.createElement('div');
-        this.wrap.className = 'searchable-select-wrap';
-
-        this.btn = document.createElement('div');
-        this.btn.className = 'searchable-select-btn';
-        this.btn.tabIndex = 0;
-
-        this.dropdown = document.createElement('div');
-        this.dropdown.className = 'searchable-select-dropdown';
-
-        this.searchInput = document.createElement('input');
-        this.searchInput.type = 'text';
-        this.searchInput.className = 'searchable-select-search';
-        this.searchInput.placeholder = this.placeholder;
-
-        this.optionsContainer = document.createElement('div');
-        this.optionsContainer.className = 'searchable-select-options';
-
-        this.dropdown.appendChild(this.searchInput);
-        this.dropdown.appendChild(this.optionsContainer);
-
-        this.wrap.appendChild(this.btn);
-        this.wrap.appendChild(this.dropdown);
-
-        this.selectEl.parentNode.insertBefore(this.wrap, this.selectEl.nextSibling);
-
-        this.bindEvents();
-        this.refresh();
-      }
-
-      bindEvents() {
-        this.btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.toggle();
-        });
-
-        this.btn.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.open();
-          }
-        });
-
-        this.searchInput.addEventListener('input', () => {
-          this.filter(this.searchInput.value);
-        });
-
-        this.searchInput.addEventListener('keydown', (e) => {
-          const items = Array.from(this.optionsContainer.querySelectorAll('.searchable-select-opt:not([style*="display: none"])'));
-          if (!items.length) return;
-
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.highlightIndex = (this.highlightIndex + 1) % items.length;
-            this.updateHighlight(items);
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            this.highlightIndex = (this.highlightIndex - 1 + items.length) % items.length;
-            this.updateHighlight(items);
-          } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (this.highlightIndex >= 0 && this.highlightIndex < items.length) {
-              items[this.highlightIndex].click();
-            } else if (items.length === 1) {
-              items[0].click();
-            }
-          } else if (e.key === 'Escape') {
-            this.close();
-          }
-        });
-
-        document.addEventListener('click', (e) => {
-          if (!this.wrap.contains(e.target)) {
-            this.close();
-          }
-        });
-      }
-
-      updateHighlight(items) {
-        items.forEach((it, idx) => {
-          it.classList.toggle('focused', idx === this.highlightIndex);
-          if (idx === this.highlightIndex) {
-            it.scrollIntoView({ block: 'nearest' });
-          }
-        });
-      }
-
-      toggle() {
-        if (this.dropdown.classList.contains('show')) {
-          this.close();
-        } else {
-          this.open();
-        }
-      }
-
-      open() {
-        document.querySelectorAll('.searchable-select-dropdown.show').forEach(d => {
-          if (d !== this.dropdown) d.classList.remove('show');
-        });
-        document.querySelectorAll('.searchable-select-btn.active').forEach(b => {
-          if (b !== this.btn) b.classList.remove('active');
-        });
-
-        this.dropdown.classList.add('show');
-        this.btn.classList.add('active');
-        this.searchInput.value = '';
-        this.filter('');
-        setTimeout(() => this.searchInput.focus(), 50);
-      }
-
-      close() {
-        this.dropdown.classList.remove('show');
-        this.btn.classList.remove('active');
-        this.highlightIndex = -1;
-      }
-
-      refresh() {
-        const rawOptions = Array.from(this.selectEl.options);
-        this.optionsContainer.innerHTML = '';
-        const selectedVal = this.selectEl.value;
-
-        let selectedLabel = '— Select —';
-
-        rawOptions.forEach(opt => {
-          if (opt.value === selectedVal) {
-            selectedLabel = opt.text;
-          }
-
-          const item = document.createElement('div');
-          item.className = `searchable-select-opt ${opt.value === selectedVal ? 'selected' : ''}`;
-          item.dataset.value = opt.value;
-          item.dataset.text = opt.text.toLowerCase();
-          item.innerHTML = `<span>${escHtml(opt.text)}</span>`;
-
-          item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.selectEl.value = opt.value;
-            this.selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-            this.refresh();
-            this.close();
-            this.btn.focus();
-          });
-
-          this.optionsContainer.appendChild(item);
-        });
-
-        this.btn.innerHTML = `
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%;">${escHtml(selectedLabel)}</span>
-          <span style="font-size:0.7rem;color:var(--text-muted);margin-left:6px;">▼</span>
-        `;
-      }
-
-      filter(query) {
-        const q = query.toLowerCase().trim();
-        const items = this.optionsContainer.querySelectorAll('.searchable-select-opt');
-        let matched = 0;
-        this.highlightIndex = -1;
-
-        items.forEach(it => {
-          const match = !q || it.dataset.text.includes(q);
-          it.style.display = match ? 'flex' : 'none';
-          if (match) matched++;
-        });
-
-        let noResultsEl = this.optionsContainer.querySelector('.searchable-select-no-results');
-        if (matched === 0) {
-          if (!noResultsEl) {
-            noResultsEl = document.createElement('div');
-            noResultsEl.className = 'searchable-select-no-results';
-            noResultsEl.style.cssText = 'padding:12px;text-align:center;color:var(--text-muted);font-size:0.8rem;';
-            noResultsEl.textContent = 'No matching items found';
-            this.optionsContainer.appendChild(noResultsEl);
-          }
-          noResultsEl.style.display = 'block';
-        } else if (noResultsEl) {
-          noResultsEl.style.display = 'none';
-        }
-      }
-    }
-
-    function makeSearchable(selectIdOrEl, placeholder) {
-      const el = typeof selectIdOrEl === 'string' ? document.getElementById(selectIdOrEl) : selectIdOrEl;
-      if (!el) return null;
-      return new SearchableSelect(el, placeholder);
-    }
-
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
@@ -2018,27 +1824,43 @@
         totOut += c.outstanding || 0;
 
         const cDaysOverdue = Number(c.daysOverdue || 0);
-        const cBadgeClass = (c.outstanding <= 0 || c.status === 'CLEARED') ? 'status-CLEARED' : `status-${c.status || 'CURRENT'}`;
-        const cStatusLabel = (c.outstanding <= 0 || c.status === 'CLEARED')
+        let cStatus = c.status || 'CURRENT';
+        if (c.outstanding <= 0) {
+          cStatus = 'CLEARED';
+        } else if (cDaysOverdue > 60) {
+          cStatus = 'CRITICAL';
+        } else if (cDaysOverdue > 30) {
+          cStatus = 'OVERDUE';
+        } else if (cDaysOverdue > 0) {
+          cStatus = 'DUE_SOON';
+        } else if (cStatus !== 'DUE_SOON') {
+          cStatus = 'CURRENT';
+        }
+
+        const cBadgeClass = `status-${cStatus}`;
+        const cStatusLabel = cStatus === 'CLEARED'
           ? `⚪ CLEARED`
-          : c.status === 'CRITICAL'
-            ? `🚨 CRITICAL${cDaysOverdue > 0 ? ` (${cDaysOverdue}d)` : ''}`
-            : c.status === 'OVERDUE'
-              ? `🟠 OVERDUE${cDaysOverdue > 0 ? ` (${cDaysOverdue}d)` : ''}`
-              : c.status === 'DUE_SOON'
-                ? `🟡 DUE SOON`
+          : cStatus === 'CRITICAL'
+            ? `🚨 CRITICAL (${cDaysOverdue}d)`
+            : cStatus === 'OVERDUE'
+              ? `🟠 OVERDUE (${cDaysOverdue}d)`
+              : cStatus === 'DUE_SOON'
+                ? `🟡 DUE SOON${cDaysOverdue > 0 ? ` (${cDaysOverdue}d)` : ''}`
                 : `🟢 CURRENT`;
 
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
-            <td>
+            <td style="min-width:180px;">
               <div style="font-weight:700;color:var(--text);">${escHtml(c.name)}</div>
               <div><span style="background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📥 RECEIVABLE · लेना</span></div>
-              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${c.contactName ? 'Attn: ' + escHtml(c.contactName) : ''}</div>
+              <div style="font-size:0.74rem;color:var(--text-muted);margin-top:4px;line-height:1.4;">
+                ${c.contactName ? `<div>👤 ${escHtml(c.contactName)}</div>` : ''}
+                ${c.phone ? `<div style="white-space:nowrap;margin-top:1px;">📞 <a href="tel:${escHtml(c.phone)}" style="color:var(--text-sub);text-decoration:none;">${escHtml(c.phone)}</a></div>` : ''}
+              </div>
             </td>
             <td>
-              <div>${escHtml(c.phone || '—')}</div>
+              <div style="white-space:nowrap;">${escHtml(c.phone || '—')}</div>
               <div style="font-size:0.7rem;font-family:monospace;color:var(--text-muted);">${escHtml(c.gstin || 'No GSTIN')}</div>
             </td>
             <td style="text-align:right;font-family:monospace;">${inr(c.totalAmount)}</td>
@@ -2126,27 +1948,43 @@
         totOut += s.outstanding || 0;
 
         const sDaysOverdue = Number(s.daysOverdue || 0);
-        const sBadgeClass = (s.outstanding <= 0 || s.status === 'CLEARED') ? 'status-CLEARED' : `status-${s.status || 'CURRENT'}`;
-        const sStatusLabel = (s.outstanding <= 0 || s.status === 'CLEARED')
+        let sStatus = s.status || 'CURRENT';
+        if (s.outstanding <= 0) {
+          sStatus = 'CLEARED';
+        } else if (sDaysOverdue > 60) {
+          sStatus = 'CRITICAL';
+        } else if (sDaysOverdue > 30) {
+          sStatus = 'OVERDUE';
+        } else if (sDaysOverdue > 0) {
+          sStatus = 'DUE_SOON';
+        } else if (sStatus !== 'DUE_SOON') {
+          sStatus = 'CURRENT';
+        }
+
+        const sBadgeClass = `status-${sStatus}`;
+        const sStatusLabel = sStatus === 'CLEARED'
           ? `⚪ CLEARED`
-          : s.status === 'CRITICAL'
-            ? `🚨 CRITICAL${sDaysOverdue > 0 ? ` (${sDaysOverdue}d)` : ''}`
-            : s.status === 'OVERDUE'
-              ? `🟠 OVERDUE${sDaysOverdue > 0 ? ` (${sDaysOverdue}d)` : ''}`
-              : s.status === 'DUE_SOON'
-                ? `🟡 DUE SOON`
+          : sStatus === 'CRITICAL'
+            ? `🚨 CRITICAL (${sDaysOverdue}d)`
+            : sStatus === 'OVERDUE'
+              ? `🟠 OVERDUE (${sDaysOverdue}d)`
+              : sStatus === 'DUE_SOON'
+                ? `🟡 DUE SOON${sDaysOverdue > 0 ? ` (${sDaysOverdue}d)` : ''}`
                 : `🟢 CURRENT`;
 
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
-            <td>
+            <td style="min-width:180px;">
               <div style="font-weight:700;color:var(--text);">${escHtml(s.name)}</div>
               <div><span style="background:rgba(244,63,94,0.14);border:1px solid rgba(244,63,94,0.3);color:#fb7185;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📤 PAYABLE · देना</span></div>
-              <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${s.contactName ? 'Attn: ' + escHtml(s.contactName) : ''}</div>
+              <div style="font-size:0.74rem;color:var(--text-muted);margin-top:4px;line-height:1.4;">
+                ${s.contactName ? `<div>👤 ${escHtml(s.contactName)}</div>` : ''}
+                ${s.phone ? `<div style="white-space:nowrap;margin-top:1px;">📞 <a href="tel:${escHtml(s.phone)}" style="color:var(--text-sub);text-decoration:none;">${escHtml(s.phone)}</a></div>` : ''}
+              </div>
             </td>
             <td>
-              <div>${escHtml(s.phone || '—')}</div>
+              <div style="white-space:nowrap;">${escHtml(s.phone || '—')}</div>
               <div style="font-size:0.7rem;font-family:monospace;color:var(--text-muted);">${escHtml(s.gstin || 'No GSTIN')}</div>
             </td>
             <td style="text-align:right;font-family:monospace;">${inr(s.totalAmount)}</td>
@@ -3603,13 +3441,13 @@
         setOcfDirection('ADD');
         onOcfModeChange();
 
-        // Populate party datalist with team members only
-        const dl = document.getElementById('ocf-party-datalist');
-        if (dl) {
+        // Init custom autocomplete for party name with team members
+        const partyInput = document.getElementById('ocf-party-name');
+        if (partyInput && typeof initAutocomplete === 'function' && !partyInput._acRefresh) {
           fetch(`${API}/users`, { headers: H() }).then(r => r.ok ? r.json() : { data: [] }).then(teamJson => {
             const team = Array.isArray(teamJson.data) ? teamJson.data : (teamJson.data?.users || teamJson.data?.members || []);
-            const teamItems = team.filter(u => u.name).map(u => `<option value="${escHtml(u.name)}">👤 Team: ${escHtml(u.name)}</option>`);
-            dl.innerHTML = teamItems.join('');
+            const teamNames = team.filter(u => u.name).map(u => u.name);
+            initAutocomplete(partyInput, () => teamNames);
           }).catch(() => {});
         }
       }
@@ -3838,6 +3676,7 @@
       onVoucherFilterSelectChange();
     }
   </script>
+  <script src="../js/inv-bg-animation.js"></script>
 </body>
 
 </html>

@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -556,9 +557,15 @@
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
@@ -622,10 +629,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
@@ -671,25 +678,36 @@
     <!-- Main Content -->
     <main class="main-content">
       <!-- Top Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;">
           <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
           <div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">🏦 Finance Master</h1>
-              <span style="font-size:0.68rem;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:2px 8px;border-radius:12px;font-weight:700;">Simulated Treasury</span>
+              <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">🏦
+                Finance Master</h1>
+              <span
+                style="font-size:0.68rem;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:2px 8px;border-radius:12px;font-weight:700;">Simulated
+                Treasury</span>
             </div>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Simulate physical cash in hand & multiple virtual bank account books without external bank APIs</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Simulate physical cash in hand &
+              multiple virtual bank account books without external bank APIs</div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" onclick="openTransferModal()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
+          <button type="button" onclick="openTransferModal()"
+            style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
             <span>🔄</span> Transfer Funds (Contra)
           </button>
-          <button type="button" onclick="openQuickEntryModal()" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.35);color:#f472b6;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
-            <span>⚡</span> Direct Inflow / Outflow
+          <button type="button" onclick="openQuickEntryModal()"
+            style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.35);color:#f472b6;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span>⚡</span> Direct Cash/Bank
           </button>
-          <button type="button" onclick="openBankAccountModal()" style="background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+          <button type="button" onclick="openBankAccountModal()"
+            style="background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:6px;">
             <span>+</span> Add Bank Account
           </button>
         </div>
@@ -752,7 +770,8 @@
         <div class="quick-cash-bar">
           <div>
             <div style="font-size:0.85rem;font-weight:700;color:var(--text);">💵 Physical Cash Register & Drawer</div>
-            <div style="font-size:0.72rem;color:var(--text-muted);">Instant cash drawer receipts, disbursements, and bank deposits</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">Instant cash drawer receipts, disbursements, and
+              bank deposits</div>
           </div>
           <div class="quick-cash-btns">
             <button type="button" onclick="quickCashAction('INFLOW')" class="btn-quick-cash btn-qc-in">
@@ -773,7 +792,8 @@
         <!-- Cash Money Flow Filter Bar -->
         <div class="filter-bar">
           <div class="filter-group">
-            <input id="cash-search" class="search-box" type="text" placeholder="🔍 Search Cash Voucher, Payer, Notes…" oninput="debounceCashSearch()" style="width:260px;" />
+            <input id="cash-search" class="search-box" type="text" placeholder="🔍 Search Cash Voucher, Payer, Notes…"
+              oninput="debounceCashSearch()" style="width:260px;" />
             <div style="display:flex;gap:4px;">
               <button class="filter-pill active" onclick="setCashDirectionFilter('ALL', this)">All Flows</button>
               <button class="filter-pill" onclick="setCashDirectionFilter('INFLOW', this)">🟢 Inflow Only</button>
@@ -782,19 +802,23 @@
             </div>
           </div>
           <div class="filter-group" style="display:flex;gap:8px;align-items:center;">
-            <select id="cash-date-preset" class="form-select" onchange="onCashDatePresetChange()" style="width:130px;font-size:0.78rem;">
+            <select id="cash-date-preset" class="form-select" onchange="onCashDatePresetChange()"
+              style="width:130px;font-size:0.78rem;">
               <option value="30">Last 30 Days</option>
               <option value="7">Last 7 Days</option>
               <option value="today">Today Only</option>
               <option value="all">All Time</option>
             </select>
-            <button type="button" onclick="previewFinanceInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+            <button type="button" onclick="previewFinanceInBrowser()"
+              style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
               <span>👁️</span> View in Browser
             </button>
-            <button type="button" onclick="exportFinanceToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+            <button type="button" onclick="exportFinanceToExcel()"
+              style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
               <span>📥</span> Export to Excel
             </button>
-            <button type="button" onclick="window.print()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+            <button type="button" onclick="window.print()"
+              style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
               <span>🖨️</span> Print
             </button>
           </div>
@@ -830,16 +854,22 @@
       <!-- ═════════════════════════════════════════════════════════════════════════ -->
       <div id="panel-bank" class="fin-panel">
         <!-- Multiple Bank Account Cards Showcase -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+        <div
+          style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
           <div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <h2 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">Simulated Bank Accounts (बैंक खाते)</h2>
-              <span style="font-size:0.65rem;background:rgba(56,189,248,0.15);color:#38bdf8;padding:2px 6px;border-radius:4px;font-weight:700;">Internal Ledger</span>
+              <h2 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">Simulated Bank Accounts (बैंक
+                खाते)</h2>
+              <span
+                style="font-size:0.65rem;background:rgba(56,189,248,0.15);color:#38bdf8;padding:2px 6px;border-radius:4px;font-weight:700;">Internal
+                Ledger</span>
             </div>
-            <div style="font-size:0.75rem;color:var(--text-muted);">Simulate business bank accounts (HDFC, ICICI, SBI, etc.) to track collections, payouts & contra transfers internally within your ERP</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Simulate business bank accounts (HDFC, ICICI, SBI,
+              etc.) to track collections, payouts & contra transfers internally within your ERP</div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button type="button" onclick="openBankAccountModal()" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:700;">
+            <button type="button" onclick="openBankAccountModal()"
+              style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#a5b4fc;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:700;">
               + Add Simulated Bank
             </button>
           </div>
@@ -851,13 +881,17 @@
 
         <!-- Bank Flow & Statement Section -->
         <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
             <div>
-              <h2 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">Bank Money Flow Statement (बैंक खाता बही)</h2>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Detailed inward receipts, vendor payments, and inter-bank transfers across accounts</div>
+              <h2 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">Bank Money Flow Statement (बैंक
+                खाता बही)</h2>
+              <div style="font-size:0.75rem;color:var(--text-muted);">Detailed inward receipts, vendor payments, and
+                inter-bank transfers across accounts</div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <select id="bank-filter-account" class="form-select" onchange="loadBankFlows()" style="width:220px;font-size:0.78rem;">
+              <select id="bank-filter-account" class="form-select" onchange="loadBankFlows()"
+                style="width:220px;font-size:0.78rem;">
                 <option value="">All Bank Accounts</option>
               </select>
             </div>
@@ -866,28 +900,36 @@
           <!-- Bank Flow Filter Bar -->
           <div class="filter-bar">
             <div class="filter-group">
-              <input id="bank-search" class="search-box" type="text" placeholder="🔍 Search Bank Flow, UTR, Party, Notes…" oninput="debounceBankSearch()" style="width:260px;" />
+              <input id="bank-search" class="search-box" type="text"
+                placeholder="🔍 Search Bank Flow, UTR, Party, Notes…" oninput="debounceBankSearch()"
+                style="width:260px;" />
               <div style="display:flex;gap:4px;">
                 <button class="filter-pill active" onclick="setBankDirectionFilter('ALL', this)">All</button>
-                <button class="filter-pill" onclick="setBankDirectionFilter('INFLOW', this)">🟢 Credits (Inward)</button>
-                <button class="filter-pill" onclick="setBankDirectionFilter('OUTFLOW', this)">🔴 Debits (Outward)</button>
+                <button class="filter-pill" onclick="setBankDirectionFilter('INFLOW', this)">🟢 Credits
+                  (Inward)</button>
+                <button class="filter-pill" onclick="setBankDirectionFilter('OUTFLOW', this)">🔴 Debits
+                  (Outward)</button>
                 <button class="filter-pill" onclick="setBankDirectionFilter('CONTRA', this)">🔄 Inter-Bank</button>
               </div>
             </div>
             <div class="filter-group" style="display:flex;gap:8px;align-items:center;">
-              <select id="bank-date-preset" class="form-select" onchange="onBankDatePresetChange()" style="width:130px;font-size:0.78rem;">
+              <select id="bank-date-preset" class="form-select" onchange="onBankDatePresetChange()"
+                style="width:130px;font-size:0.78rem;">
                 <option value="30">Last 30 Days</option>
                 <option value="7">Last 7 Days</option>
                 <option value="today">Today Only</option>
                 <option value="all">All Time</option>
               </select>
-              <button type="button" onclick="previewFinanceInBrowser()" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+              <button type="button" onclick="previewFinanceInBrowser()"
+                style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
                 <span>👁️</span> View in Browser
               </button>
-              <button type="button" onclick="exportFinanceToExcel()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+              <button type="button" onclick="exportFinanceToExcel()"
+                style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
                 <span>📥</span> Export to Excel
               </button>
-              <button type="button" onclick="window.print()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+              <button type="button" onclick="window.print()"
+                style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
                 <span>🖨️</span> Print
               </button>
             </div>
@@ -912,7 +954,8 @@
               </thead>
               <tbody id="bank-flow-tbody">
                 <tr>
-                  <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Bank Flows…</td>
+                  <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Bank Flows…
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -930,18 +973,26 @@
       <div class="modal-title" style="flex-direction:column;align-items:flex-start;gap:2px;">
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
           <span id="bank-modal-title">🏦 Add Simulated Bank Account</span>
-          <button type="button" onclick="closeBankAccountModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+          <button type="button" onclick="closeBankAccountModal()"
+            style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
         </div>
-        <div style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">Internal ERP bookkeeping account. No real banking credentials or live API connection needed.</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">Internal ERP bookkeeping account. No
+          real banking credentials or live API connection needed.</div>
       </div>
 
       <div style="display:flex;gap:6px;margin:8px 0 14px;flex-wrap:wrap;align-items:center;">
         <span style="font-size:0.72rem;color:var(--text-muted);font-weight:600;">⚡ Quick Presets:</span>
-        <button type="button" onclick="fillSampleBank('HDFC')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">HDFC Bank</button>
-        <button type="button" onclick="fillSampleBank('ICICI')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">ICICI Bank</button>
-        <button type="button" onclick="fillSampleBank('SBI')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">State Bank of India</button>
-        <button type="button" onclick="fillSampleBank('AXIS')" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;">Axis Bank</button>
-        <button type="button" onclick="fillRandomSimulatedBank()" class="btn-bank-action" style="font-size:0.72rem;padding:3px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.35);">🎲 Auto-Generate Dummy A/C</button>
+        <button type="button" onclick="fillSampleBank('HDFC')" class="btn-bank-action"
+          style="font-size:0.72rem;padding:3px 8px;">HDFC Bank</button>
+        <button type="button" onclick="fillSampleBank('ICICI')" class="btn-bank-action"
+          style="font-size:0.72rem;padding:3px 8px;">ICICI Bank</button>
+        <button type="button" onclick="fillSampleBank('SBI')" class="btn-bank-action"
+          style="font-size:0.72rem;padding:3px 8px;">State Bank of India</button>
+        <button type="button" onclick="fillSampleBank('AXIS')" class="btn-bank-action"
+          style="font-size:0.72rem;padding:3px 8px;">Axis Bank</button>
+        <button type="button" onclick="fillRandomSimulatedBank()" class="btn-bank-action"
+          style="font-size:0.72rem;padding:3px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.35);">🎲
+          Auto-Generate Dummy A/C</button>
       </div>
 
       <div id="bank-error" class="form-error"></div>
@@ -962,7 +1013,8 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label class="form-label">Account Number *</label>
-            <input id="f-acc-no" class="form-input" type="text" placeholder="e.g. 50200012345678" style="font-family:monospace;" required />
+            <input id="f-acc-no" class="form-input" type="text" placeholder="e.g. 50200012345678"
+              style="font-family:monospace;" required />
           </div>
           <div class="form-group">
             <label class="form-label">Account Type</label>
@@ -978,7 +1030,8 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label class="form-label">IFSC Code</label>
-            <input id="f-ifsc" class="form-input" type="text" placeholder="e.g. HDFC0001234" maxlength="11" style="text-transform:uppercase;font-family:monospace;" />
+            <input id="f-ifsc" class="form-input" type="text" placeholder="e.g. HDFC0001234" maxlength="11"
+              style="text-transform:uppercase;font-family:monospace;" />
           </div>
           <div class="form-group">
             <label class="form-label">Branch & City</label>
@@ -998,7 +1051,8 @@
         </div>
 
         <div class="form-group">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:var(--text);margin-top:6px;">
+          <label
+            style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:var(--text);margin-top:6px;">
             <input type="checkbox" id="f-is-default" style="width:16px;height:16px;accent-color:var(--primary);" />
             <span>Set as primary default account for payments and collections</span>
           </label>
@@ -1006,12 +1060,16 @@
 
         <div class="form-group">
           <label class="form-label">Notes / Remarks</label>
-          <input id="f-bank-notes" class="form-input" type="text" placeholder="e.g. For supplier payments and tax debits" />
+          <input id="f-bank-notes" class="form-input" type="text"
+            placeholder="e.g. For supplier payments and tax debits" />
         </div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
-          <button type="button" onclick="closeBankAccountModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="btn-save-bank" style="background:var(--primary);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Save Account</button>
+          <button type="button" onclick="closeBankAccountModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btn-save-bank"
+            style="background:var(--primary);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Save
+            Account</button>
         </div>
       </form>
     </div>
@@ -1024,7 +1082,8 @@
     <div class="modal">
       <div class="modal-title">
         <span>🔄 Fund Transfer / Contra (खाता स्थानांतरण)</span>
-        <button type="button" onclick="closeTransferModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+        <button type="button" onclick="closeTransferModal()"
+          style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
       </div>
       <div id="transfer-error" class="form-error"></div>
       <form id="transfer-form" onsubmit="saveTransfer(event)">
@@ -1063,7 +1122,8 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label class="form-label">Transfer Amount (₹) *</label>
-            <input id="t-amount" class="form-input" type="number" min="1" step="any" placeholder="e.g. 50000" required />
+            <input id="t-amount" class="form-input" type="number" min="1" step="any" placeholder="e.g. 50000"
+              required />
           </div>
           <div class="form-group">
             <label class="form-label">Transfer Date *</label>
@@ -1075,7 +1135,9 @@
           <div class="form-group">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
               <label class="form-label" style="margin:0;">Reference / UTR / Cheque #</label>
-              <button type="button" onclick="autoFillTransferRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+              <button type="button" onclick="autoFillTransferRef()"
+                style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡
+                Auto Ref</button>
             </div>
             <input id="t-ref" class="form-input" type="text" placeholder="e.g. IMPS-89912304 / DEP-SLIP-10293" />
           </div>
@@ -1086,8 +1148,11 @@
         </div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
-          <button type="button" onclick="closeTransferModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="btn-save-transfer" style="background:#38bdf8;color:#000;border:none;padding:8px 20px;border-radius:8px;font-weight:800;cursor:pointer;">Confirm Transfer</button>
+          <button type="button" onclick="closeTransferModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btn-save-transfer"
+            style="background:#38bdf8;color:#000;border:none;padding:8px 20px;border-radius:8px;font-weight:800;cursor:pointer;">Confirm
+            Transfer</button>
         </div>
       </form>
     </div>
@@ -1100,7 +1165,8 @@
     <div class="modal">
       <div class="modal-title">
         <span id="qe-modal-title">⚡ Direct Money Inflow / Outflow</span>
-        <button type="button" onclick="closeQuickEntryModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+        <button type="button" onclick="closeQuickEntryModal()"
+          style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
       </div>
       <div id="qe-error" class="form-error"></div>
       <form id="qe-form" onsubmit="saveQuickEntry(event)">
@@ -1131,7 +1197,8 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label class="form-label">Amount (₹) *</label>
-            <input id="qe-amount" class="form-input" type="number" min="1" step="any" placeholder="e.g. 25000" required />
+            <input id="qe-amount" class="form-input" type="number" min="1" step="any" placeholder="e.g. 25000"
+              required />
           </div>
           <div class="form-group">
             <label class="form-label">Category / Purpose *</label>
@@ -1156,7 +1223,8 @@
               <label class="form-label" id="qe-party-label" style="margin:0;">Received From / Payer Name</label>
               <span style="font-size:0.7rem;color:var(--text-muted);">👤 Team Member / Custom Name</span>
             </div>
-            <input id="qe-party-name" list="qe-party-datalist" class="form-input" type="text" placeholder="Type custom name or choose Team Member..." autocomplete="off" />
+            <input id="qe-party-name" list="qe-party-datalist" class="form-input" type="text"
+              placeholder="Type custom name or choose Team Member..." autocomplete="off" />
             <datalist id="qe-party-datalist"></datalist>
           </div>
           <div class="form-group">
@@ -1180,7 +1248,9 @@
           <div class="form-group">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
               <label class="form-label" style="margin:0;">Reference # / UTR / Voucher</label>
-              <button type="button" onclick="autoFillQuickEntryRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+              <button type="button" onclick="autoFillQuickEntryRef()"
+                style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡
+                Auto Ref</button>
             </div>
             <input id="qe-ref" class="form-input" type="text" placeholder="e.g. UPI/829104829102@okhdfc" />
           </div>
@@ -1188,12 +1258,16 @@
 
         <div class="form-group">
           <label class="form-label">Notes</label>
-          <input id="qe-notes" class="form-input" type="text" placeholder="e.g. Office stationery & electricity bill payment" />
+          <input id="qe-notes" class="form-input" type="text"
+            placeholder="e.g. Office stationery & electricity bill payment" />
         </div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
-          <button type="button" onclick="closeQuickEntryModal()" style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-          <button type="submit" id="btn-save-qe" style="background:var(--primary);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Save Entry</button>
+          <button type="button" onclick="closeQuickEntryModal()"
+            style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
+          <button type="submit" id="btn-save-qe"
+            style="background:var(--primary);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Save
+            Entry</button>
         </div>
       </form>
     </div>
@@ -1259,17 +1333,18 @@
 
         cachedPartySuggestions = team.filter(u => u.name).map(u => ({ name: u.name, type: '👤 Team' }));
 
-        const datalist = document.getElementById('qe-party-datalist');
-        if (datalist) {
-          datalist.innerHTML = cachedPartySuggestions.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.type)}: ${escHtml(p.name)}</option>`).join('');
+        // Init custom autocomplete on the party name input
+        const partyInput = document.getElementById('qe-party-name');
+        if (partyInput && typeof initAutocomplete === 'function') {
+          initAutocomplete(partyInput, () => cachedPartySuggestions.map(p => p.name));
         }
       } catch (err) {
         console.error('Failed to load team suggestions:', err);
       }
     }
 
-    
-      
+
+
 
     function getFinanceRows() {
       const activePanel = document.querySelector('.fin-panel.active');
@@ -2165,6 +2240,7 @@
       loadPartiesForDatalist();
     });
   </script>
+  <script src="../js/inv-bg-animation.js"></script>
 </body>
 
 </html>

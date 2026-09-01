@@ -1,11 +1,31 @@
 /**
  * Universal In-Browser Spreadsheet Viewer for WorkSpace
- * Renders a full interactive spreadsheet / grid directly in the browser
- * without requiring any file download.
+ * Powered by SheetJS (xlsx) — real .xlsx exports + interactive browser preview.
+ * Public API (window globals):
+ *   showSpreadsheetPreview(rows, title?, filenamePrefix?)
+ *   downloadAsXls(rows, filenamePrefix?)
  */
 (function () {
   'use strict';
 
+  // ─── SheetJS CDN loader ──────────────────────────────────────────────────────
+  const SHEETJS_CDN = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+  let _xlsxReady = null;
+
+  function loadXLSX() {
+    if (_xlsxReady) return _xlsxReady;
+    if (window.XLSX) { _xlsxReady = Promise.resolve(window.XLSX); return _xlsxReady; }
+    _xlsxReady = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = SHEETJS_CDN;
+      s.onload = () => resolve(window.XLSX);
+      s.onerror = () => reject(new Error('SheetJS CDN failed to load. Check internet.'));
+      document.head.appendChild(s);
+    });
+    return _xlsxReady;
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
   function esc(s) {
     if (s === null || s === undefined) return '';
     return String(s)
@@ -16,14 +36,9 @@
   }
 
   function getExcelColName(n) {
-    let ordA = 'A'.charCodeAt(0);
-    let ordZ = 'Z'.charCodeAt(0);
-    let len = ordZ - ordA + 1;
+    const ordA = 'A'.charCodeAt(0), len = 26;
     let s = '';
-    while (n >= 0) {
-      s = String.fromCharCode((n % len) + ordA) + s;
-      n = Math.floor(n / len) - 1;
-    }
+    while (n >= 0) { s = String.fromCharCode((n % len) + ordA) + s; n = Math.floor(n / len) - 1; }
     return s || 'A';
   }
 
@@ -60,31 +75,31 @@
     }
   }
 
-  function downloadAsXls(rows, filenamePrefix = 'WorkSpace_Export') {
-    if (!rows || !rows.length) {
-      rows = extractVisibleTableRows();
-    }
-    if (!rows || !rows.length) {
-      alert('No data available to export.');
-      return;
-    }
+  // ─── SheetJS .xlsx Download ───────────────────────────────────────────────────
+  async function downloadAsXls(rows, filenamePrefix = 'WorkSpace_Export') {
+    if (!rows || !rows.length) rows = extractVisibleTableRows();
+    if (!rows || !rows.length) { alert('No data available to export.'); return; }
 
-    const tbl = '<table border="1">' + rows.map((row, i) =>
-      '<tr>' + row.map(c => i === 0
-        ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
-        : `<td style="padding:4px 12px;">${esc(c)}</td>`
-      ).join('') + '</tr>'
-    ).join('') + '</table>';
-    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
-    const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    try {
+      const XLSX = await loadXLSX();
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+
+      // Auto-column widths
+      ws['!cols'] = (rows[0] || []).map((_, ci) => ({
+        wch: Math.min(40, Math.max(12, ...rows.map(r => String(r[ci] ?? '').length)))
+      }));
+
+      // Freeze header row
+      ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft' };
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      XLSX.writeFile(wb, `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (err) {
+      console.error('SheetJS export error:', err);
+      alert('Excel export failed: ' + err.message);
+    }
   }
 
   function showSpreadsheetPreview(rows, title = 'Spreadsheet Data', filenamePrefix = 'WorkSpace_Export') {
@@ -227,8 +242,8 @@
             <button id="sv-print-btn" class="sv-btn sv-btn-secondary" title="Print this spreadsheet view">
               <span>🖨️</span> Print
             </button>
-            <button id="sv-xls-btn" class="sv-btn sv-btn-excel" title="Download as Microsoft Excel file (.xls)">
-              <span>📥</span> Download Excel
+            <button id="sv-xls-btn" class="sv-btn sv-btn-excel" title="Download as real .xlsx (powered by SheetJS)">
+              <span>&#128229;</span> Download .xlsx
             </button>
             <button id="sv-close-btn" class="sv-btn" style="background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);padding:7px 12px;font-weight:bold;" title="Close viewer (Esc)">
               ✕ Close
@@ -242,7 +257,7 @@
             <span style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:4px;color:#94a3b8;">fx A1:${getExcelColName(totalCols - 1)}${totalRows + 1}</span>
             <span id="sv-match-count" style="color:#38bdf8;">Showing all ${totalRows} records</span>
           </div>
-          <div>Tip: Use the search box above to instantly filter records without downloading.</div>
+          <div>Powered by <strong style="color:#4ade80;">SheetJS</strong> &middot; Tip: use search above to filter without downloading</div>
         </div>
 
         <!-- Spreadsheet Table Body -->
@@ -416,13 +431,461 @@
       tabWin.document.close();
     });
 
-    // Download XLS
-    xlsBtn.addEventListener('click', () => {
-      downloadAsXls(rows, filenamePrefix);
+    // Download .xlsx via SheetJS
+    xlsBtn.addEventListener('click', async () => {
+      const origHtml = xlsBtn.innerHTML;
+      xlsBtn.disabled = true;
+      xlsBtn.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#4ade80;border-radius:50%;animation:sv-spin 0.6s linear infinite;"></span> Generating&hellip;';
+      if (!document.querySelector('#sv-spin-kf')) {
+        const kf = document.createElement('style');
+        kf.id = 'sv-spin-kf';
+        kf.textContent = '@keyframes sv-spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(kf);
+      }
+      try {
+        await downloadAsXls(rows, filenamePrefix);
+      } finally {
+        xlsBtn.disabled = false;
+        xlsBtn.innerHTML = origHtml;
+      }
+    });
+
+    // Pre-load SheetJS in background so download feels instant
+    loadXLSX().catch(() => { });
+  }
+
+  // ─── Custom Autocomplete (replaces native <datalist> filtering) ──────────────
+  /**
+   * initAutocomplete(inputEl, getOptions)
+   *
+   * Converts a plain <input> into a fully filtered custom autocomplete.
+   *
+   * @param {HTMLInputElement} inputEl   - The text input element
+   * @param {Function}         getOptions - Returns [{value, label?}] or string[]
+   *
+   * Usage:
+   *   initAutocomplete(document.getElementById('qe-party-name'), () => teamNames);
+   */
+  function initAutocomplete(inputEl, getOptions) {
+    if (!inputEl) return;
+
+    // Wrap input in a relative container if not already
+    const parent = inputEl.parentElement;
+    if (!parent.classList.contains('ac-wrap')) {
+      parent.classList.add('ac-wrap');
+    }
+
+    // Remove native datalist linkage
+    inputEl.removeAttribute('list');
+
+    // Create dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'ac-dropdown';
+    parent.appendChild(dropdown);
+
+    let activeIdx = -1;
+
+    function normalise(opts) {
+      return opts.map(o => typeof o === 'string' ? { value: o, label: '' } : o);
+    }
+
+    function render(query) {
+      const opts = normalise(getOptions());
+      const q = (query || '').toLowerCase().trim();
+      const filtered = q
+        ? opts.filter(o => matchWordStartingLetters(o.value, q) || matchWordStartingLetters(o.label, q))
+        : opts;
+
+      activeIdx = -1;
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = q
+          ? `<div class="ac-no-results">No team member starting with "<strong>${escHtml(query)}</strong>" — your custom entry will be saved</div>`
+          : '';
+        return;
+      }
+
+      dropdown.innerHTML = filtered.map((o, i) => `
+        <div class="ac-item" data-value="${escHtml(o.value)}" data-idx="${i}">
+          <span class="ac-item-badge">👤 Team</span>
+          <span>${escHtml(o.value)}</span>
+          ${o.label ? `<span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto;">${escHtml(o.label)}</span>` : ''}
+        </div>
+      `).join('');
+
+      // Click to select
+      dropdown.querySelectorAll('.ac-item').forEach(item => {
+        item.addEventListener('mousedown', e => {
+          e.preventDefault(); // prevent input blur
+          inputEl.value = item.getAttribute('data-value');
+          dropdown.innerHTML = '';
+          inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      });
+    }
+
+    function setActive(newIdx, items) {
+      items.forEach(el => el.classList.remove('ac-active'));
+      activeIdx = Math.max(0, Math.min(newIdx, items.length - 1));
+      if (items[activeIdx]) {
+        items[activeIdx].classList.add('ac-active');
+        items[activeIdx].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    inputEl.addEventListener('input', () => render(inputEl.value));
+    inputEl.addEventListener('focus', () => render(inputEl.value));
+
+    inputEl.addEventListener('keydown', e => {
+      const items = [...dropdown.querySelectorAll('.ac-item')];
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIdx + 1, items); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIdx - 1, items); }
+      else if (e.key === 'Enter' && activeIdx >= 0) {
+        e.preventDefault();
+        inputEl.value = items[activeIdx].getAttribute('data-value');
+        dropdown.innerHTML = '';
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      } else if (e.key === 'Escape') {
+        dropdown.innerHTML = '';
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (!parent.contains(e.target)) dropdown.innerHTML = '';
+    });
+
+    // Helper to programmatically update suggestions (called after async data load)
+    inputEl._acRefresh = () => {
+      if (document.activeElement === inputEl) render(inputEl.value);
+    };
+  }
+
+  // Helper: Matches if target or any word in target starts with query
+  function matchWordStartingLetters(targetText, query) {
+    if (!query) return true;
+    const q = String(query).toLowerCase().trim();
+    if (!q) return true;
+
+    const text = String(targetText || '').toLowerCase().trim();
+    if (!text) return false;
+
+    // 1. Direct text prefix match (e.g. "sal" matches "Sales")
+    if (text.startsWith(q)) return true;
+
+    // 2. Word boundary prefix match: any word starts with query
+    const words = text.split(/[\s\-_/()[\].,:+&|/\\]+/).filter(Boolean);
+    if (words.some(w => w.startsWith(q))) return true;
+
+    // 3. Acronym / First letters match (e.g. "sbi" matches "State Bank of India")
+    const initials = words.map(w => w[0] || '').join('');
+    if (initials.startsWith(q)) return true;
+
+    return false;
+  }
+
+  // ─── Universal Combobox Searchable Select (Exactly like Name Dropdown Search) ───
+  class SearchableSelect {
+    constructor(selectEl, placeholder = '🔍 Type to filter / select…') {
+      if (!selectEl) return null;
+      if (selectEl._searchableSelect) {
+        selectEl._searchableSelect.refresh();
+        return selectEl._searchableSelect;
+      }
+
+      this.selectEl = selectEl;
+      this.placeholder = placeholder;
+      this.activeIdx = -1;
+      this.isOpen = false;
+      this.selectEl._searchableSelect = this;
+      this.selectEl._searchable = this;
+
+      this.init();
+    }
+
+    init() {
+      // Hide original select
+      this.selectEl.style.display = 'none';
+
+      this.wrap = document.createElement('div');
+      this.wrap.className = 'ac-combobox-wrap';
+      if (this.selectEl.className) {
+        if (this.selectEl.classList.contains('form-select')) this.wrap.classList.add('form-select-wrap');
+        if (this.selectEl.classList.contains('clean-input')) this.wrap.classList.add('clean-input-wrap');
+      }
+
+      this.input = document.createElement('input');
+      this.input.type = 'text';
+      this.input.className = 'ac-combobox-input';
+      this.input.placeholder = this.placeholder;
+      this.input.autocomplete = 'off';
+
+      this.arrow = document.createElement('span');
+      this.arrow.className = 'ac-combobox-arrow';
+      this.arrow.textContent = '▾';
+
+      this.dropdown = document.createElement('div');
+      this.dropdown.className = 'ac-combobox-dropdown';
+
+      this.wrap.appendChild(this.input);
+      this.wrap.appendChild(this.arrow);
+      this.wrap.appendChild(this.dropdown);
+
+      if (this.selectEl.parentNode) {
+        this.selectEl.parentNode.insertBefore(this.wrap, this.selectEl.nextSibling);
+      }
+
+      this.bindEvents();
+      this.refresh();
+      this.observeMutations();
+    }
+
+    observeMutations() {
+      const observer = new MutationObserver(() => {
+        this.refresh();
+      });
+      observer.observe(this.selectEl, { childList: true, subtree: true, attributes: true });
+    }
+
+    getSelectedOption() {
+      const val = this.selectEl.value;
+      const opts = Array.from(this.selectEl.options);
+      return opts.find(o => o.value === val) || opts[0];
+    }
+
+    refresh() {
+      const selected = this.getSelectedOption();
+      if (selected && document.activeElement !== this.input) {
+        this.input.value = selected.text || '';
+      }
+    }
+
+    render(query = '') {
+      const q = (query || '').toLowerCase().trim();
+      const rawOptions = Array.from(this.selectEl.options);
+      const selectedVal = this.selectEl.value;
+
+      // Only match starting letters of each word
+      const filtered = q
+        ? rawOptions.filter(o => matchWordStartingLetters(o.text, q) || matchWordStartingLetters(o.value, q))
+        : rawOptions;
+
+      this.activeIdx = -1;
+
+      if (filtered.length === 0) {
+        this.dropdown.innerHTML = `<div class="ac-combobox-no-results">No options starting with "<strong>${escHtml(query)}</strong>"</div>`;
+        this.open();
+        return;
+      }
+
+      this.dropdown.innerHTML = filtered.map((opt, i) => `
+        <div class="ac-combobox-opt ${opt.value === selectedVal ? 'selected' : ''}" data-val="${escHtml(opt.value)}" data-text="${escHtml(opt.text)}" data-idx="${i}">
+          <span>${escHtml(opt.text)}</span>
+          ${opt.value === selectedVal ? '<span style="color:#4ade80;font-size:0.8rem;">✓</span>' : ''}
+        </div>
+      `).join('');
+
+      this.dropdown.querySelectorAll('.ac-combobox-opt').forEach(item => {
+        item.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          this.selectOption(item.getAttribute('data-val'), item.getAttribute('data-text'));
+        });
+      });
+
+      this.open();
+    }
+
+    selectOption(val, text) {
+      this.selectEl.value = val;
+      this.input.value = text;
+      this.close();
+      this.selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+      this.selectEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    open() {
+      document.querySelectorAll('.ac-combobox-dropdown.show').forEach(d => {
+        if (d !== this.dropdown) d.classList.remove('show');
+      });
+      document.querySelectorAll('.ac-combobox-wrap.open').forEach(w => {
+        if (w !== this.wrap) w.classList.remove('open');
+      });
+
+      this.dropdown.classList.add('show');
+      this.wrap.classList.add('open');
+      this.isOpen = true;
+    }
+
+    close() {
+      this.dropdown.classList.remove('show');
+      this.wrap.classList.remove('open');
+      this.isOpen = false;
+      this.activeIdx = -1;
+    }
+
+    setActive(newIdx, items) {
+      items.forEach(el => el.classList.remove('ac-active'));
+      this.activeIdx = Math.max(0, Math.min(newIdx, items.length - 1));
+      if (items[this.activeIdx]) {
+        items[this.activeIdx].classList.add('ac-active');
+        items[this.activeIdx].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    bindEvents() {
+      // Focus / Click: open and show full or filtered options
+      this.input.addEventListener('focus', () => {
+        this.input.select();
+        this.render('');
+      });
+
+      this.input.addEventListener('click', () => {
+        if (!this.isOpen) {
+          this.render('');
+        }
+      });
+
+      // Typing letters directly in input: live filter & narrow down
+      this.input.addEventListener('input', () => {
+        this.render(this.input.value);
+      });
+
+      // Keyboard navigation
+      this.input.addEventListener('keydown', (e) => {
+        const items = [...this.dropdown.querySelectorAll('.ac-combobox-opt')];
+        if (!items.length) {
+          if (e.key === 'Escape') this.close();
+          return;
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (!this.isOpen) this.render(this.input.value);
+          else this.setActive(this.activeIdx + 1, items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!this.isOpen) this.render(this.input.value);
+          else this.setActive(this.activeIdx - 1, items);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (this.activeIdx >= 0 && items[this.activeIdx]) {
+            const item = items[this.activeIdx];
+            this.selectOption(item.getAttribute('data-val'), item.getAttribute('data-text'));
+          } else if (items.length > 0) {
+            const item = items[0];
+            this.selectOption(item.getAttribute('data-val'), item.getAttribute('data-text'));
+          }
+        } else if (e.key === 'Escape') {
+          this.close();
+          this.refresh();
+        }
+      });
+
+      // Click outside: close & restore text
+      document.addEventListener('click', (e) => {
+        if (!this.wrap.contains(e.target)) {
+          this.close();
+          this.refresh();
+        }
+      });
+    }
+  }
+
+  function makeSearchable(selectIdOrEl, placeholder = '🔍 Type to filter / select…') {
+    const el = typeof selectIdOrEl === 'string' ? document.getElementById(selectIdOrEl) : selectIdOrEl;
+    if (!el) return null;
+    return new SearchableSelect(el, placeholder);
+  }
+
+  function makeAllSelectsSearchable(root = document) {
+    if (!root || !root.querySelectorAll) return;
+    const selects = root.querySelectorAll('select:not([data-no-search]):not(.no-searchable)');
+    selects.forEach(sel => {
+      makeSearchable(sel);
     });
   }
 
-  // Export to window
+  // Universal DOM Observer: Auto-converts any newly added <select> into a searchable combobox!
+  if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      makeAllSelectsSearchable(document);
+
+      // Observe dynamic insertions (modals, AJAX content, new rows)
+      const domObserver = new MutationObserver((mutations) => {
+        mutations.forEach(m => {
+          m.addedNodes.forEach(node => {
+            if (node.nodeType === 1) {
+              if (node.tagName === 'SELECT') {
+                makeSearchable(node);
+              } else if (node.querySelectorAll) {
+                makeAllSelectsSearchable(node);
+              }
+            }
+          });
+        });
+      });
+
+      domObserver.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+
+  function escHtml(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ─── Universal Theme Manager (Dark / Light Mode) ───────────────────────────
+  function initTheme() {
+    if (typeof document === 'undefined' || !document || !document.documentElement) return;
+    const savedTheme = (typeof localStorage !== 'undefined' && localStorage.getItem('app_theme')) || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeToggles(savedTheme);
+  }
+
+  function toggleTheme() {
+    if (typeof document === 'undefined' || !document || !document.documentElement) return;
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('app_theme', next);
+    }
+    updateThemeToggles(next);
+    return next;
+  }
+
+  function updateThemeToggles(theme) {
+    if (typeof document === 'undefined' || !document) return;
+    const isLight = theme === 'light';
+    const btns = document.querySelectorAll ? document.querySelectorAll('.btn-theme-toggle') : [];
+    btns.forEach(btn => {
+      const icon = btn.querySelector('.theme-icon');
+      const text = btn.querySelector('.theme-text');
+      if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+      if (text) text.textContent = isLight ? 'Dark' : 'Light';
+      btn.title = isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode';
+    });
+  }
+
+  if (typeof document !== 'undefined') {
+    initTheme();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+      });
+    }
+  }
+
+  // ─── Expose globally ──────────────────────────────────────────────────────────
   window.showSpreadsheetPreview = showSpreadsheetPreview;
   window.downloadAsXls = downloadAsXls;
+  window.initAutocomplete = initAutocomplete;
+  window.matchWordStartingLetters = matchWordStartingLetters;
+  window.SearchableSelect = SearchableSelect;
+  window.makeSearchable = makeSearchable;
+  window.makeAllSelectsSearchable = makeAllSelectsSearchable;
+  window.initTheme = initTheme;
+  window.toggleTheme = toggleTheme;
 })();
+
+

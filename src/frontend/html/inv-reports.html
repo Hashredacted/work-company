@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -268,7 +269,7 @@
       left: 0;
       right: 0;
       z-index: 10000;
-      background: #0f172a;
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
@@ -286,7 +287,7 @@
       width: 100%;
       box-sizing: border-box;
       padding: 8px 12px;
-      background: #1e293b;
+      background: var(--surface-2);
       border: none;
       border-bottom: 1px solid var(--border);
       color: #f8fafc;
@@ -324,14 +325,175 @@
       color: #fff;
       font-weight: 700;
     }
+
+    /* Subtabs for Ledgers */
+    .ledger-subtabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .subtab-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .subtab-btn:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .subtab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+    }
+
+    .party-info-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .party-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .party-kpi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .party-kpi-lbl {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .party-kpi-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+
+    .bill-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.12);
+      color: #818cf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 4px;
+      margin-top: 2px;
+    }
+
+    .quick-period-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .quick-period-btn.active,
+    .quick-period-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .sidebar, .top-nav, .report-tabs, .ledger-subtabs, .btn-theme-toggle, .toolbar, button, #inv-bg-canvas, .bg-grid, .bg-noise, .blob {
+        display: none !important;
+      }
+      .app-layout {
+        display: block !important;
+      }
+      .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        font-size: 11px !important;
+      }
+      th, td {
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+        padding: 6px 8px !important;
+      }
+      .party-info-card {
+        border: 1px solid #ccc !important;
+        background: #fafafa !important;
+        color: #000 !important;
+      }
+      .party-kpi-box {
+        border: 1px solid #ccc !important;
+        background: #fff !important;
+      }
+    }
   </style>
   <script src="../js/spreadsheet-viewer.js"></script>
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
@@ -396,10 +558,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
@@ -446,36 +608,35 @@
     <!-- Main Content Area -->
     <main class="main-content">
       <!-- Top Header -->
-      <div
-        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
-            <div>
-              <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📈
-                Inventory &amp; Stock Reports</h1>
-              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Stock summaries, valuation, batch
-                tracking, and item movement ledgers</div>
-            </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">☰</button>
+          <div>
+            <h1 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);margin:0;">📈 Inventory &amp; Stock Reports</h1>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Stock summaries, valuation, batch tracking, and item movement ledgers</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button type="button" onclick="previewActiveReportInBrowser()"
-              style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
-              <span>👁️</span> View in Browser
-            </button>
-            <button type="button" onclick="exportActiveReportToExcel()"
-              style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
-              <span>📥</span> Export to Excel
-            </button>
-          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
+          <button type="button" onclick="previewActiveReportInBrowser()"
+            style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+            <span>👁️</span> View in Browser
+          </button>
+          <button type="button" onclick="exportActiveReportToExcel()"
+            style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+            <span>📥</span> Download Excel
+          </button>
         </div>
       </div>
 
+      <!-- Main Report Tabs -->
       <div class="report-tabs">
         <button class="tab-btn active" onclick="switchTab('stock')">📦 Stock Summary</button>
         <button class="tab-btn" onclick="switchTab('valuation')">💰 Valuation</button>
         <button class="tab-btn" onclick="switchTab('expiry')">⏰ Expiry Alerts</button>
-        <button class="tab-btn" onclick="switchTab('ledger')">📋 Stock Ledger</button>
+        <button class="tab-btn" onclick="switchTab('ledger')">📋 Ledgers (खाता बही)</button>
       </div>
 
       <!-- Stock Summary -->
@@ -587,49 +748,270 @@
         </div>
       </div>
 
-      <!-- Stock Ledger -->
+      <!-- Ledgers Master Panel (with Sub-tabs for Stock, Customer, and Supplier) -->
       <div id="panel-ledger" class="report-panel">
         <div class="card">
-          <div class="filter-row">
-            <div class="form-group-inline">
-              <div class="form-label">Product *</div><select id="ledger-product" class="form-select"
-                style="min-width:200px;">
-                <option value="">— Select Product —</option>
-              </select>
-            </div>
-            <div class="form-group-inline">
-              <div class="form-label">From</div><input id="ledger-from" class="form-input" type="date" />
-            </div>
-            <div class="form-group-inline">
-              <div class="form-label">To</div><input id="ledger-to" class="form-input" type="date" />
-            </div>
-            <button onclick="loadLedger()"
-              style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.85rem;align-self:flex-end;">Load</button>
+          <!-- Ledger Subtabs Navigation -->
+          <div class="ledger-subtabs">
+            <button type="button" class="subtab-btn active" id="subtab-btn-stock" onclick="switchLedgerSubtab('stock')">📦 Stock Movement Ledger</button>
+            <button type="button" class="subtab-btn" id="subtab-btn-customer" onclick="switchLedgerSubtab('customer')">👥 Customer Ledger (खाता बही)</button>
+            <button type="button" class="subtab-btn" id="subtab-btn-supplier" onclick="switchLedgerSubtab('supplier')">🏭 Supplier Ledger (खाता बही)</button>
           </div>
-          <div style="overflow-x:auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:40px;text-align:center;">#</th>
-                  <th>Date</th>
-                  <th>Movement Type</th>
-                  <th>Godown</th>
-                  <th>Batch</th>
-                  <th>Qty</th>
-                  <th>Unit Cost ₹</th>
-                  <th>Remarks</th>
-                </tr>
-              </thead>
-              <tbody id="ledger-tbody">
-                <tr>
-                  <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to
-                    view
-                    its stock ledger.</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <!-- 1. Stock Ledger Subpanel -->
+          <div id="ledger-subpanel-stock">
+            <div class="filter-row" style="align-items:flex-end;gap:12px;margin-bottom:18px;">
+              <div class="form-group-inline" style="flex:1.8;min-width:240px;">
+                <div class="form-label">Select Product *</div>
+                <select id="ledger-product" class="form-select" onchange="loadLedger()" style="width:100%;">
+                  <option value="">— Select Product —</option>
+                </select>
+              </div>
+              <div class="form-group-inline" style="flex:1.4;min-width:260px;">
+                <div class="form-label">Quick Period</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <button type="button" class="quick-period-btn active" onclick="setPeriod('stock', 'all', this)">All Time</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'this_month', this)">This Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'last_month', this)">Last Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'this_fy', this)">This FY</button>
+                </div>
+              </div>
+              <div class="form-group-inline" style="flex:1;min-width:135px;">
+                <div class="form-label">From Date</div>
+                <input id="ledger-from" class="form-input" type="date" onchange="loadLedger()" style="width:100%;" />
+              </div>
+              <div class="form-group-inline" style="flex:1;min-width:135px;">
+                <div class="form-label">To Date</div>
+                <input id="ledger-to" class="form-input" type="date" onchange="loadLedger()" style="width:100%;" />
+              </div>
+              <div class="form-group-inline" style="flex:0 0 auto;">
+                <button onclick="loadLedger()"
+                  style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:0.85rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                  <span>⚡</span> Load Movement
+                </button>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px;text-align:center;">#</th>
+                    <th>Date</th>
+                    <th>Movement Type</th>
+                    <th>Godown</th>
+                    <th>Batch</th>
+                    <th style="text-align:right;">Qty</th>
+                    <th style="text-align:right;">Unit Cost ₹</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-tbody">
+                  <tr>
+                    <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to view its stock ledger movements.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          <!-- 2. Customer Ledger Subpanel -->
+          <div id="ledger-subpanel-customer" style="display:none;">
+            <div class="filter-row" style="align-items:flex-end;gap:12px;margin-bottom:18px;">
+              <div class="form-group-inline" style="flex:1.8;min-width:240px;">
+                <div class="form-label">Select Customer (ग्राहक) *</div>
+                <select id="cust-ledger-select" class="form-select" onchange="loadCustomerLedger()" style="width:100%;">
+                  <option value="">— Select Customer —</option>
+                </select>
+              </div>
+              <div class="form-group-inline" style="flex:1.4;min-width:260px;">
+                <div class="form-label">Quick Period</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <button type="button" class="quick-period-btn active" onclick="setPeriod('cust', 'all', this)">All Time</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'this_month', this)">This Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'last_month', this)">Last Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'this_fy', this)">This FY</button>
+                </div>
+              </div>
+              <div class="form-group-inline" style="flex:1;min-width:135px;">
+                <div class="form-label">From Date</div>
+                <input id="cust-ledger-from" class="form-input" type="date" onchange="loadCustomerLedger()" style="width:100%;" />
+              </div>
+              <div class="form-group-inline" style="flex:1;min-width:135px;">
+                <div class="form-label">To Date</div>
+                <input id="cust-ledger-to" class="form-input" type="date" onchange="loadCustomerLedger()" style="width:100%;" />
+              </div>
+              <div class="form-group-inline" style="flex:0 0 auto;">
+                <button onclick="loadCustomerLedger()"
+                  style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:0.85rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                  <span>⚡</span> Fetch Statement
+                </button>
+              </div>
+            </div>
+
+            <!-- Customer Overview & KPIs Header -->
+            <div id="cust-ledger-overview" style="display:none;">
+              <div class="party-info-card">
+                <div>
+                  <div style="font-size:0.72rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:2px;">CUSTOMER ACCOUNT DETAILS</div>
+                  <div id="cust-card-name" style="font-size:1.15rem;font-weight:800;color:var(--text);">—</div>
+                  <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
+                    GSTIN: <strong id="cust-card-gstin" style="color:var(--text);font-family:monospace;">—</strong> · 
+                    Phone: <span id="cust-card-phone">—</span> · 
+                    Email: <span id="cust-card-email">—</span>
+                  </div>
+                  <div id="cust-card-addr" style="font-size:0.78rem;color:var(--text-sub);margin-top:2px;"></div>
+                </div>
+                <div style="text-align:right;">
+                  <button type="button" onclick="window.print()" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+                    <span>🖨️</span> Print Statement
+                  </button>
+                </div>
+              </div>
+
+              <div class="party-kpi-grid">
+                <div class="party-kpi-box">
+                  <div class="party-kpi-lbl">Opening Balance</div>
+                  <div class="party-kpi-val" id="cust-kpi-opening" style="color:var(--text);">₹0</div>
+                </div>
+                <div class="party-kpi-box">
+                  <div class="party-kpi-lbl">Total Invoiced (Debits)</div>
+                  <div class="party-kpi-val" id="cust-kpi-debit" style="color:#f87171;">₹0</div>
+                </div>
+                <div class="party-kpi-box">
+                  <div class="party-kpi-lbl">Total Received (Credits)</div>
+                  <div class="party-kpi-val" id="cust-kpi-credit" style="color:#4ade80;">₹0</div>
+                </div>
+                <div class="party-kpi-box" style="background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.3);">
+                  <div class="party-kpi-lbl">Net Closing Balance</div>
+                  <div class="party-kpi-val" id="cust-kpi-closing" style="color:#a5b4fc;">₹0</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px;text-align:center;">#</th>
+                    <th>Date</th>
+                    <th>Voucher #</th>
+                    <th>Particulars & Knockoffs</th>
+                    <th>Payment Mode</th>
+                    <th>Ref / UTR</th>
+                    <th style="text-align:right;">Debit (₹ Dr)</th>
+                    <th style="text-align:right;">Credit (₹ Cr)</th>
+                    <th style="text-align:right;">Running Due (₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="cust-ledger-tbody">
+                  <tr>
+                    <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Select a customer to view verified Khata statement.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. Supplier Ledger Subpanel -->
+          <div id="ledger-subpanel-supplier" style="display:none;">
+            <div class="filter-row" style="align-items:flex-end;gap:12px;margin-bottom:18px;">
+              <div class="form-group-inline" style="flex:1.8;min-width:240px;">
+                <div class="form-label">Select Supplier (आपूर्तिकर्ता) *</div>
+                <select id="supp-ledger-select" class="form-select" onchange="loadSupplierLedger()" style="width:100%;">
+                  <option value="">— Select Supplier —</option>
+                </select>
+              </div>
+              <div class="form-group-inline" style="flex:1.4;min-width:260px;">
+                <div class="form-label">Quick Period</div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <button type="button" class="quick-period-btn active" onclick="setPeriod('supp', 'all', this)">All Time</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'this_month', this)">This Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'last_month', this)">Last Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'this_fy', this)">This FY</button>
+                </div>
+              </div>
+              <div class="form-group-inline" style="flex:1;min-width:135px;">
+                <div class="form-label">From Date</div>
+                <input id="supp-ledger-from" class="form-input" type="date" onchange="loadSupplierLedger()" style="width:100%;" />
+              </div>
+              <div class="form-group-inline" style="flex:1;min-width:135px;">
+                <div class="form-label">To Date</div>
+                <input id="supp-ledger-to" class="form-input" type="date" onchange="loadSupplierLedger()" style="width:100%;" />
+              </div>
+              <div class="form-group-inline" style="flex:0 0 auto;">
+                <button onclick="loadSupplierLedger()"
+                  style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:0.85rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                  <span>⚡</span> Fetch Statement
+                </button>
+              </div>
+            </div>
+
+            <!-- Supplier Overview & KPIs Header -->
+            <div id="supp-ledger-overview" style="display:none;">
+              <div class="party-info-card">
+                <div>
+                  <div style="font-size:0.72rem;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:2px;">SUPPLIER ACCOUNT DETAILS</div>
+                  <div id="supp-card-name" style="font-size:1.15rem;font-weight:800;color:var(--text);">—</div>
+                  <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
+                    GSTIN: <strong id="supp-card-gstin" style="color:var(--text);font-family:monospace;">—</strong> · 
+                    Phone: <span id="supp-card-phone">—</span> · 
+                    Email: <span id="supp-card-email">—</span>
+                  </div>
+                  <div id="supp-card-addr" style="font-size:0.78rem;color:var(--text-sub);margin-top:2px;"></div>
+                </div>
+                <div style="text-align:right;">
+                  <button type="button" onclick="window.print()" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+                    <span>🖨️</span> Print Statement
+                  </button>
+                </div>
+              </div>
+
+              <div class="party-kpi-grid">
+                <div class="party-kpi-box">
+                  <div class="party-kpi-lbl">Opening Balance</div>
+                  <div class="party-kpi-val" id="supp-kpi-opening" style="color:var(--text);">₹0</div>
+                </div>
+                <div class="party-kpi-box">
+                  <div class="party-kpi-lbl">Total Purchases (Credits)</div>
+                  <div class="party-kpi-val" id="supp-kpi-credit" style="color:#f87171;">₹0</div>
+                </div>
+                <div class="party-kpi-box">
+                  <div class="party-kpi-lbl">Total Paid (Debits)</div>
+                  <div class="party-kpi-val" id="supp-kpi-debit" style="color:#4ade80;">₹0</div>
+                </div>
+                <div class="party-kpi-box" style="background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.3);">
+                  <div class="party-kpi-lbl">Net Closing Balance</div>
+                  <div class="party-kpi-val" id="supp-kpi-closing" style="color:#a5b4fc;">₹0</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px;text-align:center;">#</th>
+                    <th>Date</th>
+                    <th>Voucher #</th>
+                    <th>Particulars & Knockoffs</th>
+                    <th>Payment Mode</th>
+                    <th>Ref / UTR</th>
+                    <th style="text-align:right;">Debit (₹ Dr)</th>
+                    <th style="text-align:right;">Credit (₹ Cr)</th>
+                    <th style="text-align:right;">Running Due (₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="supp-ledger-tbody">
+                  <tr>
+                    <td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Select a supplier to view verified Khata statement.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
+      </div>
     </main>
   </div>
 
@@ -673,6 +1055,11 @@
       if (str === null || str === undefined) return '';
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
+    function fmtDate(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     document.getElementById('logout-btn').addEventListener('click', () => {
       if (confirm('Are you sure you want to sign out of WorkSpace?')) {
         localStorage.clear();
@@ -680,215 +1067,8 @@
       }
     });
 
-    // ─── Searchable Select / Combobox Component ────────────────────────────────
-    class SearchableSelect {
-      constructor(selectEl, placeholder = 'Type to search & narrow down…') {
-        if (!selectEl) return;
-        this.selectEl = selectEl;
-        this.placeholder = placeholder;
-        this.highlightIndex = -1;
-        this.init();
-      }
-
-      init() {
-        if (this.selectEl._searchable) {
-          this.selectEl._searchable.placeholder = this.placeholder;
-          if (this.selectEl._searchable.searchInput) {
-            this.selectEl._searchable.searchInput.placeholder = this.placeholder;
-          }
-          this.selectEl._searchable.refresh();
-          return;
-        }
-        this.selectEl._searchable = this;
-        this.selectEl.style.display = 'none';
-
-        this.wrap = document.createElement('div');
-        this.wrap.className = 'searchable-select-wrap';
-
-        this.btn = document.createElement('div');
-        this.btn.className = 'searchable-select-btn';
-        this.btn.tabIndex = 0;
-
-        this.dropdown = document.createElement('div');
-        this.dropdown.className = 'searchable-select-dropdown';
-
-        this.searchInput = document.createElement('input');
-        this.searchInput.type = 'text';
-        this.searchInput.className = 'searchable-select-search';
-        this.searchInput.placeholder = this.placeholder;
-
-        this.optionsContainer = document.createElement('div');
-        this.optionsContainer.className = 'searchable-select-options';
-
-        this.dropdown.appendChild(this.searchInput);
-        this.dropdown.appendChild(this.optionsContainer);
-
-        this.wrap.appendChild(this.btn);
-        this.wrap.appendChild(this.dropdown);
-
-        this.selectEl.parentNode.insertBefore(this.wrap, this.selectEl.nextSibling);
-
-        this.bindEvents();
-        this.refresh();
-      }
-
-      bindEvents() {
-        this.btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.toggle();
-        });
-
-        this.btn.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.open();
-          }
-        });
-
-        this.searchInput.addEventListener('input', () => {
-          this.filter(this.searchInput.value);
-        });
-
-        this.searchInput.addEventListener('keydown', (e) => {
-          const items = Array.from(this.optionsContainer.querySelectorAll('.searchable-select-opt:not([style*="display: none"])'));
-          if (!items.length) return;
-
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.highlightIndex = (this.highlightIndex + 1) % items.length;
-            this.updateHighlight(items);
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            this.highlightIndex = (this.highlightIndex - 1 + items.length) % items.length;
-            this.updateHighlight(items);
-          } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (this.highlightIndex >= 0 && this.highlightIndex < items.length) {
-              items[this.highlightIndex].click();
-            } else if (items.length === 1) {
-              items[0].click();
-            }
-          } else if (e.key === 'Escape') {
-            this.close();
-          }
-        });
-
-        document.addEventListener('click', (e) => {
-          if (!this.wrap.contains(e.target)) {
-            this.close();
-          }
-        });
-      }
-
-      updateHighlight(items) {
-        items.forEach((it, idx) => {
-          it.classList.toggle('focused', idx === this.highlightIndex);
-          if (idx === this.highlightIndex) {
-            it.scrollIntoView({ block: 'nearest' });
-          }
-        });
-      }
-
-      toggle() {
-        if (this.dropdown.classList.contains('show')) {
-          this.close();
-        } else {
-          this.open();
-        }
-      }
-
-      open() {
-        document.querySelectorAll('.searchable-select-dropdown.show').forEach(d => {
-          if (d !== this.dropdown) d.classList.remove('show');
-        });
-        document.querySelectorAll('.searchable-select-btn.active').forEach(b => {
-          if (b !== this.btn) b.classList.remove('active');
-        });
-
-        this.dropdown.classList.add('show');
-        this.btn.classList.add('active');
-        this.searchInput.value = '';
-        this.filter('');
-        setTimeout(() => this.searchInput.focus(), 50);
-      }
-
-      close() {
-        this.dropdown.classList.remove('show');
-        this.btn.classList.remove('active');
-        this.highlightIndex = -1;
-      }
-
-      refresh() {
-        const rawOptions = Array.from(this.selectEl.options);
-        this.optionsContainer.innerHTML = '';
-        const selectedVal = this.selectEl.value;
-
-        let selectedLabel = '— Select —';
-
-        rawOptions.forEach(opt => {
-          if (opt.value === selectedVal) {
-            selectedLabel = opt.text;
-          }
-
-          const item = document.createElement('div');
-          item.className = `searchable-select-opt ${opt.value === selectedVal ? 'selected' : ''}`;
-          item.dataset.value = opt.value;
-          item.dataset.text = opt.text.toLowerCase();
-          item.innerHTML = `<span>${escHtml(opt.text)}</span>`;
-
-          item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.selectEl.value = opt.value;
-            this.selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-            this.refresh();
-            this.close();
-            this.btn.focus();
-          });
-
-          this.optionsContainer.appendChild(item);
-        });
-
-        this.btn.innerHTML = `
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%;">${escHtml(selectedLabel)}</span>
-          <span style="font-size:0.7rem;color:var(--text-muted);margin-left:6px;">▼</span>
-        `;
-      }
-
-      filter(query) {
-        const q = query.toLowerCase().trim();
-        const items = this.optionsContainer.querySelectorAll('.searchable-select-opt');
-        let matched = 0;
-        this.highlightIndex = -1;
-
-        items.forEach(it => {
-          const match = !q || it.dataset.text.includes(q);
-          it.style.display = match ? 'flex' : 'none';
-          if (match) matched++;
-        });
-
-        let noResultsEl = this.optionsContainer.querySelector('.searchable-select-no-results');
-        if (matched === 0) {
-          if (!noResultsEl) {
-            noResultsEl = document.createElement('div');
-            noResultsEl.className = 'searchable-select-no-results';
-            noResultsEl.style.cssText = 'padding:12px;text-align:center;color:var(--text-muted);font-size:0.8rem;';
-            noResultsEl.textContent = 'No matching items found';
-            this.optionsContainer.appendChild(noResultsEl);
-          }
-          noResultsEl.style.display = 'block';
-        } else if (noResultsEl) {
-          noResultsEl.style.display = 'none';
-        }
-      }
-    }
-
-    function makeSearchable(selectIdOrEl, placeholder) {
-      const el = typeof selectIdOrEl === 'string' ? document.getElementById(selectIdOrEl) : selectIdOrEl;
-      if (!el) return null;
-      return new SearchableSelect(el, placeholder);
-    }
-
-    let warehouses = [], products = [];
+    let warehouses = [], products = [], customers = [], suppliers = [];
+    let currentLedgerSubtab = 'stock';
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['stock', 'valuation', 'expiry', 'ledger'][i] === name));
@@ -904,23 +1084,85 @@
       if (name === 'stock') loadStock();
       if (name === 'valuation') loadValuation();
       if (name === 'expiry') loadExpiry();
+      if (name === 'ledger') switchLedgerSubtab(currentLedgerSubtab);
+    }
+
+    function switchLedgerSubtab(subtab) {
+      currentLedgerSubtab = subtab;
+      ['stock', 'customer', 'supplier'].forEach(st => {
+        const btn = document.getElementById(`subtab-btn-${st}`);
+        const panel = document.getElementById(`ledger-subpanel-${st}`);
+        if (btn) btn.classList.toggle('active', st === subtab);
+        if (panel) panel.style.display = (st === subtab) ? 'block' : 'none';
+      });
+
+      if (subtab === 'stock') {
+        const prod = document.getElementById('ledger-product')?.value;
+        if (prod) loadLedger();
+      } else if (subtab === 'customer') {
+        const cusId = document.getElementById('cust-ledger-select')?.value;
+        if (cusId) loadCustomerLedger();
+      } else if (subtab === 'supplier') {
+        const supId = document.getElementById('supp-ledger-select')?.value;
+        if (supId) loadSupplierLedger();
+      }
+    }
+
+    function setPeriod(type, period, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.quick-period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const fromEl = type === 'stock' ? document.getElementById('ledger-from') : document.getElementById(`${type}-ledger-from`);
+      const toEl = type === 'stock' ? document.getElementById('ledger-to') : document.getElementById(`${type}-ledger-to`);
+      if (!fromEl || !toEl) return;
+
+      const now = new Date();
+      if (period === 'all') {
+        fromEl.value = '';
+        toEl.value = '';
+      } else if (period === 'this_month') {
+        const first = new Date(now.getFullYear(), now.getMonth(), 1);
+        fromEl.value = first.toISOString().split('T')[0];
+        toEl.value = now.toISOString().split('T')[0];
+      } else if (period === 'last_month') {
+        const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const last = new Date(now.getFullYear(), now.getMonth(), 0);
+        fromEl.value = first.toISOString().split('T')[0];
+        toEl.value = last.toISOString().split('T')[0];
+      } else if (period === 'this_fy') {
+        const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        const first = new Date(fyStartYear, 3, 1); // 1st April
+        fromEl.value = first.toISOString().split('T')[0];
+        toEl.value = now.toISOString().split('T')[0];
+      }
+
+      if (type === 'cust') loadCustomerLedger();
+      else if (type === 'supp') loadSupplierLedger();
+      else if (type === 'stock') loadLedger();
     }
 
     async function init() {
       try {
-        const [wr, pr, cr] = await Promise.all([
+        const [wr, pr, cr, cusRes, supRes] = await Promise.all([
           fetch(`${API}/inventory/warehouses`, { headers: H() }),
           fetch(`${API}/inventory/products?limit=500`, { headers: H() }),
           fetch(`${API}/inventory/categories`, { headers: H() }),
+          fetch(`${API}/inventory/customers?limit=500`, { headers: H() }),
+          fetch(`${API}/inventory/suppliers?limit=500`, { headers: H() }),
         ]);
         const wRaw = wr.ok ? ((await wr.json()).data || []) : [];
         const pRaw = pr.ok ? ((await pr.json()).data?.products || []) : [];
         const cRaw = cr.ok ? ((await cr.json()).data || []) : [];
+        const cusData = cusRes.ok ? ((await cusRes.json()).data?.items || []) : [];
+        const supData = supRes.ok ? ((await supRes.json()).data?.items || []) : [];
 
         // Deduplicate datasets
         warehouses = Array.from(new Map(wRaw.map(w => [w._id, w])).values());
         products = Array.from(new Map(pRaw.map(p => [p._id, p])).values());
         const categories = Array.from(new Map(cRaw.map(c => [c._id, c])).values());
+        customers = Array.from(new Map(cusData.map(c => [c._id, c])).values());
+        suppliers = Array.from(new Map(supData.map(s => [s._id, s])).values());
 
         const whSel = document.getElementById('stock-wh');
         if (whSel) {
@@ -959,9 +1201,47 @@
           makeSearchable('ledger-product', '🔍 Type product name or SKU…');
         }
 
+        const cusSel = document.getElementById('cust-ledger-select');
+        if (cusSel) {
+          cusSel.innerHTML = '<option value="">— Select Customer —</option>';
+          customers.forEach(c => {
+            const extra = [c.gstin, c.phone].filter(Boolean).join(' · ');
+            cusSel.innerHTML += `<option value="${c._id}">${escHtml(c.name)}${extra ? ` (${escHtml(extra)})` : ''}</option>`;
+          });
+          makeSearchable('cust-ledger-select', '🔍 Type customer name, phone or GSTIN…');
+        }
+
+        const supSel = document.getElementById('supp-ledger-select');
+        if (supSel) {
+          supSel.innerHTML = '<option value="">— Select Supplier —</option>';
+          suppliers.forEach(s => {
+            const extra = [s.gstin, s.phone].filter(Boolean).join(' · ');
+            supSel.innerHTML += `<option value="${s._id}">${escHtml(s.name)}${extra ? ` (${escHtml(extra)})` : ''}</option>`;
+          });
+          makeSearchable('supp-ledger-select', '🔍 Type supplier name, phone or GSTIN…');
+        }
+
+        // Handle URL parameters for initial tab and party pre-selection
         const urlParams = new URLSearchParams(window.location.search);
         const initTab = urlParams.get('tab') || 'stock';
-        switchTab(initTab);
+        const initSub = urlParams.get('sub') || (initTab === 'customer-ledger' ? 'customer' : (initTab === 'supplier-ledger' ? 'supplier' : 'stock'));
+        const targetPartyId = urlParams.get('partyId');
+
+        if (initTab === 'customer-ledger' || initTab === 'supplier-ledger' || initTab === 'ledger') {
+          switchTab('ledger');
+          switchLedgerSubtab(initSub);
+          if (targetPartyId) {
+            if (initSub === 'customer' && cusSel) {
+              cusSel.value = targetPartyId;
+              loadCustomerLedger();
+            } else if (initSub === 'supplier' && supSel) {
+              supSel.value = targetPartyId;
+              loadSupplierLedger();
+            }
+          }
+        } else {
+          switchTab(initTab);
+        }
       } catch (e) {
         console.error(e);
       }
@@ -1011,6 +1291,8 @@
     let rawValuationReport = [];
     let rawExpiryReport = [];
     let rawLedgerReport = [];
+    let rawCustomerLedgerReport = [];
+    let rawSupplierLedgerReport = [];
 
     async function loadValuation() {
       const r = await fetch(`${API}/inventory/reports/valuation`, { headers: H() });
@@ -1057,7 +1339,7 @@
 
     async function loadLedger() {
       const productId = document.getElementById('ledger-product').value;
-      if (!productId) { alert('Please select a product'); return; }
+      if (!productId) { return; }
       const from = document.getElementById('ledger-from').value;
       const to = document.getElementById('ledger-to').value;
       const params = new URLSearchParams({ ...(from && { from }), ...(to && { to }) });
@@ -1065,22 +1347,161 @@
       const { data } = await r.json();
       rawLedgerReport = data || [];
       const tbody = document.getElementById('ledger-tbody');
-      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No movements found.</td></tr>`; return; }
+      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No stock movements found for selected range.</td></tr>`; return; }
       tbody.innerHTML = data.map((e, idx) => `
         <tr>
           <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
-          <td>${new Date(e.date).toLocaleDateString('en-IN')}</td>
+          <td>${fmtDate(e.date)}</td>
           <td><span class="txn-badge txn-${e.txnType}">${e.txnType.replace('_', ' ')}</span></td>
           <td>${e.warehouseId?.name || '—'}</td>
           <td style="font-family:monospace;">${e.batchNo || '—'}</td>
-          <td style="font-weight:700;color:${e.qty > 0 ? '#4ade80' : '#f87171'};">${e.qty > 0 ? '+' : ''}${e.qty}</td>
-          <td>${inr(e.unitCost)}</td>
+          <td style="text-align:right;font-weight:700;color:${e.qty > 0 ? '#4ade80' : '#f87171'};">${e.qty > 0 ? '+' : ''}${e.qty}</td>
+          <td style="text-align:right;">${inr(e.unitCost)}</td>
           <td style="font-size:0.78rem;">${e.remarks || '—'}</td>
         </tr>`).join('');
     }
 
-    
-      
+    async function loadCustomerLedger() {
+      const partyId = document.getElementById('cust-ledger-select').value;
+      const tbody = document.getElementById('cust-ledger-tbody');
+      const overview = document.getElementById('cust-ledger-overview');
+      if (!partyId) {
+        if (overview) overview.style.display = 'none';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Please select a customer to view ledger.</td></tr>';
+        return;
+      }
+      const from = document.getElementById('cust-ledger-from').value;
+      const to = document.getElementById('cust-ledger-to').value;
+      const params = new URLSearchParams({ partyType: 'CUSTOMER', partyId, ...(from && { from }), ...(to && { to }) });
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Khata statement…</td></tr>';
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/statement?${params}`, { headers: H() });
+        const json = await r.json();
+        if (!r.ok) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">${json.message || 'Failed to load ledger.'}</td></tr>`;
+          return;
+        }
+        const { party, statement, summary } = json.data || {};
+        rawCustomerLedgerReport = statement || [];
+
+        // Update Overview & KPIs
+        if (overview && party) {
+          overview.style.display = 'block';
+          document.getElementById('cust-card-name').textContent = party.name;
+          document.getElementById('cust-card-gstin').textContent = party.gstin || 'Unregistered';
+          document.getElementById('cust-card-phone').textContent = party.phone || '—';
+          document.getElementById('cust-card-email').textContent = party.email || '—';
+          document.getElementById('cust-card-addr').textContent = [party.billingAddress, party.city, party.state].filter(Boolean).join(', ');
+
+          document.getElementById('cust-kpi-opening').textContent = `${inr(summary?.openingBalance)} ${summary?.openingBalanceType || 'Dr'}`;
+          document.getElementById('cust-kpi-debit').textContent = inr(summary?.totalDebit);
+          document.getElementById('cust-kpi-credit').textContent = inr(summary?.totalCredit);
+          document.getElementById('cust-kpi-closing').textContent = `${inr(summary?.closingBalance)} ${summary?.closingBalanceType || 'Dr'}`;
+        }
+
+        if (!statement || !statement.length) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history found for this customer in selected period.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = statement.map((row, idx) => {
+          const billLinks = (row.allocatedBills && row.allocatedBills.length)
+            ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" title="${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+            : '';
+
+          return `
+            <tr>
+              <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+              <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+              <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
+              <td>
+                <div style="font-weight:500;">${escHtml(row.notes || row.txnType)}</div>
+                ${billLinks}
+              </td>
+              <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
+              <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+              <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
+              <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
+              <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+            </tr>`;
+        }).join('');
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Server error loading customer statement.</td></tr>';
+      }
+    }
+
+    async function loadSupplierLedger() {
+      const partyId = document.getElementById('supp-ledger-select').value;
+      const tbody = document.getElementById('supp-ledger-tbody');
+      const overview = document.getElementById('supp-ledger-overview');
+      if (!partyId) {
+        if (overview) overview.style.display = 'none';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Please select a supplier to view ledger.</td></tr>';
+        return;
+      }
+      const from = document.getElementById('supp-ledger-from').value;
+      const to = document.getElementById('supp-ledger-to').value;
+      const params = new URLSearchParams({ partyType: 'SUPPLIER', partyId, ...(from && { from }), ...(to && { to }) });
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Khata statement…</td></tr>';
+
+      try {
+        const r = await fetch(`${API}/inventory/payments/statement?${params}`, { headers: H() });
+        const json = await r.json();
+        if (!r.ok) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">${json.message || 'Failed to load ledger.'}</td></tr>`;
+          return;
+        }
+        const { party, statement, summary } = json.data || {};
+        rawSupplierLedgerReport = statement || [];
+
+        // Update Overview & KPIs
+        if (overview && party) {
+          overview.style.display = 'block';
+          document.getElementById('supp-card-name').textContent = party.name;
+          document.getElementById('supp-card-gstin').textContent = party.gstin || 'Unregistered';
+          document.getElementById('supp-card-phone').textContent = party.phone || '—';
+          document.getElementById('supp-card-email').textContent = party.email || '—';
+          document.getElementById('supp-card-addr').textContent = [party.billingAddress, party.city, party.state].filter(Boolean).join(', ');
+
+          document.getElementById('supp-kpi-opening').textContent = `${inr(summary?.openingBalance)} ${summary?.openingBalanceType || 'Cr'}`;
+          document.getElementById('supp-kpi-credit').textContent = inr(summary?.totalCredit);
+          document.getElementById('supp-kpi-debit').textContent = inr(summary?.totalDebit);
+          document.getElementById('supp-kpi-closing').textContent = `${inr(summary?.closingBalance)} ${summary?.closingBalanceType || 'Cr'}`;
+        }
+
+        if (!statement || !statement.length) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history found for this supplier in selected period.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = statement.map((row, idx) => {
+          const billLinks = (row.allocatedBills && row.allocatedBills.length)
+            ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" title="${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+            : '';
+
+          return `
+            <tr>
+              <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+              <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+              <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
+              <td>
+                <div style="font-weight:500;">${escHtml(row.notes || row.txnType)}</div>
+                ${billLinks}
+              </td>
+              <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
+              <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+              <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
+              <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
+              <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+            </tr>`;
+        }).join('');
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Server error loading supplier statement.</td></tr>';
+      }
+    }
 
     function getActiveReportRows() {
       const activeBtn = document.querySelector('.report-tabs .tab-btn.active');
@@ -1141,22 +1562,58 @@
           ]);
         });
       } else if (tabName === 'ledger') {
-        if (!rawLedgerReport || rawLedgerReport.length === 0) return null;
-        rows.push(['#', 'Date', 'Transaction Type', 'Warehouse', 'Batch No', 'Qty Movement', 'Unit Cost (INR)', 'Remarks']);
-        rawLedgerReport.forEach((e, idx) => {
-          rows.push([
-            idx + 1,
-            new Date(e.date).toLocaleDateString('en-IN'),
-            e.txnType || '',
-            e.warehouseId?.name || '',
-            e.batchNo || '',
-            e.qty || 0,
-            e.unitCost || 0,
-            e.remarks || '',
-          ]);
-        });
+        if (currentLedgerSubtab === 'customer') {
+          if (!rawCustomerLedgerReport || rawCustomerLedgerReport.length === 0) return null;
+          rows.push(['#', 'Date', 'Voucher #', 'Particulars', 'Payment Mode', 'Ref / UTR', 'Debit (INR)', 'Credit (INR)', 'Running Due (INR)', 'Type']);
+          rawCustomerLedgerReport.forEach((e, idx) => {
+            rows.push([
+              idx + 1,
+              fmtDate(e.date),
+              e.voucherNo || '',
+              e.notes || e.txnType || '',
+              e.paymentMode || '',
+              e.referenceNo || '',
+              e.debit || 0,
+              e.credit || 0,
+              e.runningBalance || 0,
+              e.balanceType || '',
+            ]);
+          });
+        } else if (currentLedgerSubtab === 'supplier') {
+          if (!rawSupplierLedgerReport || rawSupplierLedgerReport.length === 0) return null;
+          rows.push(['#', 'Date', 'Voucher #', 'Particulars', 'Payment Mode', 'Ref / UTR', 'Debit (INR)', 'Credit (INR)', 'Running Due (INR)', 'Type']);
+          rawSupplierLedgerReport.forEach((e, idx) => {
+            rows.push([
+              idx + 1,
+              fmtDate(e.date),
+              e.voucherNo || '',
+              e.notes || e.txnType || '',
+              e.paymentMode || '',
+              e.referenceNo || '',
+              e.debit || 0,
+              e.credit || 0,
+              e.runningBalance || 0,
+              e.balanceType || '',
+            ]);
+          });
+        } else {
+          if (!rawLedgerReport || rawLedgerReport.length === 0) return null;
+          rows.push(['#', 'Date', 'Transaction Type', 'Warehouse', 'Batch No', 'Qty Movement', 'Unit Cost (INR)', 'Remarks']);
+          rawLedgerReport.forEach((e, idx) => {
+            rows.push([
+              idx + 1,
+              fmtDate(e.date),
+              e.txnType || '',
+              e.warehouseId?.name || '',
+              e.batchNo || '',
+              e.qty || 0,
+              e.unitCost || 0,
+              e.remarks || '',
+            ]);
+          });
+        }
       }
-      return { rows, tabName };
+      return { rows, tabName: tabName === 'ledger' ? `ledger_${currentLedgerSubtab}` : tabName };
     }
 
     function exportActiveReportToExcel() {
@@ -1172,7 +1629,9 @@
         stock: 'Stock Summary Report',
         valuation: 'Stock Valuation Report',
         expiry: 'Expiry Tracking & Alerts Report',
-        ledger: 'Stock Movement Ledger Report',
+        ledger_stock: 'Stock Movement Ledger Report',
+        ledger_customer: 'Customer Khata Bahi Ledger Report',
+        ledger_supplier: 'Supplier Khata Bahi Ledger Report',
       };
       if (typeof showSpreadsheetPreview === 'function') {
         showSpreadsheetPreview(data.rows, titles[data.tabName] || 'Inventory Report', `Inventory_Report_${data.tabName.toUpperCase()}`);
@@ -1180,9 +1639,14 @@
     }
     window.exportActiveReportToExcel = exportActiveReportToExcel;
     window.previewActiveReportInBrowser = previewActiveReportInBrowser;
+    window.switchLedgerSubtab = switchLedgerSubtab;
+    window.setPeriod = setPeriod;
+    window.loadCustomerLedger = loadCustomerLedger;
+    window.loadSupplierLedger = loadSupplierLedger;
 
     init();
   </script>
-  </body>
+  <script src="../js/inv-bg-animation.js"></script>
+</body>
 
 </html>

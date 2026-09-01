@@ -1025,7 +1025,15 @@ async function getOutstandings(req, res, next) {
       if (outstanding > 0) {
         if (bStats.hasOverdue > 0) {
           daysOverdue = bStats.maxDaysOverdue || 0;
-          status = daysOverdue > 30 ? 'CRITICAL' : 'OVERDUE';
+          if (daysOverdue > 60) {
+            status = 'CRITICAL';
+          } else if (daysOverdue > 30) {
+            status = 'OVERDUE';
+          } else if (daysOverdue > 15) {
+            status = 'DUE_SOON';
+          } else {
+            status = 'DUE_SOON';
+          }
         } else if (bStats.daysTillDue !== undefined && bStats.daysTillDue <= 3 && bStats.daysTillDue < 999) {
           status = 'DUE_SOON';
         } else if (bStats.earliestDueDate) {
@@ -1034,8 +1042,14 @@ async function getOutstandings(req, res, next) {
           if (lastTxnDate) {
             const daysElapsed = Math.floor((now - new Date(lastTxnDate)) / 86400000);
             daysOverdue = Math.max(0, daysElapsed - creditTerms);
-            if (daysOverdue > 0) {
-              status = daysOverdue > 30 ? 'CRITICAL' : 'OVERDUE';
+            if (daysOverdue > 60) {
+              status = 'CRITICAL';
+            } else if (daysOverdue > 30) {
+              status = 'OVERDUE';
+            } else if (daysOverdue > 15) {
+              status = 'DUE_SOON';
+            } else if (daysOverdue > 0) {
+              status = 'DUE_SOON';
             } else if (creditTerms - daysElapsed <= 3) {
               status = 'DUE_SOON';
             } else {
@@ -1050,8 +1064,7 @@ async function getOutstandings(req, res, next) {
       // Compute aging bucket for filtering: 0-15, 16-30, 31-60, 60+
       let agingBucket = 'CLEARED';
       if (outstanding > 0) {
-        if (daysOverdue <= 0) agingBucket = 'CURRENT_0_15';
-        else if (daysOverdue <= 15) agingBucket = 'CURRENT_0_15';
+        if (daysOverdue <= 15) agingBucket = 'CURRENT_0_15';
         else if (daysOverdue <= 30) agingBucket = 'DUE_16_30';
         else if (daysOverdue <= 60) agingBucket = 'OVERDUE_31_60';
         else agingBucket = 'CRITICAL_60_PLUS';
@@ -1091,14 +1104,19 @@ async function getOutstandings(req, res, next) {
   }
 }
 
-// ─── GET /api/inventory/payments/statement/:partyType/:partyId (Khata Bahi) ──
+// ─── GET /api/inventory/payments/statement (Khata Bahi Party Statement) ──────
 async function getPartyStatement(req, res, next) {
   try {
-    const { partyType, partyId } = req.params;
+    const rawPartyType = req.params.partyType || req.query.partyType || '';
+    const partyType = String(rawPartyType).trim().toUpperCase();
+    const partyId = req.params.partyId || req.query.partyId;
     const { from, to } = req.query;
 
     if (!['CUSTOMER', 'SUPPLIER'].includes(partyType)) {
       return res.status(400).json({ data: null, message: 'partyType must be CUSTOMER or SUPPLIER', errors: null });
+    }
+    if (!partyId || !mongoose.Types.ObjectId.isValid(partyId)) {
+      return res.status(400).json({ data: null, message: 'Valid partyId is required', errors: null });
     }
 
     const Model = partyType === 'CUSTOMER' ? Customer : Supplier;
@@ -1111,6 +1129,35 @@ async function getPartyStatement(req, res, next) {
       return res.status(404).json({ data: null, message: `${partyType} not found`, errors: null });
     }
 
+    // 1. Calculate opening balance if 'from' date filter is provided
+    let openingBalance = 0;
+    if (from) {
+      const fromDate = new Date(from);
+      const priorTransactions = await PaymentTransaction.find({
+        tenantId: req.tenantId,
+        partyId: new mongoose.Types.ObjectId(partyId),
+        paymentDate: { $lt: fromDate },
+      }).lean();
+
+      for (const txn of priorTransactions) {
+        const amt = Number(txn.amount) || 0;
+        if (partyType === 'CUSTOMER') {
+          if (['INVOICE', 'OPENING_BAL'].includes(txn.txnType)) {
+            openingBalance += amt;
+          } else if (['PAYMENT_IN', 'ADJUSTMENT'].includes(txn.txnType)) {
+            openingBalance -= amt;
+          }
+        } else { // SUPPLIER
+          if (['BILL', 'OPENING_BAL'].includes(txn.txnType)) {
+            openingBalance += amt;
+          } else if (['PAYMENT_OUT', 'ADJUSTMENT'].includes(txn.txnType)) {
+            openingBalance -= amt;
+          }
+        }
+      }
+    }
+
+    // 2. Query transactions within the date window
     const match = { tenantId: req.tenantId, partyId: new mongoose.Types.ObjectId(partyId) };
     if (from || to) {
       match.paymentDate = {};
@@ -1126,31 +1173,36 @@ async function getPartyStatement(req, res, next) {
       .sort({ paymentDate: 1, createdAt: 1 })
       .lean();
 
-    // Compute running balance
-    let runningBalance = 0;
+    // 3. Compute running balance through the statement entries
+    let runningBalance = openingBalance;
     const ledger = transactions.map(txn => {
       let debit = 0;
       let credit = 0;
+      const amt = Number(txn.amount) || 0;
 
       if (partyType === 'CUSTOMER') {
         // Invoices / Opening Bal increase customer debt (Debit)
         if (['INVOICE', 'OPENING_BAL'].includes(txn.txnType)) {
-          debit = txn.amount;
+          debit = amt;
           runningBalance += debit;
-        } else if (txn.txnType === 'PAYMENT_IN') {
-          credit = txn.amount;
+        } else if (['PAYMENT_IN', 'ADJUSTMENT'].includes(txn.txnType)) {
+          credit = amt;
           runningBalance -= credit;
         }
       } else {
         // Bills increase company debt to supplier (Credit)
         if (['BILL', 'OPENING_BAL'].includes(txn.txnType)) {
-          credit = txn.amount;
+          credit = amt;
           runningBalance += credit;
-        } else if (txn.txnType === 'PAYMENT_OUT') {
-          debit = txn.amount;
+        } else if (['PAYMENT_OUT', 'ADJUSTMENT'].includes(txn.txnType)) {
+          debit = amt;
           runningBalance -= debit;
         }
       }
+
+      const balanceType = partyType === 'CUSTOMER'
+        ? (runningBalance >= 0 ? 'Dr' : 'Cr')
+        : (runningBalance >= 0 ? 'Cr' : 'Dr');
 
       return {
         _id: txn._id,
@@ -1167,13 +1219,23 @@ async function getPartyStatement(req, res, next) {
         debit,
         credit,
         runningBalance: Math.abs(runningBalance),
-        balanceType: runningBalance >= 0 ? (partyType === 'CUSTOMER' ? 'Dr' : 'Cr') : (partyType === 'CUSTOMER' ? 'Cr' : 'Dr'),
+        rawBalance: runningBalance,
+        balanceType,
       };
     });
 
     const totalDebit  = ledger.reduce((sum, item) => sum + item.debit, 0);
     const totalCredit = ledger.reduce((sum, item) => sum + item.credit, 0);
-    const netOutstanding = partyType === 'CUSTOMER' ? Math.max(0, totalDebit - totalCredit) : Math.max(0, totalCredit - totalDebit);
+    const closingBalance = runningBalance;
+    const closingBalanceType = partyType === 'CUSTOMER'
+      ? (closingBalance >= 0 ? 'Dr (Receivable)' : 'Cr (Advance)')
+      : (closingBalance >= 0 ? 'Cr (Payable)' : 'Dr (Advance)');
+
+    const openingBalanceType = partyType === 'CUSTOMER'
+      ? (openingBalance >= 0 ? 'Dr' : 'Cr')
+      : (openingBalance >= 0 ? 'Cr' : 'Dr');
+
+    const netOutstanding = Math.max(0, Math.abs(closingBalance));
 
     res.json({
       data: {
@@ -1183,6 +1245,9 @@ async function getPartyStatement(req, res, next) {
           phone: tenant.phone || '—',
           email: tenant.email || '—',
           address: tenant.address || '—',
+          city: tenant.city || '',
+          state: tenant.state || '',
+          pincode: tenant.pincode || '',
         } : null,
         party: {
           _id: party._id,
@@ -1191,16 +1256,31 @@ async function getPartyStatement(req, res, next) {
           phone: party.phone,
           email: party.email,
           gstin: party.gstin,
-          billingAddress: party.billingAddress || party.address,
+          pan: party.pan,
+          billingAddress: party.billingAddress || party.address || '',
+          shippingAddress: party.shippingAddress || '',
+          city: party.city || '',
+          state: party.state || '',
+          stateCode: party.stateCode || '',
           paymentTerms: party.paymentTerms,
+          creditLimit: party.creditLimit || 0,
+          bankDetails: party.bankDetails || null,
         },
+        openingBalance: Math.abs(openingBalance),
+        openingBalanceType,
         statement: ledger,
         summary: {
+          openingBalance: Math.abs(openingBalance),
+          openingBalanceType,
           totalDebit,
           totalCredit,
+          closingBalance: Math.abs(closingBalance),
+          closingBalanceType,
           netOutstanding,
-          balanceType: runningBalance >= 0 ? (partyType === 'CUSTOMER' ? 'Dr (Receivable)' : 'Cr (Payable)') : (partyType === 'CUSTOMER' ? 'Cr (Advance)' : 'Dr (Advance)'),
+          balanceType: closingBalanceType,
           totalEntries: ledger.length,
+          periodFrom: from || null,
+          periodTo: to || null,
         },
       },
       message: 'OK',

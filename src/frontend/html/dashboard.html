@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -289,8 +290,13 @@
 <body>
 
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <div class="dashboard-container">
 
@@ -334,38 +340,44 @@
           <div class="user-avatar" id="avatar-initial">A</div>
           <span id="user-name" style="font-size: 0.85rem; font-weight: 500;">Admin</span>
         </div>
+        <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+          <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+        </button>
         <button id="logout-btn" class="btn-logout">Sign Out</button>
       </div>
     </header>
 
     <!-- Super Admin KPI Metrics Grid -->
     <section class="kpi-grid">
-      <div class="kpi-card" style="--card-accent: #6366f1;">
-        <span class="kpi-label">Total Companies</span>
+      <div class="kpi-card stagger-1" style="--card-accent: #6366f1;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="kpi-label">Total Companies</span>
+          <span class="live-dot" title="Live database metrics"></span>
+        </div>
         <span id="kpi-total" class="kpi-value">0</span>
         <span class="kpi-sub">Across all tenants</span>
       </div>
-      <div class="kpi-card" style="--card-accent: #22c55e;">
+      <div class="kpi-card stagger-2" style="--card-accent: #22c55e;">
         <span class="kpi-label">Active / Subscribed</span>
         <span id="kpi-active" class="kpi-value">0</span>
         <span class="kpi-sub">Paid &amp; active subscriptions</span>
       </div>
-      <div class="kpi-card" style="--card-accent: #38bdf8;">
+      <div class="kpi-card stagger-3" style="--card-accent: #38bdf8;">
         <span class="kpi-label">In Free Trial</span>
         <span id="kpi-trial" class="kpi-value">0</span>
         <span class="kpi-sub">7-Day evaluation</span>
       </div>
-      <div class="kpi-card" style="--card-accent: #f59e0b;">
+      <div class="kpi-card stagger-4" style="--card-accent: #f59e0b;">
         <span class="kpi-label">Expiring in 48h</span>
         <span id="kpi-expiring" class="kpi-value">0</span>
         <span class="kpi-sub">Trial ending soon</span>
       </div>
-      <div class="kpi-card" style="--card-accent: #f87171;">
+      <div class="kpi-card stagger-5" style="--card-accent: #f87171;">
         <span class="kpi-label">Trial Expired</span>
         <span id="kpi-expired" class="kpi-value">0</span>
         <span class="kpi-sub">Requires conversion</span>
       </div>
-      <div class="kpi-card" style="--card-accent: #94a3b8;">
+      <div class="kpi-card stagger-6" style="--card-accent: #94a3b8;">
         <span class="kpi-label">Suspended</span>
         <span id="kpi-suspended" class="kpi-value">0</span>
         <span class="kpi-sub">Temporarily blocked</span>

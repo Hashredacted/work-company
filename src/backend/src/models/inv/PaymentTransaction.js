@@ -97,6 +97,35 @@ const PaymentTransactionSchema = new mongoose.Schema({
   ],
 
   stockLedgerId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvStockLedger', default: null },
+
+  // Rich Multi-Item Invoice & Billing Fields
+  items: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvProduct', default: null },
+      productName: { type: String, trim: true },
+      sku: { type: String, trim: true },
+      hsn: { type: String, trim: true },
+      qty: { type: Number, default: 1 },
+      unit: { type: String, default: 'PCS' },
+      unitPrice: { type: Number, default: 0 },
+      discountPct: { type: Number, default: 0 },
+      taxPct: { type: Number, default: 0 },
+      amount: { type: Number, default: 0 },
+    },
+  ],
+  subtotal: { type: Number, default: 0 },
+  discountTotal: { type: Number, default: 0 },
+  taxTotal: { type: Number, default: 0 },
+  additionalCharges: { type: Number, default: 0 },
+  prefix: { type: String, trim: true, default: '' },
+  invoiceNumber: { type: String, trim: true, default: '' },
+  eWayBillNo: { type: String, trim: true, default: '' },
+  dispatchedThrough: { type: String, trim: true, default: '' },
+  vehicleNo: { type: String, trim: true, default: '' },
+  emailId: { type: String, trim: true, default: '' },
+  poNumber: { type: String, trim: true, default: '' },
+  termsAndConditions: { type: String, trim: true, default: '' },
+
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

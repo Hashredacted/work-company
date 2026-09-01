@@ -12,6 +12,7 @@
   <!-- QuaggaJS for barcode scanning -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <link rel="stylesheet" href="../css/style.css" />
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('app_theme') || 'dark');</script>
   <style>
     body {
       overflow-y: auto;
@@ -199,7 +200,7 @@
     }
 
     .modal {
-      background: #14162b;
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
@@ -388,9 +389,15 @@
 </head>
 
 <body>
+  <canvas id="inv-bg-canvas" aria-hidden="true"></canvas>
   <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
   <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="blob blob-4" aria-hidden="true"></div>
+  <div class="blob blob-5" aria-hidden="true"></div>
+  <div class="blob blob-6" aria-hidden="true"></div>
 
   <!-- Barcode Scanner -->
   <div id="scanner-container">
@@ -465,10 +472,10 @@
             <span class="nav-chevron">▾</span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html?action=stock&type=OUT" class="nav-subitem">
+            <a href="inv-invoice.html?type=sales" class="nav-subitem">
               <span class="nav-bullet">📈</span> Sales
             </a>
-            <a href="inv-products.html?action=stock&type=IN" class="nav-subitem">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
               <span class="nav-bullet">📥</span> Purchases
             </a>
             <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
@@ -526,7 +533,10 @@
               pricing, and stock balances</div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn-theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <span class="theme-icon">☀️</span> <span class="theme-text">Theme</span>
+          </button>
           <button onclick="openQuickStockModal()"
             style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">⚡
             Quick Stock In / Out</button>
@@ -862,7 +872,9 @@
             <div class="form-group">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                 <label class="form-label" style="margin:0;">Reference / UTR #</label>
-                <button type="button" onclick="autoFillQSRef()" style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡ Auto Ref</button>
+                <button type="button" onclick="autoFillQSRef()"
+                  style="background:none;border:none;color:#38bdf8;font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">⚡
+                  Auto Ref</button>
               </div>
               <input id="qs-ref" class="form-input" type="text" placeholder="e.g. UPI/899120482910" />
             </div>
@@ -953,209 +965,7 @@
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 
-    // ─── Searchable Select / Combobox Component ────────────────────────────────
-    class SearchableSelect {
-      constructor(selectEl, placeholder = 'Type to search & narrow down…') {
-        if (!selectEl) return;
-        this.selectEl = selectEl;
-        this.placeholder = placeholder;
-        this.highlightIndex = -1;
-        this.init();
-      }
-
-      init() {
-        if (this.selectEl._searchable) {
-          this.selectEl._searchable.refresh();
-          return;
-        }
-        this.selectEl._searchable = this;
-        this.selectEl.style.display = 'none';
-
-        this.wrap = document.createElement('div');
-        this.wrap.className = 'searchable-select-wrap';
-
-        this.btn = document.createElement('div');
-        this.btn.className = 'searchable-select-btn';
-        this.btn.tabIndex = 0;
-
-        this.dropdown = document.createElement('div');
-        this.dropdown.className = 'searchable-select-dropdown';
-
-        this.searchInput = document.createElement('input');
-        this.searchInput.type = 'text';
-        this.searchInput.className = 'searchable-select-search';
-        this.searchInput.placeholder = this.placeholder;
-
-        this.optionsContainer = document.createElement('div');
-        this.optionsContainer.className = 'searchable-select-options';
-
-        this.dropdown.appendChild(this.searchInput);
-        this.dropdown.appendChild(this.optionsContainer);
-
-        this.wrap.appendChild(this.btn);
-        this.wrap.appendChild(this.dropdown);
-
-        this.selectEl.parentNode.insertBefore(this.wrap, this.selectEl.nextSibling);
-
-        this.bindEvents();
-        this.refresh();
-      }
-
-      bindEvents() {
-        this.btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.toggle();
-        });
-
-        this.btn.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.open();
-          }
-        });
-
-        this.searchInput.addEventListener('input', () => {
-          this.filter(this.searchInput.value);
-        });
-
-        this.searchInput.addEventListener('keydown', (e) => {
-          const items = Array.from(this.optionsContainer.querySelectorAll('.searchable-select-opt:not([style*="display: none"])'));
-          if (!items.length) return;
-
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.highlightIndex = (this.highlightIndex + 1) % items.length;
-            this.updateHighlight(items);
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            this.highlightIndex = (this.highlightIndex - 1 + items.length) % items.length;
-            this.updateHighlight(items);
-          } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (this.highlightIndex >= 0 && this.highlightIndex < items.length) {
-              items[this.highlightIndex].click();
-            } else if (items.length === 1) {
-              items[0].click();
-            }
-          } else if (e.key === 'Escape') {
-            this.close();
-          }
-        });
-
-        document.addEventListener('click', (e) => {
-          if (!this.wrap.contains(e.target)) {
-            this.close();
-          }
-        });
-      }
-
-      updateHighlight(items) {
-        items.forEach((it, idx) => {
-          it.classList.toggle('focused', idx === this.highlightIndex);
-          if (idx === this.highlightIndex) {
-            it.scrollIntoView({ block: 'nearest' });
-          }
-        });
-      }
-
-      toggle() {
-        if (this.dropdown.classList.contains('show')) {
-          this.close();
-        } else {
-          this.open();
-        }
-      }
-
-      open() {
-        document.querySelectorAll('.searchable-select-dropdown.show').forEach(d => {
-          if (d !== this.dropdown) d.classList.remove('show');
-        });
-        document.querySelectorAll('.searchable-select-btn.active').forEach(b => {
-          if (b !== this.btn) b.classList.remove('active');
-        });
-
-        this.dropdown.classList.add('show');
-        this.btn.classList.add('active');
-        this.searchInput.value = '';
-        this.filter('');
-        setTimeout(() => this.searchInput.focus(), 50);
-      }
-
-      close() {
-        this.dropdown.classList.remove('show');
-        this.btn.classList.remove('active');
-        this.highlightIndex = -1;
-      }
-
-      refresh() {
-        const rawOptions = Array.from(this.selectEl.options);
-        this.optionsContainer.innerHTML = '';
-        const selectedVal = this.selectEl.value;
-
-        let selectedLabel = '— Select —';
-
-        rawOptions.forEach(opt => {
-          if (opt.value === selectedVal) {
-            selectedLabel = opt.text;
-          }
-
-          const item = document.createElement('div');
-          item.className = `searchable-select-opt ${opt.value === selectedVal ? 'selected' : ''}`;
-          item.dataset.value = opt.value;
-          item.dataset.text = opt.text.toLowerCase();
-          item.innerHTML = `<span>${escHtml(opt.text)}</span>`;
-
-          item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.selectEl.value = opt.value;
-            this.selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-            this.refresh();
-            this.close();
-            this.btn.focus();
-          });
-
-          this.optionsContainer.appendChild(item);
-        });
-
-        this.btn.innerHTML = `
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%;">${escHtml(selectedLabel)}</span>
-          <span style="font-size:0.7rem;color:var(--text-muted);margin-left:6px;">▼</span>
-        `;
-      }
-
-      filter(query) {
-        const q = query.toLowerCase().trim();
-        const items = this.optionsContainer.querySelectorAll('.searchable-select-opt');
-        let matched = 0;
-        this.highlightIndex = -1;
-
-        items.forEach(it => {
-          const match = !q || it.dataset.text.includes(q);
-          it.style.display = match ? 'flex' : 'none';
-          if (match) matched++;
-        });
-
-        let noResultsEl = this.optionsContainer.querySelector('.searchable-select-no-results');
-        if (matched === 0) {
-          if (!noResultsEl) {
-            noResultsEl = document.createElement('div');
-            noResultsEl.className = 'searchable-select-no-results';
-            noResultsEl.style.cssText = 'padding:12px;text-align:center;color:var(--text-muted);font-size:0.8rem;';
-            noResultsEl.textContent = 'No matching items found';
-            this.optionsContainer.appendChild(noResultsEl);
-          }
-          noResultsEl.style.display = 'block';
-        } else if (noResultsEl) {
-          noResultsEl.style.display = 'none';
-        }
-      }
-    }
-
-    function makeSearchable(selectIdOrEl, placeholder) {
-      const el = typeof selectIdOrEl === 'string' ? document.getElementById(selectIdOrEl) : selectIdOrEl;
-      if (!el) return null;
-      return new SearchableSelect(el, placeholder);
-    }
+    // ─── Code Auto-Generators ──────────────────────────────────────────────────
 
     // ─── Code Auto-Generators ──────────────────────────────────────────────────
     function autoGenerateSku(force = false) {
@@ -1417,7 +1227,7 @@
 
       if (type === 'IN') {
         if (partyLbl) partyLbl.textContent = 'Supplier (Optional — for Purchase Bill & Payable)';
-        partySel.innerHTML = '<option value="">— No Supplier (Direct Inward) —</option>';
+        partySel.innerHTML = '<option value="">— No Supplier (Direct) —</option>';
         (suppliersData || []).forEach(s => {
           partySel.innerHTML += `<option value="${s._id}">${escHtml(s.name)} (${escHtml(s.phone || 'No phone')})</option>`;
         });
@@ -1754,9 +1564,9 @@
       }
     }
 
-    
 
-        function getProductsRows() {
+
+    function getProductsRows() {
       const list = (typeof productsList !== 'undefined' && productsList) ? productsList : [];
       if (!list.length) return null;
       const rows = [
@@ -1938,6 +1748,7 @@
       }
     });
   </script>
+  <script src="../js/inv-bg-animation.js"></script>
 </body>
 
 </html>

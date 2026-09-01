@@ -203,22 +203,6 @@ async function loadInvoices() {
   }
 }
 
-function downloadAsXls(rows, filenamePrefix) {
-  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const tbl = '<table border="1">' + rows.map((row, i) =>
-    '<tr>' + row.map(c => i === 0
-      ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
-      : `<td style="padding:4px 12px;">${esc(c)}</td>`
-    ).join('') + '</tr>'
-  ).join('') + '</table>';
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
-  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 function getInvoicesRows() {
   if (!cachedInvoices || cachedInvoices.length === 0) return null;

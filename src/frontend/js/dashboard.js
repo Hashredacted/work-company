@@ -66,6 +66,21 @@ async function initDashboard() {
   }
 }
 
+// ─── Counter Animation Helper ──────────────────────────────────────────────────
+function animateCounter(el, target, duration = 1200) {
+  if (!el) return;
+  const num = Number(target) || 0;
+  if (num === 0) { el.textContent = '0'; return; }
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(eased * num).toLocaleString('en-IN');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 // ─── Load KPI Stats ────────────────────────────────────────────────────────────
 async function loadKPIStats() {
   try {
@@ -75,12 +90,12 @@ async function loadKPIStats() {
     const json = await res.json();
     const { kpis } = json.data;
 
-    kpiTotalEl.textContent = kpis.totalCompanies || 0;
-    kpiActiveEl.textContent = kpis.activeCompanies || 0;
-    kpiTrialEl.textContent = kpis.trialCompanies || 0;
-    kpiExpiringEl.textContent = kpis.trialExpiringCompanies || 0;
-    kpiExpiredEl.textContent = kpis.trialExpiredCompanies || 0;
-    kpiSuspendedEl.textContent = kpis.suspendedCompanies || 0;
+    animateCounter(kpiTotalEl, kpis.totalCompanies || 0);
+    animateCounter(kpiActiveEl, kpis.activeCompanies || 0);
+    animateCounter(kpiTrialEl, kpis.trialCompanies || 0);
+    animateCounter(kpiExpiringEl, kpis.trialExpiringCompanies || 0);
+    animateCounter(kpiExpiredEl, kpis.trialExpiredCompanies || 0);
+    animateCounter(kpiSuspendedEl, kpis.suspendedCompanies || 0);
   } catch (err) {
     console.error('Error fetching KPI metrics:', err);
   }
@@ -112,22 +127,6 @@ async function loadCompanies() {
   }
 }
 
-function downloadAsXls(rows, filenamePrefix) {
-  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const tbl = '<table border="1">' + rows.map((row, i) =>
-    '<tr>' + row.map(c => i === 0
-      ? `<th style="background:#1e3a5f;color:#fff;font-weight:bold;padding:5px 12px;white-space:nowrap;">${esc(c)}</th>`
-      : `<td style="padding:4px 12px;">${esc(c)}</td>`
-    ).join('') + '</tr>'
-  ).join('') + '</table>';
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td,th{font-family:Calibri,Arial,sans-serif;font-size:11px;}tr:nth-child(even) td{background:#f0f4ff;}</style></head><body>${tbl}</body></html>`;
-  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.xls`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 function getCompaniesRows() {
   if (!cachedCompanies || cachedCompanies.length === 0) return null;

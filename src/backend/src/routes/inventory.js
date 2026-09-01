@@ -62,7 +62,8 @@ router.post  ('/products',                     MANAGE, prodCtrl.create);
 router.put   ('/products/:id', validateObjectId('id'), MANAGE, prodCtrl.update);
 router.delete('/products/:id', validateObjectId('id'), MANAGE, prodCtrl.remove);
 
-// ─── Direct Stock Management & Adjustments ────────────────────────────────────
+// ─── Direct Stock Management, Invoices & Adjustments ─────────────────────────
+router.post('/invoices',     financialLimiter, validateCashLimit, MANAGE, adjCtrl.createInvoice);
 router.post('/stock-adjust', financialLimiter, validateCashLimit, MANAGE, adjCtrl.quickStock);
 router.get ('/adjustments',  READ,   adjCtrl.list);
 router.post('/adjustments',  MANAGE, adjCtrl.create);
@@ -106,6 +107,7 @@ router.get   ('/payments/kpis',                                                 
 router.get   ('/payments/outstandings',                                                        READ,   payCtrl.getOutstandings);
 router.get   ('/payments/pending-bills',                                                       READ,   payCtrl.getPendingBills);
 router.get   ('/payments/daily-summary',                                                       READ,   payCtrl.getDailySummary);
+router.get   ('/payments/statement',                                                           READ,   payCtrl.getPartyStatement);
 router.get   ('/payments/statement/:partyType/:partyId', validateObjectId('partyId'),         READ,   payCtrl.getPartyStatement);
 router.get   ('/payments/voucher/:voucherNoOrId',                                              READ,   payCtrl.getVoucherDetail);
 router.get   ('/payments',                                                                     READ,   payCtrl.listPayments);
