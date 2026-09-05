@@ -331,6 +331,7 @@
     }
   </style>
   <script src="../js/spreadsheet-viewer.js"></script>
+  <script src="../js/app-utils.js"></script>
 </head>
 
 <body>
@@ -347,110 +348,207 @@
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
     <aside class="sidebar" id="app-sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <div class="brand-logo">
-            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="8" fill="url(#pG)" />
-              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
-              <defs>
-                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
-                  <stop offset="0%" stop-color="#6366f1" />
-                  <stop offset="100%" stop-color="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <div class="brand-text">
-            <span class="brand-name">WorkSpace</span>
-            <span class="brand-badge">📦 INVENTORY</span>
-          </div>
+      <!-- 1. Top Create Action (Split Pill Button) -->
+      <div class="sidebar-top-action">
+        <div class="split-create-btn">
+          <a href="inv-invoice.html?type=sales" class="btn-create-main" title="Create Sales Invoice">
+            <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Create Sales Invoice</span>
+          </a>
+          <button type="button" class="btn-create-arrow" onclick="toggleCreateMenu(event)" aria-label="More Quick Actions" title="More Quick Actions">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+        </div>
+        <!-- Quick Menu Dropdown -->
+        <div class="create-quick-menu" id="create-quick-menu">
+          <a href="inv-invoice.html?type=sales" class="create-menu-item">
+            <span class="c-icon">📄</span> <span>Sales Invoice</span>
+          </a>
+          <a href="inv-invoice.html?type=purchase" class="create-menu-item">
+            <span class="c-icon">📥</span> <span>Purchase Bill</span>
+          </a>
+          <a href="inv-invoice.html?type=quotation" class="create-menu-item">
+            <span class="c-icon">📝</span> <span>Quotation / Estimate</span>
+          </a>
+          <a href="inv-payments.html?tab=customers" class="create-menu-item">
+            <span class="c-icon">💵</span> <span>Payment In (Receipt)</span>
+          </a>
+          <a href="inv-payments.html?tab=suppliers" class="create-menu-item">
+            <span class="c-icon">💸</span> <span>Payment Out (Voucher)</span>
+          </a>
+          <a href="inv-products.html" class="create-menu-item">
+            <span class="c-icon">📦</span> <span>Add New Item</span>
+          </a>
         </div>
       </div>
 
-      <!-- Navigation Groups -->
+      <!-- 2. Plans and Pricing Banner (Golden Card with Pill) -->
+      <a href="billing.html" class="sidebar-pricing-banner" title="Plans & Pricing — Your data always secure">
+        <div class="pricing-banner-left">
+          <svg class="crown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+          </svg>
+          <span class="pricing-banner-title">Plans and Pricing</span>
+        </div>
+        <div class="pricing-pill-badge" title="Secure & Active">
+          <span class="pricing-pill-inner"></span>
+        </div>
+      </a>
+
+      <!-- 3. Navigation Links List -->
       <nav class="sidebar-nav">
-        <!-- 1. Dashboard -->
-        <a href="inv-dashboard.html" class="nav-item">
-          <span class="nav-icon">📊</span>
+        <!-- Section Header -->
+        <div class="sidebar-section-header">GENERAL</div>
+
+        <!-- Dashboard -->
+        <a href="inv-dashboard.html" class="nav-item" id="nav-item-dashboard">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          </span>
           <span class="nav-label">Dashboard</span>
+          <span class="nav-chevron">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span>
         </a>
 
-        <!-- 2. Master -->
-        <div class="nav-group open">
+        <!-- Parties (Active Open) -->
+        <div class="nav-group open" id="nav-grp-parties">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">🏢</span>
-            <span class="nav-label">Master</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <span class="nav-label">Parties</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html" class="nav-subitem">
-              <span class="nav-bullet">📦</span> Products
+            <a href="inv-customers.html" class="nav-subitem" id="nav-sub-customers">
+              <span class="subitem-dot">•</span> <span>Customers</span>
             </a>
-            <a href="inv-customers.html" class="nav-subitem">
-              <span class="nav-bullet">👥</span> Customers
-            </a>
-            <a href="inv-suppliers.html" class="nav-subitem active">
-              <span class="nav-bullet">🏭</span> Suppliers
-            </a>
-            <a href="inv-finance.html" class="nav-subitem">
-              <span class="nav-bullet">🏦</span> Finance
+            <a href="inv-suppliers.html" class="nav-subitem active" id="nav-sub-suppliers">
+              <span class="subitem-dot">•</span> <span>Suppliers</span>
             </a>
           </div>
         </div>
 
-        <!-- 3. Transactions -->
-        <div class="nav-group">
+        <!-- Items -->
+        <a href="inv-products.html" class="nav-item" id="nav-item-items">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <span class="nav-label">Items</span>
+        </a>
+
+        <!-- Sales -->
+        <div class="nav-group" id="nav-grp-sales">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">💼</span>
-            <span class="nav-label">Transactions</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </span>
+            <span class="nav-label">Sales</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-invoice.html?type=sales" class="nav-subitem">
-              <span class="nav-bullet">📈</span> Sales
+            <a href="inv-invoice.html?type=sales" class="nav-subitem" id="nav-sub-sales-inv">
+              <span>Sales Invoices</span>
             </a>
-            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
-              <span class="nav-bullet">📥</span> Purchases
+            <a href="inv-invoice.html?type=quotation" class="nav-subitem" id="nav-sub-quotation">
+              <span>Quotation / Estimate</span>
             </a>
-            <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
-              <span class="nav-bullet">💸</span> Payments
-            </a>
-            <a href="inv-payments.html?tab=customers" class="nav-subitem">
-              <span class="nav-bullet">💵</span> Received
+            <a href="inv-payments.html?tab=customers" class="nav-subitem" id="nav-sub-payment-in">
+              <span>Payment In (Collections)</span>
             </a>
           </div>
         </div>
 
-        <!-- 4. Reports -->
-        <div class="nav-group">
+        <!-- Purchases -->
+        <div class="nav-group" id="nav-grp-purchases">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">📈</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </span>
+            <span class="nav-label">Purchases</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem" id="nav-sub-purchase-bill">
+              <span>Purchase Bills</span>
+            </a>
+            <a href="inv-payments.html?tab=suppliers" class="nav-subitem" id="nav-sub-payment-out">
+              <span>Payment Out (Vouchers)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="nav-group" id="nav-grp-reports">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </span>
             <span class="nav-label">Reports</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-reports.html?tab=ledger" class="nav-subitem">
-              <span class="nav-bullet">📋</span> Ledger
+            <a href="inv-reports.html?tab=ledger" class="nav-subitem" id="nav-sub-ledger">
+              <span>All Bills &amp; Ledger</span>
             </a>
-            <a href="inv-outstandings.html" class="nav-subitem">
-              <span class="nav-bullet">💰</span> Outstandings
+            <a href="inv-outstandings.html" class="nav-subitem" id="nav-sub-outstandings">
+              <span>Outstandings &amp; Aging</span>
             </a>
-            <a href="inv-reports.html?tab=stock" class="nav-subitem">
-              <span class="nav-bullet">📦</span> Stock
+            <a href="inv-reports.html?tab=stock" class="nav-subitem" id="nav-sub-stock">
+              <span>Stock Summary</span>
+            </a>
+            <a href="inv-finance.html" class="nav-subitem" id="nav-sub-finance">
+              <span>Bank &amp; Cash Accounts</span>
             </a>
           </div>
         </div>
+
+        <!-- Scroll for more options indicator -->
+        <div class="sidebar-scroll-hint" onclick="scrollSidebarMore()" title="Scroll for more options">
+          <span>Scroll for more options</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+        </div>
+
+        <!-- Settings -->
+        <a href="company-dashboard.html" class="nav-item" id="nav-item-settings">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="nav-label">Settings</span>
+        </a>
       </nav>
 
-      <!-- Sidebar Footer -->
+      <!-- 4. Sidebar System Navigation (Back to Main & Sign Out) -->
       <div class="sidebar-footer">
-        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link">
-          <span>←</span> <span>Back to Main</span>
+        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link" title="Back to Main Dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back to Main</span>
         </a>
-        <button id="logout-btn" class="sidebar-logout-btn">
+        <button id="logout-btn" class="sidebar-logout-btn" type="button" title="Sign Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Sign Out</span>
         </button>
+      </div>
+
+      <!-- 5. Bottom Trust Badges -->
+      <div class="sidebar-trust-footer">
+        <div class="trust-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <span>100% Secure</span>
+        </div>
+        <div class="trust-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          <span>ISO Certified</span>
+        </div>
       </div>
     </aside>
 
@@ -564,6 +662,29 @@
               type="text" /></div>
           <div class="form-group"><label class="form-label">IFSC Code</label><input id="f-ifsc" class="form-input"
               type="text" style="text-transform:uppercase;font-family:monospace;" /></div>
+        </div>
+
+        <div class="section-divider">📜 MSME Section 43B(h) Statutory Compliance</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">MSME Category (Udyam)</label>
+            <select id="f-msme-type" class="form-input">
+              <option value="NON_MSME">Non-MSME / Large Enterprise / Trader</option>
+              <option value="MICRO">Micro Enterprise (Invest &lt; ₹1Cr, Turn &lt; ₹5Cr)</option>
+              <option value="SMALL">Small Enterprise (Invest &lt; ₹10Cr, Turn &lt; ₹50Cr)</option>
+              <option value="MEDIUM">Medium Enterprise (Invest &lt; ₹50Cr, Turn &lt; ₹250Cr)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Udyam Registration Number (URN)</label>
+            <input id="f-udyam" class="form-input" type="text" placeholder="UDYAM-MH-12-0012345"
+              style="text-transform:uppercase;font-family:monospace;" />
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Agreed Payment Limit (Statutory Max: 45 Days)</label>
+            <input id="f-msme-days" class="form-input" type="number" min="1" max="45" value="45" />
+            <span style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Under Sec 43B(h), payments delayed beyond 45 days (or 15 days without agreement) as of March 31st are disallowed for tax deduction.</span>
+          </div>
         </div>
         <div id="sup-error" class="form-error" style="display:none;margin-top:12px;"></div>
         <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
@@ -772,15 +893,29 @@
         const { data } = await r.json();
         rawSuppliersList = data?.items || [];
         if (!rawSuppliersList.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">No suppliers found. Click "+ Add Supplier" to add one.</td></tr>`; return; }
-        tbody.innerHTML = rawSuppliersList.map((s, idx) => `
+        tbody.innerHTML = rawSuppliersList.map((s, idx) => {
+          const msmeType = s.msmeType || 'NON_MSME';
+          let msmeBadge = '';
+          if (msmeType === 'MICRO') msmeBadge = `<span style="background:rgba(16,185,129,0.15);color:#34d399;font-size:0.68rem;padding:2px 6px;border-radius:4px;border:1px solid rgba(16,185,129,0.3);font-weight:700;margin-left:6px;" title="MSME Micro Enterprise (Sec 43B(h) Protected)">🟢 Micro</span>`;
+          else if (msmeType === 'SMALL') msmeBadge = `<span style="background:rgba(59,130,246,0.15);color:#60a5fa;font-size:0.68rem;padding:2px 6px;border-radius:4px;border:1px solid rgba(59,130,246,0.3);font-weight:700;margin-left:6px;" title="MSME Small Enterprise (Sec 43B(h) Protected)">🔵 Small</span>`;
+          else if (msmeType === 'MEDIUM') msmeBadge = `<span style="background:rgba(168,85,247,0.15);color:#c084fc;font-size:0.68rem;padding:2px 6px;border-radius:4px;border:1px solid rgba(168,85,247,0.3);font-weight:700;margin-left:6px;" title="MSME Medium Enterprise">🟣 Medium</span>`;
+
+          return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
-            <td><div style="font-weight:600;color:var(--text);">${s.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${s.city || ''}${s.city && s.email ? ' · ' : ''}${s.email || ''}</div></td>
+            <td>
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+                <span style="font-weight:600;color:var(--text);">${s.name}</span>
+                ${msmeBadge}
+                ${s.advanceBalance > 0 ? `<span style="background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#4ade80;padding:2px 6px;border-radius:4px;font-size:0.7rem;font-weight:700;">🎁 Adv: ${inr(s.advanceBalance)}</span>` : ''}
+              </div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${s.city || ''}${s.city && s.email ? ' · ' : ''}${s.email || ''}${s.udyamNumber ? ` · URN: ${s.udyamNumber}` : ''}</div>
+            </td>
             <td>${s.gstin ? `<span class="gstin-tag">${s.gstin}</span>` : '—'}</td>
             <td>${s.state ? `<span class="state-tag">${s.state} (${s.stateCode || '??'})</span>` : '—'}</td>
             <td>${s.contactName || '—'}</td>
             <td>${s.phone || '—'}</td>
-            <td>${s.paymentTerms ? s.paymentTerms + ' days' : 'Cash'}</td>
+            <td>${s.paymentTerms ? s.paymentTerms + ' days' : 'Cash'}${s.msmeAgreedDays && s.msmeType !== 'NON_MSME' ? `<div style="font-size:0.7rem;color:#38bdf8;">Sec 43B(h): ${s.msmeAgreedDays}d</div>` : ''}</td>
             <td>
               <div style="display:flex;gap:6px;align-items:center;">
                 <button onclick="openSupplierLedger('${s._id}', event)" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#34d399;padding:4px 9px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;" title="View Khata Bahi Statement">
@@ -791,7 +926,8 @@
                 </button>
               </div>
             </td>
-          </tr>`).join('');
+          </tr>`;
+        }).join('');
       } catch (err) {
         console.error(err);
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--error);">Failed to load suppliers.</td></tr>`;
@@ -802,12 +938,15 @@
       const list = (typeof rawSuppliersList !== 'undefined' && rawSuppliersList) ? rawSuppliersList : [];
       if (!list.length) return null;
       const rows = [
-        ['#', 'Supplier Name', 'GSTIN', 'PAN', 'State', 'State Code', 'City', 'Address', 'Contact Person', 'Phone', 'Email', 'Payment Terms (Days)', 'Credit Limit (INR)', 'Bank Name', 'Account #', 'IFSC'],
+        ['#', 'Supplier Name', 'MSME Category', 'Udyam No', 'Sec 43B(h) Limit (Days)', 'GSTIN', 'PAN', 'State', 'State Code', 'City', 'Address', 'Contact Person', 'Phone', 'Email', 'Payment Terms (Days)', 'Credit Limit (INR)', 'Bank Name', 'Account #', 'IFSC'],
       ];
       list.forEach((s, idx) => {
         rows.push([
           idx + 1,
           s.name || '',
+          s.msmeType || 'NON_MSME',
+          s.udyamNumber || '',
+          s.msmeAgreedDays || 45,
           s.gstin || '',
           s.pan || '',
           s.state || '',
@@ -849,6 +988,10 @@
         const key = { 'name': 'name', 'gstin': 'gstin', 'pan': 'pan', 'contact': 'contactName', 'phone': 'phone', 'email': 'email', 'state': 'state', 'state-code': 'stateCode', 'city': 'city', 'pin': 'pincode', 'addr': 'address', 'terms': 'paymentTerms', 'credit': 'creditLimit', 'bank': 'bankDetails.bankName', 'accno': 'bankDetails.accountNo', 'ifsc': 'bankDetails.ifsc' }[id];
         if (key.includes('.')) { const [a, b] = key.split('.'); el.value = d?.[a]?.[b] || ''; } else el.value = d?.[key] || '';
       });
+      if (document.getElementById('f-msme-type')) document.getElementById('f-msme-type').value = d?.msmeType || 'NON_MSME';
+      if (document.getElementById('f-udyam')) document.getElementById('f-udyam').value = d?.udyamNumber || '';
+      if (document.getElementById('f-msme-days')) document.getElementById('f-msme-days').value = d?.msmeAgreedDays || 45;
+
       document.getElementById('sup-error').style.display = 'none';
       document.getElementById('sup-modal').classList.add('show');
     }
@@ -1105,6 +1248,9 @@
         address: document.getElementById('f-addr').value,
         paymentTerms: Number(document.getElementById('f-terms').value) || 0,
         creditLimit: Number(document.getElementById('f-credit').value) || 0,
+        msmeType: document.getElementById('f-msme-type') ? document.getElementById('f-msme-type').value : 'NON_MSME',
+        udyamNumber: document.getElementById('f-udyam') ? document.getElementById('f-udyam').value.toUpperCase().trim() : '',
+        msmeAgreedDays: document.getElementById('f-msme-days') ? (Number(document.getElementById('f-msme-days').value) || 45) : 45,
         bankDetails: { bankName: document.getElementById('f-bank').value, accountNo: document.getElementById('f-accno').value, ifsc: document.getElementById('f-ifsc').value.toUpperCase() },
       };
       try {
@@ -1127,6 +1273,7 @@
     load();
   </script>
   <script src="../js/inv-bg-animation.js"></script>
+  <script src="../js/sidebar.js"></script>
 </body>
 
 </html>

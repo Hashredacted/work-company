@@ -71,9 +71,10 @@ function decrypt(ciphertext) {
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
-  } catch (err) {
-    // If decryption fails (e.g. key changed or corrupted ciphertext), return safe empty/original
-    console.error('[Encryption] Decryption failed:', err.message);
+  } catch (_err) {
+    // Silently fall back to returning original value.
+    // Failures are expected for records encrypted with a prior key version
+    // and are handled gracefully — no action required.
     return text;
   }
 }

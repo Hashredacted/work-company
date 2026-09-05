@@ -429,16 +429,19 @@
       background: rgba(99, 102, 241, 0.12);
       border: 1px solid rgba(99, 102, 241, 0.25);
       color: #a5b4fc;
-      padding: 5px 11px;
+      padding: 4px 8px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 0.78rem;
+      font-size: 0.73rem;
       font-weight: 600;
       text-decoration: none;
-      display: inline-flex;
+      display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
+      width: 100%;
       transition: all 0.15s;
+      white-space: nowrap;
     }
 
     .btn-action:hover {
@@ -464,6 +467,19 @@
 
     .btn-pay:hover {
       background: rgba(74, 222, 128, 0.25);
+    }
+
+    /* Action cell: stack buttons vertically in a narrow fixed column */
+    td.action-cell {
+      width: 110px;
+      min-width: 110px;
+      max-width: 110px;
+      vertical-align: middle;
+    }
+    td.action-cell .action-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     /* Bill Allocation Box in Modal */
@@ -699,6 +715,7 @@
     }
   </style>
   <script src="../js/spreadsheet-viewer.js"></script>
+  <script src="../js/app-utils.js"></script>
 </head>
 
 <body>
@@ -715,115 +732,207 @@
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
     <aside class="sidebar" id="app-sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <div class="brand-logo">
-            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="8" fill="url(#pG)" />
-              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
-              <defs>
-                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
-                  <stop offset="0%" stop-color="#6366f1" />
-                  <stop offset="100%" stop-color="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <div class="brand-text">
-            <span class="brand-name">WorkSpace</span>
-            <span class="brand-badge">📦 INVENTORY</span>
-          </div>
+      <!-- 1. Top Create Action (Split Pill Button) -->
+      <div class="sidebar-top-action">
+        <div class="split-create-btn">
+          <a href="inv-invoice.html?type=sales" class="btn-create-main" title="Create Sales Invoice">
+            <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Create Sales Invoice</span>
+          </a>
+          <button type="button" class="btn-create-arrow" onclick="toggleCreateMenu(event)" aria-label="More Quick Actions" title="More Quick Actions">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+        </div>
+        <!-- Quick Menu Dropdown -->
+        <div class="create-quick-menu" id="create-quick-menu">
+          <a href="inv-invoice.html?type=sales" class="create-menu-item">
+            <span class="c-icon">📄</span> <span>Sales Invoice</span>
+          </a>
+          <a href="inv-invoice.html?type=purchase" class="create-menu-item">
+            <span class="c-icon">📥</span> <span>Purchase Bill</span>
+          </a>
+          <a href="inv-invoice.html?type=quotation" class="create-menu-item">
+            <span class="c-icon">📝</span> <span>Quotation / Estimate</span>
+          </a>
+          <a href="javascript:void(0)" onclick="switchTab('customers'); toggleCreateMenu();" class="create-menu-item">
+            <span class="c-icon">💵</span> <span>Payment In (Receipt)</span>
+          </a>
+          <a href="javascript:void(0)" onclick="switchTab('suppliers'); toggleCreateMenu();" class="create-menu-item">
+            <span class="c-icon">💸</span> <span>Payment Out (Voucher)</span>
+          </a>
+          <a href="inv-products.html" class="create-menu-item">
+            <span class="c-icon">📦</span> <span>Add New Item</span>
+          </a>
         </div>
       </div>
 
-      <!-- Navigation Groups -->
+      <!-- 2. Plans and Pricing Banner (Golden Card with Pill) -->
+      <a href="billing.html" class="sidebar-pricing-banner" title="Plans & Pricing — Your data always secure">
+        <div class="pricing-banner-left">
+          <svg class="crown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+          </svg>
+          <span class="pricing-banner-title">Plans and Pricing</span>
+        </div>
+        <div class="pricing-pill-badge" title="Secure & Active">
+          <span class="pricing-pill-inner"></span>
+        </div>
+      </a>
+
+      <!-- 3. Navigation Links List -->
       <nav class="sidebar-nav">
-        <!-- 1. Dashboard -->
-        <a href="inv-dashboard.html" class="nav-item">
-          <span class="nav-icon">📊</span>
+        <!-- Section Header -->
+        <div class="sidebar-section-header">GENERAL</div>
+
+        <!-- Dashboard -->
+        <a href="inv-dashboard.html" class="nav-item" id="nav-item-dashboard">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          </span>
           <span class="nav-label">Dashboard</span>
+          <span class="nav-chevron">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span>
         </a>
 
-        <!-- 2. Master -->
-        <div class="nav-group">
+        <!-- Parties -->
+        <div class="nav-group" id="nav-grp-parties">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">🏢</span>
-            <span class="nav-label">Master</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <span class="nav-label">Parties</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html" class="nav-subitem">
-              <span class="nav-bullet">📦</span> Products
+            <a href="inv-customers.html" class="nav-subitem" id="nav-sub-customers">
+              <span class="subitem-dot">•</span> <span>Customers</span>
             </a>
-            <a href="inv-customers.html" class="nav-subitem">
-              <span class="nav-bullet">👥</span> Customers
-            </a>
-            <a href="inv-suppliers.html" class="nav-subitem">
-              <span class="nav-bullet">🏭</span> Suppliers
-            </a>
-            <a href="inv-finance.html" class="nav-subitem">
-              <span class="nav-bullet">🏦</span> Finance
+            <a href="inv-suppliers.html" class="nav-subitem" id="nav-sub-suppliers">
+              <span class="subitem-dot">•</span> <span>Suppliers</span>
             </a>
           </div>
         </div>
 
-        <!-- 3. Transactions -->
-        <div class="nav-group open" id="nav-grp-transactions">
+        <!-- Items -->
+        <a href="inv-products.html" class="nav-item" id="nav-item-items">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <span class="nav-label">Items</span>
+        </a>
+
+        <!-- Sales -->
+        <div class="nav-group open" id="nav-grp-sales">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">💼</span>
-            <span class="nav-label">Transactions</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </span>
+            <span class="nav-label">Sales</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-invoice.html?type=sales" class="nav-subitem">
-              <span class="nav-bullet">📈</span> Sales
+            <a href="inv-invoice.html?type=sales" class="nav-subitem" id="nav-sub-sales-inv">
+              <span>Sales Invoices</span>
             </a>
-            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
-              <span class="nav-bullet">📥</span> Purchases
+            <a href="inv-invoice.html?type=quotation" class="nav-subitem" id="nav-sub-quotation">
+              <span>Quotation / Estimate</span>
             </a>
-            <a href="javascript:void(0)" onclick="switchTab('suppliers')" id="nav-sub-payments" class="nav-subitem">
-              <span class="nav-bullet">💸</span> Payments
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('customers')" id="nav-sub-received"
-              class="nav-subitem active">
-              <span class="nav-bullet">💵</span> Received
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('vouchers')" id="nav-sub-vouchers"
-              class="nav-subitem">
-              <span class="nav-bullet">📑</span> All Vouchers & Bills
+            <a href="javascript:void(0)" onclick="switchTab('customers')" class="nav-subitem active" id="nav-sub-received">
+              <span>Payment In (Collections)</span>
             </a>
           </div>
         </div>
 
-        <!-- 4. Reports -->
-        <div class="nav-group">
+        <!-- Purchases -->
+        <div class="nav-group" id="nav-grp-purchases">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">📈</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </span>
+            <span class="nav-label">Purchases</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem" id="nav-sub-purchase-bill">
+              <span>Purchase Bills</span>
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('suppliers')" class="nav-subitem" id="nav-sub-payments">
+              <span>Payment Out (Vouchers)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="nav-group" id="nav-grp-reports">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </span>
             <span class="nav-label">Reports</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-reports.html?tab=ledger" class="nav-subitem">
-              <span class="nav-bullet">📋</span> Ledger
+            <a href="inv-reports.html?tab=ledger" class="nav-subitem" id="nav-sub-ledger">
+              <span>All Bills &amp; Ledger</span>
             </a>
-            <a href="inv-outstandings.html" class="nav-subitem">
-              <span class="nav-bullet">💰</span> Outstandings
+            <a href="inv-outstandings.html" class="nav-subitem" id="nav-sub-outstandings">
+              <span>Outstandings &amp; Aging</span>
             </a>
-            <a href="inv-reports.html?tab=stock" class="nav-subitem">
-              <span class="nav-bullet">📦</span> Stock
+            <a href="inv-reports.html?tab=stock" class="nav-subitem" id="nav-sub-stock">
+              <span>Stock Summary</span>
+            </a>
+            <a href="inv-finance.html" class="nav-subitem" id="nav-sub-finance">
+              <span>Bank &amp; Cash Accounts</span>
             </a>
           </div>
         </div>
+
+        <!-- Scroll for more options indicator -->
+        <div class="sidebar-scroll-hint" onclick="scrollSidebarMore()" title="Scroll for more options">
+          <span>Scroll for more options</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+        </div>
+
+        <!-- Settings -->
+        <a href="company-dashboard.html" class="nav-item" id="nav-item-settings">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="nav-label">Settings</span>
+        </a>
       </nav>
 
-      <!-- Sidebar Footer -->
+      <!-- 4. Sidebar System Navigation (Back to Main & Sign Out) -->
       <div class="sidebar-footer">
-        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link">
-          <span>←</span> <span>Back to Main</span>
+        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link" title="Back to Main Dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back to Main</span>
         </a>
-        <button id="logout-btn" class="sidebar-logout-btn">
+        <button id="logout-btn" class="sidebar-logout-btn" type="button" title="Sign Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Sign Out</span>
         </button>
+      </div>
+
+      <!-- 5. Bottom Trust Badges -->
+      <div class="sidebar-trust-footer">
+        <div class="trust-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <span>100% Secure</span>
+        </div>
+        <div class="trust-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          <span>ISO Certified</span>
+        </div>
       </div>
     </aside>
 
@@ -934,7 +1043,8 @@
             <table>
               <thead>
                 <tr>
-                  <th style="width:45px;text-align:center;">#</th>
+                  <th style="width:36px;text-align:center;">#</th>
+                  <th style="width:110px;">Actions</th>
                   <th>Customer</th>
                   <th>Phone / GSTIN</th>
                   <th style="text-align:right;">Total Invoiced (₹)</th>
@@ -942,7 +1052,6 @@
                   <th style="text-align:right;">Outstanding (₹)</th>
                   <th>Credit Days</th>
                   <th>Aging Status</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="cust-tbody">
@@ -998,7 +1107,8 @@
             <table>
               <thead>
                 <tr>
-                  <th style="width:45px;text-align:center;">#</th>
+                  <th style="width:36px;text-align:center;">#</th>
+                  <th style="width:110px;">Actions</th>
                   <th>Supplier</th>
                   <th>Phone / GSTIN</th>
                   <th style="text-align:right;">Total Purchased (₹)</th>
@@ -1006,7 +1116,6 @@
                   <th style="text-align:right;">Outstanding (₹)</th>
                   <th>Payment Terms</th>
                   <th>Status</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="supp-tbody">
@@ -1228,19 +1337,27 @@
         <div id="pm-due-info"
           style="display:none;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:12px 14px;margin-bottom:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div>
-            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current
-              Total Outstanding</div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Current Total Outstanding</div>
             <div id="pm-due-val" style="font-size:1.15rem;font-weight:800;color:#f87171;">₹0</div>
           </div>
+          <div id="pm-adv-box" style="display:none;text-align:center;">
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">🎁 Available Advance Credit</div>
+            <div id="pm-adv-val" style="font-size:1.15rem;font-weight:800;color:#4ade80;">₹0</div>
+          </div>
           <div style="text-align:right;">
-            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">✨ Remaining
-              Due After Payment</div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">✨ Remaining Due After Payment</div>
             <div id="pm-rem-val" style="font-size:1.15rem;font-weight:800;color:#38bdf8;">₹0</div>
           </div>
+          <div id="pm-excess-adv-notice" style="display:none;width:100%;background:rgba(34,197,94,0.12);border:1px solid #22c55e;border-radius:6px;padding:6px 10px;color:#4ade80;font-size:0.8rem;font-weight:700;margin-top:4px;">
+            ✨ Excess ₹<span id="pm-excess-val">0</span> will be saved as Advance Credit in Party Account
+          </div>
           <div
-            style="width:100%;display:flex;justify-content:flex-end;border-top:1px dashed rgba(255,255,255,0.1);padding-top:6px;margin-top:4px;">
+            style="width:100%;display:flex;justify-content:space-between;align-items:center;border-top:1px dashed rgba(255,255,255,0.1);padding-top:6px;margin-top:4px;">
+            <button type="button" id="btn-use-adv-credit" onclick="applyAdvanceInPaymentModal()" style="display:none;background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#4ade80;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">
+              ⚡ Apply Advance Credit
+            </button>
             <button type="button" onclick="fillFullOutstanding()"
-              style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;">⚡
+              style="background:rgba(99,102,241,0.2);border:1px solid #6366f1;color:#a5b4fc;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;margin-left:auto;">⚡
               Settle Full Outstanding</button>
           </div>
         </div>
@@ -1255,6 +1372,7 @@
             <label class="form-label">Payment Mode *</label>
             <select id="pm-mode" class="form-select" required onchange="onPaymentModeChange()">
               <option value="UPI">📱 UPI (GPay / PhonePe / Paytm)</option>
+              <option value="ADVANCE">🎁 Advance Credit (खाता एडवांस)</option>
               <option value="NEFT_RTGS">🏦 NEFT / RTGS / IMPS</option>
               <option value="NET_BANKING">🌐 Net Banking</option>
               <option value="CHEQUE">📝 Cheque</option>
@@ -1642,7 +1760,7 @@
     }
 
     const H = () => {
-      const selectedTenant = localStorage.getItem('selected_tenant_id') || '';
+      const selectedTenant = localStorage.getItem('selected_tenant_id') || localStorage.getItem('activeCompanyId') || '';
       return {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
@@ -1706,6 +1824,8 @@
       if (name === 'suppliers') loadSupplierOutstandings();
       if (name === 'daily') loadDailySummary();
       if (name === 'vouchers') loadVouchers();
+
+      loadKpis();
     }
 
     // ─── Load KPI Overview ─────────────────────────────────────────────────────
@@ -1716,7 +1836,10 @@
     async function loadKpis() {
       try {
         const r = await fetch(`${API}/inventory/payments/kpis`, { headers: H() });
-        if (!r.ok) return;
+        if (!r.ok) {
+          console.warn('KPI request failed with status:', r.status);
+          return;
+        }
         const json = await r.json();
         const data = json.data || {};
 
@@ -1851,6 +1974,13 @@
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
+            <td class="action-cell">
+              <div class="action-stack">
+                <button onclick="openRecordPaymentForParty('CUSTOMER', '${c._id}', event)" class="btn-action btn-pay">💵 Receive</button>
+                <button onclick="openStatement('CUSTOMER', '${c._id}', event)" class="btn-action">📜 Statement</button>
+                ${c.outstanding > 0 ? `<button onclick="openWhatsAppModal('CUSTOMER', '${c._id}', event)" class="btn-action btn-wa">📲 WA</button>` : ''}
+              </div>
+            </td>
             <td style="min-width:180px;">
               <div style="font-weight:700;color:var(--text);">${escHtml(c.name)}</div>
               <div><span style="background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📥 RECEIVABLE · लेना</span></div>
@@ -1871,11 +2001,6 @@
             </td>
             <td>${c.paymentTerms} Days</td>
             <td><span class="status-badge ${cBadgeClass}">${cStatusLabel}</span></td>
-            <td style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button onclick="openRecordPaymentForParty('CUSTOMER', '${c._id}', event)" class="btn-action btn-pay">💵 Receive</button>
-              <button onclick="openStatement('CUSTOMER', '${c._id}', event)" class="btn-action">📜 Statement</button>
-              ${c.outstanding > 0 ? `<button onclick="openWhatsAppModal('CUSTOMER', '${c._id}', event)" class="btn-action btn-wa">📲 WhatsApp</button>` : ''}
-            </td>
           </tr>
         `;
       }).join('');
@@ -1975,6 +2100,12 @@
         return `
           <tr>
             <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.82rem;">${idx + 1}</td>
+            <td class="action-cell">
+              <div class="action-stack">
+                <button onclick="openRecordPaymentForParty('SUPPLIER', '${s._id}', event)" class="btn-action btn-pay">💸 Pay</button>
+                <button onclick="openStatement('SUPPLIER', '${s._id}', event)" class="btn-action">📜 Statement</button>
+              </div>
+            </td>
             <td style="min-width:180px;">
               <div style="font-weight:700;color:var(--text);">${escHtml(s.name)}</div>
               <div><span style="background:rgba(244,63,94,0.14);border:1px solid rgba(244,63,94,0.3);color:#fb7185;padding:2px 6px;border-radius:4px;font-size:0.68rem;font-weight:800;display:inline-flex;align-items:center;gap:3px;margin-top:2px;">📤 PAYABLE · देना</span></div>
@@ -1995,10 +2126,6 @@
             </td>
             <td>${s.paymentTerms} Days</td>
             <td><span class="status-badge ${sBadgeClass}">${sStatusLabel}</span></td>
-            <td style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button onclick="openRecordPaymentForParty('SUPPLIER', '${s._id}', event)" class="btn-action btn-pay">💸 Pay</button>
-              <button onclick="openStatement('SUPPLIER', '${s._id}', event)" class="btn-action">📜 Statement</button>
-            </td>
           </tr>
         `;
       }).join('');
@@ -2442,11 +2569,7 @@
         if (pType === 'CUSTOMER') rawCustomers = list;
         else rawSuppliers = list;
 
-        pSel.innerHTML = `<option value="">— Select ${pType === 'CUSTOMER' ? 'Customer' : 'Supplier'} —</option>`;
-        list.forEach(p => {
-          pSel.innerHTML += `<option value="${p._id}">${escHtml(p.name)} (${escHtml(p.phone || 'No phone')})</option>`;
-        });
-        makeSearchable('pm-party-id', pType === 'CUSTOMER' ? '🔍 Type customer name, phone…' : '🔍 Type supplier name, phone…');
+        populatePartyDropdown('pm-party-id', list, { type: pType });
       } catch (e) {
         console.error('Error loading parties:', e);
         pSel.innerHTML = '<option value="">Error loading</option>';
@@ -2475,13 +2598,11 @@
         selectedPartyDueAmount = found.outstanding || 0;
         if (dueVal) dueVal.textContent = inr(selectedPartyDueAmount);
         if (dueInfo) dueInfo.style.display = 'flex';
-        // Bug Fix: Only pre-fill amount if the user hasn't already typed a value
         if (amtInput && selectedPartyDueAmount > 0 && !amtInput.value) {
           amtInput.value = selectedPartyDueAmount;
         }
       }
 
-      // Load Pending Bills for this party
       await loadPendingBillsForModal(pType, partyId);
       onAmountOrAllocationChange();
     }
@@ -2499,17 +2620,31 @@
         const r = await fetch(`${API}/inventory/payments/pending-bills?partyType=${partyType}&partyId=${partyId}`, { headers: H() });
         const json = await r.json();
         cachedPendingBills = json.data?.bills || [];
+        if (json.data?.totalPending !== undefined) selectedPartyDueAmount = json.data.totalPending;
+        selectedPartyAdvanceBalance = json.data?.advanceBalance || 0;
+
+        const advBox = document.getElementById('pm-adv-box');
+        const advVal = document.getElementById('pm-adv-val');
+        const btnUseAdv = document.getElementById('btn-use-adv-credit');
+        if (advBox && advVal) {
+          if (selectedPartyAdvanceBalance > 0) {
+            advVal.textContent = inr(selectedPartyAdvanceBalance);
+            advBox.style.display = 'block';
+            if (btnUseAdv) btnUseAdv.style.display = selectedPartyDueAmount > 0 ? 'inline-block' : 'none';
+          } else {
+            advBox.style.display = 'none';
+            if (btnUseAdv) btnUseAdv.style.display = 'none';
+          }
+        }
 
         if (!cachedPendingBills.length) {
-          countEl.textContent = '(0 open bills — On-Account payment)';
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--text-muted);">No open unpaid bills found. Payment will be credited on-account.</td></tr>';
+          countEl.textContent = '(0 open bills — Advance / On-Account payment)';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--text-muted);">No open unpaid bills found. Payment will be credited directly as Advance Balance.</td></tr>';
           return;
         }
 
         countEl.textContent = `(${cachedPendingBills.length} open bills · Total Due: ${inr(json.data.totalPending)})`;
         renderBillsTbody();
-        // Bug Fix: Don't auto-trigger FIFO on party load — let user click the ⚡ button explicitly.
-        // Only update totals (remaining due preview) based on whatever amount is already typed.
         updateAllocationTotals();
       } catch (err) {
         console.error('Error loading pending bills:', err);
@@ -2517,98 +2652,100 @@
       }
     }
 
+    function applyAdvanceInPaymentModal() {
+      if (!selectedPartyAdvanceBalance || selectedPartyAdvanceBalance <= 0) {
+        showToast('This party has no advance credit balance.', 'warning');
+        return;
+      }
+      const settleAmt = Math.min(selectedPartyAdvanceBalance, selectedPartyDueAmount);
+      if (settleAmt <= 0) {
+        showToast('This party has no open bills to settle.', 'info');
+        return;
+      }
+      const modeEl = document.getElementById('pm-mode');
+      if (modeEl) {
+        modeEl.value = 'ADVANCE';
+        onPaymentModeChange();
+      }
+      const amtInput = document.getElementById('pm-amount');
+      if (amtInput) amtInput.value = settleAmt;
+      autoKnockoffFifo();
+      showToast(`Applied ₹${settleAmt.toLocaleString('en-IN')} from party advance balance!`, 'success');
+    }
+
     function renderBillsTbody() {
       const tbody = document.getElementById('pm-bills-tbody');
       if (!tbody) return;
 
-      tbody.innerHTML = cachedPendingBills.map((b, idx) => {
-        return `
-          <tr id="bill-row-${b._id}">
-            <td style="text-align:center;color:var(--text-muted);font-weight:600;font-size:0.75rem;">${idx + 1}</td>
-            <td>
-              <span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view invoice details">📑 ${escHtml(b.voucherNo)}</span>
-            </td>
-            <td>
-              <div>${fmtDate(b.date)}</div>
-              <div style="font-size:0.68rem;color:${b.status === 'OVERDUE' ? '#f87171' : 'var(--text-muted)'};">${b.dueDate ? 'Due: ' + fmtDate(b.dueDate) : 'No term'}</div>
-            </td>
-            <td style="text-align:right;">${inr(b.totalAmount)}</td>
-            <td style="text-align:right;font-weight:700;color:#f87171;">${inr(b.pendingAmount)}</td>
-            <td style="text-align:right;">
-              <input type="number" id="alloc-input-${b._id}" class="form-input" min="0" max="${b.pendingAmount}" step="any"
-                placeholder="0" style="padding:4px 6px;text-align:right;font-size:0.78rem;"
-                oninput="onAllocationInput('${b._id}')" />
-            </td>
-            <td style="text-align:right;font-weight:700;" id="bill-rem-${b._id}">${inr(b.pendingAmount)}</td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = cachedPendingBills.map((b, idx) => `
+        <tr>
+          <td style="text-align:center;font-weight:700;color:var(--text-muted);font-size:0.75rem;">${idx + 1}</td>
+          <td style="font-family:monospace;font-weight:700;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view full voucher">
+            🔍 ${escHtml(b.voucherNo)}
+          </td>
+          <td style="font-size:0.75rem;font-family:monospace;">${fmtDate(b.date)}</td>
+          <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(b.totalAmount)}</td>
+          <td style="text-align:right;font-family:monospace;font-weight:800;color:#f87171;">
+            <span id="bill-pending-${b._id}">${inr(b.pendingAmount)}</span>
+          </td>
+          <td style="text-align:center;">
+            <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+              <input type="number" id="alloc-input-${b._id}" class="form-input" style="width:105px;padding:4px 6px;font-size:0.8rem;text-align:right;font-family:monospace;"
+                placeholder="0.00" min="0" max="${b.pendingAmount}" step="any"
+                oninput="onBillAllocInput('${b._id}', ${b.pendingAmount})" />
+              <button type="button" class="btn-action" style="padding:4px 6px;font-size:0.72rem;background:rgba(99,102,241,0.2);color:#a5b4fc;"
+                onclick="fillSingleBill('${b._id}', ${b.pendingAmount})" title="Settle full pending on this bill">⚡</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
     }
 
-    function onAllocationInput(billId) {
-      const b = cachedPendingBills.find(x => x._id === billId);
-      if (!b) return;
-
+    function fillSingleBill(billId, pendingAmt) {
       const input = document.getElementById(`alloc-input-${billId}`);
-      const remEl = document.getElementById(`bill-rem-${billId}`);
-      let val = Number(input.value || 0);
-
-      if (val > b.pendingAmount) {
-        val = b.pendingAmount;
-        input.value = val;
-      } else if (val < 0) {
-        val = 0;
-        input.value = val;
+      if (input) {
+        input.value = pendingAmt;
+        onBillAllocInput(billId, pendingAmt);
       }
+    }
 
-      const rem = Math.max(0, b.pendingAmount - val);
-      if (remEl) {
-        remEl.textContent = inr(rem);
-        remEl.style.color = rem === 0 ? '#4ade80' : '#38bdf8';
+    function onBillAllocInput(billId, pendingAmt) {
+      const input = document.getElementById(`alloc-input-${billId}`);
+      const val = Number(input ? input.value : 0);
+      if (val > pendingAmt) {
+        if (input) input.value = pendingAmt;
       }
-
       updateAllocationTotals();
     }
 
     function autoKnockoffFifo() {
       const amtInput = document.getElementById('pm-amount');
-      let totalToAllocate = Number(amtInput ? amtInput.value : 0);
+      let remaining = Number(amtInput ? amtInput.value : 0);
+      if (!remaining || remaining <= 0) {
+        showToast('Please enter a total payment amount first', 'warning');
+        return;
+      }
 
       cachedPendingBills.forEach(b => {
         const input = document.getElementById(`alloc-input-${b._id}`);
-        const remEl = document.getElementById(`bill-rem-${b._id}`);
-        if (!input) return;
-
-        if (totalToAllocate > 0) {
-          const alloc = Math.min(totalToAllocate, b.pendingAmount);
-          input.value = alloc;
-          const rem = b.pendingAmount - alloc;
-          if (remEl) {
-            remEl.textContent = inr(rem);
-            remEl.style.color = rem === 0 ? '#4ade80' : '#38bdf8';
-          }
-          totalToAllocate -= alloc;
-        } else {
-          input.value = '';
-          if (remEl) {
-            remEl.textContent = inr(b.pendingAmount);
-            remEl.style.color = 'var(--text-sub)';
-          }
+        if (remaining <= 0) {
+          if (input) input.value = '';
+          return;
         }
+
+        const toAlloc = Math.min(remaining, b.pendingAmount);
+        if (input) input.value = toAlloc;
+        remaining -= toAlloc;
       });
 
       updateAllocationTotals();
+      showToast('FIFO Auto-Allocation applied across open bills!', 'success');
     }
 
     function clearAllocations() {
       cachedPendingBills.forEach(b => {
         const input = document.getElementById(`alloc-input-${b._id}`);
-        const remEl = document.getElementById(`bill-rem-${b._id}`);
         if (input) input.value = '';
-        if (remEl) {
-          remEl.textContent = inr(b.pendingAmount);
-          remEl.style.color = 'var(--text-sub)';
-        }
       });
       updateAllocationTotals();
     }
@@ -2633,18 +2770,44 @@
       if (totAllocEl) totAllocEl.textContent = inr(totalAllocated);
       if (unallocEl) unallocEl.textContent = inr(unallocated);
 
-      // Overpayment check against selected party's due amount
-      if (selectedPartyDueAmount > 0 && totalPayment > selectedPartyDueAmount) {
-        if (errEl) {
-          errEl.textContent = `⚠️ Payment amount (${inr(totalPayment)}) cannot exceed total outstanding due of ${inr(selectedPartyDueAmount)}.`;
-          errEl.style.display = 'block';
+      const mode = document.getElementById('pm-mode')?.value || 'UPI';
+      const isAdv = mode === 'ADVANCE';
+      const excessNotice = document.getElementById('pm-excess-adv-notice');
+      const excessVal = document.getElementById('pm-excess-val');
+
+      if (isAdv) {
+        if (excessNotice) excessNotice.style.display = 'none';
+        if (totalPayment > (selectedPartyAdvanceBalance || 0)) {
+          if (errEl) {
+            errEl.textContent = `⚠️ Settlement (${inr(totalPayment)}) exceeds available advance credit of ${inr(selectedPartyAdvanceBalance || 0)}.`;
+            errEl.style.display = 'block';
+          }
+          if (amtInput) amtInput.style.borderColor = 'var(--error, #f87171)';
+        } else if (selectedPartyDueAmount > 0 && totalPayment > selectedPartyDueAmount) {
+          if (errEl) {
+            errEl.textContent = `⚠️ Advance credit applied (${inr(totalPayment)}) cannot exceed total outstanding due of ${inr(selectedPartyDueAmount)}.`;
+            errEl.style.display = 'block';
+          }
+          if (amtInput) amtInput.style.borderColor = 'var(--error, #f87171)';
+        } else {
+          if (errEl) errEl.style.display = 'none';
+          if (amtInput) amtInput.style.borderColor = '';
         }
-        if (amtInput) amtInput.style.borderColor = 'var(--error, #f87171)';
       } else {
-        if (errEl && errEl.textContent.includes('cannot exceed total outstanding due')) {
+        if (errEl && (errEl.textContent.includes('cannot exceed total outstanding') || errEl.textContent.includes('exceeds available advance'))) {
           errEl.style.display = 'none';
         }
         if (amtInput) amtInput.style.borderColor = '';
+
+        if (totalPayment > selectedPartyDueAmount) {
+          const excess = totalPayment - selectedPartyDueAmount;
+          if (excessNotice && excessVal) {
+            excessVal.textContent = (excess).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            excessNotice.style.display = 'block';
+          }
+        } else {
+          if (excessNotice) excessNotice.style.display = 'none';
+        }
       }
 
       // Update Party Remaining Balance Due
@@ -2704,17 +2867,7 @@
       if (ocfBank) ocfBank.innerHTML = optionsHtml;
     }
 
-    function generateSmartRef(mode) {
-      const rand6 = Math.floor(100000 + Math.random() * 900000);
-      const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
-      if (mode === 'UPI') return `UPI/${rand12}@okhdfc`;
-      if (mode === 'NEFT_RTGS') return `HDFCN${rand6}`;
-      if (mode === 'NET_BANKING') return `IMPS-${rand12}`;
-      if (mode === 'CHEQUE') return `CHQ-${rand6}`;
-      if (mode === 'CARD') return `POS-TXN-${rand6}`;
-      if (mode === 'CASH') return `CASH-RCPT-${rand6}`;
-      return `TXN-${rand6}`;
-    }
+
 
     function autoFillPmRef() {
       const mode = document.getElementById('pm-mode')?.value || 'UPI';
@@ -2738,10 +2891,16 @@
       const mode = modeEl ? modeEl.value : 'UPI';
 
       if (bankGroup) {
-        bankGroup.style.display = (mode === 'CASH') ? 'none' : 'block';
+        bankGroup.style.display = (mode === 'CASH' || mode === 'ADVANCE') ? 'none' : 'block';
+      }
+      const refGroup = document.getElementById('pm-ref-group');
+      if (refGroup) {
+        refGroup.style.display = (mode === 'ADVANCE') ? 'none' : 'block';
       }
 
-      if (mode === 'UPI') {
+      if (mode === 'ADVANCE') {
+        if (hint) hint.textContent = '🎁 Settle open bills using existing customer/supplier advance credit. No bank or cash movement.';
+      } else if (mode === 'UPI') {
         if (refLbl) refLbl.textContent = 'UPI Reference / UTR / RRN (12 Digits)';
         if (refInput) refInput.placeholder = 'e.g. 423612345678';
         if (hint) hint.textContent = '💡 Enter 12-digit UTR/RRN from Google Pay, PhonePe, Paytm, or BHIM.';
@@ -2937,6 +3096,10 @@
               <div class="stmt-metric-lbl">Net Closing Outstanding</div>
               <div class="stmt-metric-val" style="color:#a5b4fc;">${inr(summary?.netOutstanding)} <span style="font-size:0.75rem;">${escHtml(summary?.balanceType)}</span></div>
             </div>
+            <div class="stmt-metric-box" style="background:rgba(34,197,94,0.1);border-color:#22c55e;">
+              <div class="stmt-metric-lbl">Available Advance Balance</div>
+              <div class="stmt-metric-val" style="color:#4ade80;">${inr(party.advanceBalance || summary?.advanceBalance || 0)}</div>
+            </div>
           </div>
 
           <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;">
@@ -2958,6 +3121,9 @@
           const billLinks = (row.allocatedBills && row.allocatedBills.length)
             ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" style="cursor:pointer;" onclick="openVoucherModal('${b.voucherNo}', event)" title="Click to view ${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
             : '';
+          const advBadge = row.advanceAmount > 0
+            ? `<span style="background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#4ade80;font-size:0.68rem;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:4px;">+ Advance ${inr(row.advanceAmount)}</span>`
+            : ((row.appliedAdvanceAmount > 0 || row.paymentMode === 'ADVANCE') ? `<span style="background:rgba(59,130,246,0.15);border:1px solid #3b82f6;color:#60a5fa;font-size:0.68rem;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:4px;">🎁 From Advance</span>` : '');
 
           return `
                     <tr>
@@ -2965,7 +3131,7 @@
                       <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
                       <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);cursor:pointer;" onclick="openVoucherModal('${row.voucherNo}', event)" title="Click to view full invoice / voucher details">🔍 ${escHtml(row.voucherNo)}</td>
                       <td>
-                        <div>${escHtml(row.notes || row.txnType)}</div>
+                        <div>${escHtml(row.notes || row.txnType)} ${advBadge}</div>
                         ${billLinks}
                       </td>
                       <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
@@ -3659,7 +3825,9 @@
     window.onAmountOrAllocationChange = onAmountOrAllocationChange;
     window.autoKnockoffFifo = autoKnockoffFifo;
     window.clearAllocations = clearAllocations;
-    window.onAllocationInput = onAllocationInput;
+    window.onBillAllocInput = onBillAllocInput;
+    window.onAllocationInput = onBillAllocInput;
+    window.loadKpis = loadKpis;
 
     // ─── Init ──────────────────────────────────────────────────────────────────
     loadKpis();
@@ -3677,6 +3845,7 @@
     }
   </script>
   <script src="../js/inv-bg-animation.js"></script>
+  <script src="../js/sidebar.js"></script>
 </body>
 
 </html>

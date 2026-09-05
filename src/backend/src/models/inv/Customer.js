@@ -24,6 +24,7 @@ const CustomerSchema = new mongoose.Schema({
   pincode:     { type: String, trim: true },
   paymentTerms: { type: Number, default: 0 },   // days; 0 = cash
   creditLimit:  { type: Number, default: 0 },   // INR
+  advanceBalance: { type: Number, default: 0, min: 0 }, // Accumulated unallocated advance credit (INR)
   notes:    { type: String },
   isActive: { type: Boolean, default: true },
   deletedAt:{ type: Date, default: null },

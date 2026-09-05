@@ -16,6 +16,9 @@ const PaymentTransactionSchema = new mongoose.Schema({
     enum: [
       'BILL',            // Purchase from Supplier (creates Payable)
       'INVOICE',         // Sale to Customer (creates Receivable)
+      'CREDIT_NOTE',     // Sales Return / Credit Adjustment to Customer (reduces Receivable)
+      'DEBIT_NOTE',      // Purchase Return / Debit Adjustment to Supplier (reduces Payable)
+      'DELIVERY_CHALLAN',// Movement of goods without tax sale (Rule 55, Job work / Branch transfer)
       'PAYMENT_OUT',     // Payment made to Supplier (reduces Payable)
       'PAYMENT_IN',      // Payment collected from Customer (reduces Receivable)
       'OPENING_BAL',     // Initial carry-forward balance
@@ -59,7 +62,7 @@ const PaymentTransactionSchema = new mongoose.Schema({
   
   paymentMode: {
     type: String,
-    enum: ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD', 'CREDIT', 'TRANSFER', 'ONLINE', 'BANK_TRANSFER'],
+    enum: ['UPI', 'NEFT_RTGS', 'CHEQUE', 'CASH', 'NET_BANKING', 'CARD', 'CREDIT', 'TRANSFER', 'ONLINE', 'BANK_TRANSFER', 'ADVANCE'],
     default: 'UPI',
   },
 
@@ -86,6 +89,10 @@ const PaymentTransactionSchema = new mongoose.Schema({
   settledAmount: { type: Number, default: 0, min: 0 },
   paymentStatus: { type: String, enum: ['UNPAID', 'PARTIALLY_PAID', 'PAID'], default: 'UNPAID', index: true },
 
+  // Party Advance Tracking
+  advanceAmount: { type: Number, default: 0, min: 0 }, // Surplus payment amount credited to party advance balance
+  appliedAdvanceAmount: { type: Number, default: 0, min: 0 }, // Amount of party advance balance consumed to knock off bills
+
   // Linked Bill Allocations (for PAYMENT_IN & PAYMENT_OUT records)
   allocatedBills: [
     {
@@ -105,23 +112,86 @@ const PaymentTransactionSchema = new mongoose.Schema({
       productName: { type: String, trim: true },
       sku: { type: String, trim: true },
       hsn: { type: String, trim: true },
-      qty: { type: Number, default: 1 },
+      qty: { type: Number, default: 1 }, // Billed quantity
+      freeQty: { type: Number, default: 0 }, // Scheme / promotional free quantity
       unit: { type: String, default: 'PCS' },
       unitPrice: { type: Number, default: 0 },
       discountPct: { type: Number, default: 0 },
       taxPct: { type: Number, default: 0 },
+      cgstRate: { type: Number, default: 0 },
+      sgstRate: { type: Number, default: 0 },
+      igstRate: { type: Number, default: 0 },
+      cgstAmount: { type: Number, default: 0 },
+      sgstAmount: { type: Number, default: 0 },
+      igstAmount: { type: Number, default: 0 },
+      taxableAmount: { type: Number, default: 0 },
       amount: { type: Number, default: 0 },
+      isFree: { type: Boolean, default: false },
     },
   ],
+  supplyType: { type: String, enum: ['INTRA', 'INTER'], default: 'INTRA' },
   subtotal: { type: Number, default: 0 },
   discountTotal: { type: Number, default: 0 },
   taxTotal: { type: Number, default: 0 },
+  cgstTotal: { type: Number, default: 0 },
+  sgstTotal: { type: Number, default: 0 },
+  igstTotal: { type: Number, default: 0 },
   additionalCharges: { type: Number, default: 0 },
+  roundOff: { type: Number, default: 0 }, // Statutory round-off (+/- 0.49 INR)
   prefix: { type: String, trim: true, default: '' },
   invoiceNumber: { type: String, trim: true, default: '' },
+
+  // Credit Note & Debit Note Linking (Rule 53 / Section 34)
+  originalInvoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvPaymentTransaction', default: null },
+  originalVoucherNo: { type: String, trim: true, default: '' },
+  originalInvoiceDate: { type: Date, default: null },
+  reasonForReturn: {
+    type: String,
+    enum: ['SALES_RETURN', 'PURCHASE_RETURN', 'POST_SALE_DISCOUNT', 'DEFICIENT_GOODS', 'CORRECTION_IN_INVOICE', 'CHANGE_IN_POS', 'OTHER', ''],
+    default: '',
+  },
+
+  // Logistics & Transportation (Rule 138 & Rule 55)
   eWayBillNo: { type: String, trim: true, default: '' },
+  eWayBillDate: { type: Date, default: null },
+  transporterId: { type: String, trim: true, uppercase: true, default: '' }, // 15-char Transporter GSTIN
+  transporterName: { type: String, trim: true, default: '' },
+  transportMode: { type: String, enum: ['ROAD', 'RAIL', 'AIR', 'SHIP'], default: 'ROAD' },
+  vehicleNo: { type: String, trim: true, uppercase: true, default: '' },
+  vehicleType: { type: String, enum: ['REGULAR', 'OVER_DIMENSIONAL_CARGO'], default: 'REGULAR' },
+  lrNo: { type: String, trim: true, default: '' }, // Lorry Receipt / Bilty / Goods Receipt (GR) Number
+  lrDate: { type: Date, default: null },
+  distanceKm: { type: Number, default: 0 },
   dispatchedThrough: { type: String, trim: true, default: '' },
-  vehicleNo: { type: String, trim: true, default: '' },
+
+  // Ship-To (Consignee Details distinct from Bill-To Buyer)
+  shipTo: {
+    name: { type: String, trim: true, default: '' },
+    gstin: { type: String, trim: true, uppercase: true, default: '' },
+    address: { type: String, trim: true, default: '' },
+    city: { type: String, trim: true, default: '' },
+    state: { type: String, trim: true, default: '' },
+    stateCode: { type: String, trim: true, default: '' },
+    pincode: { type: String, trim: true, default: '' },
+  },
+
+  // Statutory GST Compliance Flags
+  isRcm: { type: Boolean, default: false }, // Reverse Charge Mechanism (Sec 9(3)/9(4))
+  isB2C: { type: Boolean, default: false },
+  irn: { type: String, trim: true, default: '' }, // 64-char E-Invoicing Hash
+  ackNo: { type: String, trim: true, default: '' },
+  ackDate: { type: Date, default: null },
+
+  // Split Tender / Multi-Mode Payment at Counter
+  splitPayments: [
+    {
+      mode: { type: String, enum: ['CASH', 'UPI', 'CARD', 'CHEQUE', 'NET_BANKING', 'TRANSFER', 'ADVANCE'], default: 'CASH' },
+      amount: { type: Number, required: true },
+      referenceNo: { type: String, trim: true, default: '' },
+      bankAccountId: { type: mongoose.Schema.Types.ObjectId, ref: 'InvBankAccount', default: null },
+    },
+  ],
+
   emailId: { type: String, trim: true, default: '' },
   poNumber: { type: String, trim: true, default: '' },
   termsAndConditions: { type: String, trim: true, default: '' },

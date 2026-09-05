@@ -9,6 +9,8 @@ const Tenant            = require('../../models/Tenant');
 const AuditLog          = require('../../models/AuditLog');
 const { nextSeq }       = require('../../utils/sequence');
 const { decrypt, mask } = require('../../utils/encryption');
+const { getTenantId }   = require('../../utils/tenant');
+const { generateAutoReference } = require('../../utils/reference');
 
 // ─── GET /api/inventory/payments/pending-bills ────────────────────────────────
 async function getPendingBills(req, res, next) {
@@ -64,11 +66,16 @@ async function getPendingBills(req, res, next) {
 
     const totalPending = pendingBills.reduce((acc, b) => acc + b.pendingAmount, 0);
 
+    const partyModel = partyType === 'CUSTOMER' ? Customer : Supplier;
+    const partyDoc = await partyModel.findOne({ _id: partyId, tenantId: req.tenantId, deletedAt: null }).lean();
+    const advanceBalance = partyDoc?.advanceBalance || 0;
+
     res.json({
       data: {
         bills: pendingBills,
         count: pendingBills.length,
         totalPending,
+        advanceBalance,
       },
       message: 'OK',
       errors: null,
@@ -140,20 +147,38 @@ async function recordPayment(req, res, next) {
     ]);
     const totalPending = openBillsAgg[0]?.totalPending || 0;
 
-    if (totalPending <= 0) {
-      return res.status(400).json({
-        data: null,
-        message: `This ${partyType.toLowerCase()} has ₹0 outstanding balance. Cannot record a payment/receipt exceeding the total due.`,
-        errors: null,
-      });
-    }
+    const isAdvanceMode = (paymentMode || '').toUpperCase() === 'ADVANCE';
 
-    if (numAmount > totalPending) {
-      return res.status(400).json({
-        data: null,
-        message: `Payment amount (₹${numAmount.toLocaleString('en-IN')}) cannot exceed the total outstanding due of ₹${totalPending.toLocaleString('en-IN')}.`,
-        errors: null,
-      });
+    if (isAdvanceMode) {
+      const partyAdvance = party.advanceBalance || 0;
+      if (partyAdvance <= 0) {
+        return res.status(400).json({
+          data: null,
+          message: `This ${partyType.toLowerCase()} has ₹0 available advance credit. Cannot use Advance payment mode.`,
+          errors: null,
+        });
+      }
+      if (numAmount > partyAdvance) {
+        return res.status(400).json({
+          data: null,
+          message: `Requested settlement (₹${numAmount.toLocaleString('en-IN')}) exceeds available advance credit of ₹${partyAdvance.toLocaleString('en-IN')}.`,
+          errors: null,
+        });
+      }
+      if (totalPending <= 0) {
+        return res.status(400).json({
+          data: null,
+          message: `This ${partyType.toLowerCase()} has ₹0 outstanding balance. No open bills to knock off with advance credit.`,
+          errors: null,
+        });
+      }
+      if (numAmount > totalPending) {
+        return res.status(400).json({
+          data: null,
+          message: `Advance credit applied (₹${numAmount.toLocaleString('en-IN')}) cannot exceed total outstanding due of ₹${totalPending.toLocaleString('en-IN')}.`,
+          errors: null,
+        });
+      }
     }
 
     // ─── Bill-Wise Allocation Logic ──────────────────────────────────────────
@@ -218,8 +243,8 @@ async function recordPayment(req, res, next) {
           }
         }
       }
-    } else if (autoKnockoff) {
-      // Auto-FIFO Knockoff: Settle oldest unpaid bills first
+    } else if (autoKnockoff || isAdvanceMode || totalPending > 0) {
+      // Auto-FIFO Knockoff: Settle oldest unpaid bills first up to remaining amount
       const openBills = await PaymentTransaction.find({
         tenantId: req.tenantId,
         partyId: party._id,
@@ -257,64 +282,73 @@ async function recordPayment(req, res, next) {
       }
     }
 
+    // Determine advance amounts
+    const surplusAdvance = isAdvanceMode ? 0 : Math.max(0, remainingToAllocate);
+    const appliedAdvance = isAdvanceMode ? numAmount : 0;
+
+    if (isAdvanceMode && appliedAdvance > 0) {
+      await Model.updateOne({ _id: party._id, tenantId: req.tenantId }, { $inc: { advanceBalance: -appliedAdvance } });
+    } else if (surplusAdvance > 0) {
+      await Model.updateOne({ _id: party._id, tenantId: req.tenantId }, { $inc: { advanceBalance: surplusAdvance } });
+    }
+
     // Build descriptive notes
     let finalNotes = notes || (partyType === 'CUSTOMER' ? 'Payment received from customer' : 'Payment made to supplier');
     if (allocatedBills.length > 0) {
       const summaryText = allocatedBills.map(b => `${b.voucherNo} (₹${b.allocatedAmount.toLocaleString('en-IN')})`).join(', ');
-      finalNotes = `${finalNotes} [Settled: ${summaryText}]`;
+      finalNotes = isAdvanceMode
+        ? `[Settled from Advance Credit: ${summaryText}]${notes ? ' ' + notes : ''}`
+        : `${finalNotes} [Settled: ${summaryText}]`;
+    }
+    if (surplusAdvance > 0) {
+      finalNotes = `${finalNotes} [Advance Credited: ₹${surplusAdvance.toLocaleString('en-IN')}]`;
     }
 
     let resolvedBankAccountId = null;
-    let resolvedBankAccountName = bankAccount || null;
-    if (bankAccountId && mongoose.Types.ObjectId.isValid(bankAccountId)) {
-      const bObj = await BankAccount.findOne({ _id: bankAccountId, tenantId: req.tenantId, deletedAt: null });
-      if (bObj) {
-        resolvedBankAccountId = bObj._id;
-        resolvedBankAccountName = `${bObj.bankName} (****${(bObj.accountNumber || '').slice(-4)})`;
-      }
-    } else if (paymentMode !== 'CASH') {
-      let defBank = await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true, isDefault: true }) || await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true });
-      if (!defBank) {
-        const randAcc = '5010' + Math.floor(10000000 + Math.random() * 90000000);
-        defBank = await BankAccount.create({
-          tenantId: req.tenantId,
-          bankName: 'Main Business Bank A/C',
-          accountName: 'Primary Operating Account',
-          accountNumber: randAcc,
-          ifscCode: 'HDFC0000123',
-          branchName: 'Main Branch',
-          accountType: 'CURRENT',
-          upiId: '',
-          openingBalance: 0,
-          isDefault: true,
-          isActive: true,
-          notes: 'Default operational bank account. You can edit this bank name, account number, and details anytime in Finance Master.',
-        });
-      }
-      if (defBank) {
-        resolvedBankAccountId = defBank._id;
-        const plainAcc = decrypt(defBank.accountNumber);
-        resolvedBankAccountName = `${defBank.bankName} (****${plainAcc.slice(-4)})`;
+    let resolvedBankAccountName = isAdvanceMode ? 'Party Advance Account' : (bankAccount || null);
+    if (!isAdvanceMode) {
+      if (bankAccountId && mongoose.Types.ObjectId.isValid(bankAccountId)) {
+        const bObj = await BankAccount.findOne({ _id: bankAccountId, tenantId: req.tenantId, deletedAt: null });
+        if (bObj) {
+          resolvedBankAccountId = bObj._id;
+          resolvedBankAccountName = `${bObj.bankName} (****${(bObj.accountNumber || '').slice(-4)})`;
+        }
+      } else if (paymentMode !== 'CASH') {
+        let defBank = await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true, isDefault: true }) || await BankAccount.findOne({ tenantId: req.tenantId, deletedAt: null, isActive: true });
+        if (!defBank) {
+          const randAcc = '5010' + Math.floor(10000000 + Math.random() * 90000000);
+          defBank = await BankAccount.create({
+            tenantId: req.tenantId,
+            bankName: 'Main Business Bank A/C',
+            accountName: 'Primary Operating Account',
+            accountNumber: randAcc,
+            ifscCode: 'HDFC0000123',
+            branchName: 'Main Branch',
+            accountType: 'CURRENT',
+            upiId: '',
+            openingBalance: 0,
+            isDefault: true,
+            isActive: true,
+            notes: 'Default operational bank account. You can edit this bank name, account number, and details anytime in Finance Master.',
+          });
+        }
+        if (defBank) {
+          resolvedBankAccountId = defBank._id;
+          const plainAcc = decrypt(defBank.accountNumber);
+          resolvedBankAccountName = `${defBank.bankName} (****${plainAcc.slice(-4)})`;
+        }
       }
     }
 
     const isCashMode = (paymentMode || 'UPI') === 'CASH';
-    const acctDisplayName = isCashMode ? 'Cash in Hand' : (resolvedBankAccountName || 'Bank Account');
-    const sourceName = partyType === 'CUSTOMER' ? party.name : acctDisplayName;
-    const destinationName = partyType === 'CUSTOMER' ? acctDisplayName : party.name;
+    const acctDisplayName = isAdvanceMode
+      ? 'Advance Account'
+      : (isCashMode ? 'Cash in Hand' : (resolvedBankAccountName || 'Bank Account'));
+    const sourceName = partyType === 'CUSTOMER' ? (isAdvanceMode ? `${party.name} (Advance Credit)` : party.name) : acctDisplayName;
+    const destinationName = partyType === 'CUSTOMER' ? acctDisplayName : (isAdvanceMode ? `${party.name} (Advance Credit)` : party.name);
 
-    const modeToUse = paymentMode || 'UPI';
-    const rand6 = Math.floor(100000 + Math.random() * 900000);
-    const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
-    let autoRef = `TXN-${rand6}`;
-    if (modeToUse === 'UPI') autoRef = `UPI/${rand12}@okhdfc`;
-    else if (modeToUse === 'NEFT_RTGS') autoRef = `HDFCN${rand6}`;
-    else if (modeToUse === 'NET_BANKING') autoRef = `IMPS-${rand12}`;
-    else if (modeToUse === 'CHEQUE') autoRef = `CHQ-${rand6}`;
-    else if (modeToUse === 'CARD') autoRef = `POS-TXN-${rand6}`;
-    else if (modeToUse === 'CASH') autoRef = `CASH-RCPT-${rand6}`;
-
-    const finalRef = referenceNo ? referenceNo.trim() : autoRef;
+    const modeToUse = isAdvanceMode ? 'ADVANCE' : (paymentMode || 'UPI');
+    const finalRef = referenceNo ? referenceNo.trim() : (isAdvanceMode ? `ADV-${voucherNo}` : generateAutoReference(modeToUse));
 
     const txn = await PaymentTransaction.create({
       tenantId: req.tenantId,
@@ -324,6 +358,8 @@ async function recordPayment(req, res, next) {
       partyModel,
       txnType,
       amount: numAmount,
+      advanceAmount: surplusAdvance,
+      appliedAdvanceAmount: appliedAdvance,
       paymentMode: modeToUse,
       paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
       referenceNo: finalRef,
@@ -357,6 +393,7 @@ async function recordPayment(req, res, next) {
       },
     ]);
     const updatedOutstanding = remainingOpenAgg[0]?.totalRemaining || 0;
+    const updatedParty = await Model.findById(party._id).lean();
 
     await AuditLog.create({
       tenantId: req.tenantId,
@@ -364,18 +401,27 @@ async function recordPayment(req, res, next) {
       action: txnType,
       resource: 'payments',
       resourceId: txn._id.toString(),
-      details: { voucherNo, partyName: party.name, amount: numAmount, paymentMode, referenceNo, updatedOutstanding, allocatedBills },
+      details: { voucherNo, partyName: party.name, amount: numAmount, paymentMode: modeToUse, referenceNo: finalRef, updatedOutstanding, allocatedBills, surplusAdvance, appliedAdvance },
       ip: req.ip,
     });
+
+    const statusMsg = surplusAdvance > 0
+      ? `Payment Voucher ${voucherNo} recorded. ₹${surplusAdvance.toLocaleString('en-IN')} saved as Advance Credit. Current Outstanding: ₹${Math.max(0, updatedOutstanding).toLocaleString('en-IN')}`
+      : (isAdvanceMode
+        ? `Payment Voucher ${voucherNo} settled ₹${numAmount.toLocaleString('en-IN')} using Advance Credit. Remaining Advance: ₹${(updatedParty?.advanceBalance || 0).toLocaleString('en-IN')}`
+        : `Payment Voucher ${voucherNo} recorded successfully. Current Outstanding: ₹${Math.max(0, updatedOutstanding).toLocaleString('en-IN')}`);
 
     res.status(201).json({
       data: {
         txn,
         partyOutstanding: Math.max(0, updatedOutstanding),
+        advanceBalance: updatedParty?.advanceBalance || 0,
         allocatedBills,
-        unallocatedAmount: Math.max(0, remainingToAllocate),
+        unallocatedAmount: surplusAdvance,
+        advanceAmount: surplusAdvance,
+        appliedAdvanceAmount: appliedAdvance,
       },
-      message: `Payment Voucher ${voucherNo} recorded successfully. Current Outstanding: ₹${Math.max(0, updatedOutstanding).toLocaleString('en-IN')}`,
+      message: statusMsg,
       errors: null,
     });
   } catch (e) {
@@ -448,17 +494,7 @@ async function recordOutsideCashflow(req, res, next) {
     const sourceName = isAdd ? pName : accountDisplayName;
     const destinationName = isAdd ? accountDisplayName : pName;
 
-    const rand6_oc = Math.floor(100000 + Math.random() * 900000);
-    const rand12_oc = Math.floor(100000000000 + Math.random() * 900000000000);
-    let autoRef_oc = `TXN-${rand6_oc}`;
-    if (validMode === 'UPI') autoRef_oc = `UPI/${rand12_oc}@okhdfc`;
-    else if (validMode === 'NEFT_RTGS') autoRef_oc = `HDFCN${rand6_oc}`;
-    else if (validMode === 'NET_BANKING') autoRef_oc = `IMPS-${rand12_oc}`;
-    else if (validMode === 'CHEQUE') autoRef_oc = `CHQ-${rand6_oc}`;
-    else if (validMode === 'CARD') autoRef_oc = `POS-TXN-${rand6_oc}`;
-    else if (validMode === 'CASH') autoRef_oc = `CASH-RCPT-${rand6_oc}`;
-
-    const finalRef = referenceNo ? referenceNo.trim() : autoRef_oc;
+    const finalRef = referenceNo ? referenceNo.trim() : generateAutoReference(validMode);
 
     const txn = await PaymentTransaction.create({
       tenantId: targetTenantId,
@@ -1216,6 +1252,8 @@ async function getPartyStatement(req, res, next) {
         allocatedBills: txn.allocatedBills || [],
         settledAmount: txn.settledAmount || 0,
         paymentStatus: txn.paymentStatus || 'UNPAID',
+        advanceAmount: txn.advanceAmount || 0,
+        appliedAdvanceAmount: txn.appliedAdvanceAmount || 0,
         debit,
         credit,
         runningBalance: Math.abs(runningBalance),
@@ -1264,6 +1302,7 @@ async function getPartyStatement(req, res, next) {
           stateCode: party.stateCode || '',
           paymentTerms: party.paymentTerms,
           creditLimit: party.creditLimit || 0,
+          advanceBalance: party.advanceBalance || 0,
           bankDetails: party.bankDetails || null,
         },
         openingBalance: Math.abs(openingBalance),
@@ -1278,6 +1317,8 @@ async function getPartyStatement(req, res, next) {
           closingBalanceType,
           netOutstanding,
           balanceType: closingBalanceType,
+          advanceBalance: party.advanceBalance || 0,
+          availableAdvanceBalance: party.advanceBalance || 0,
           totalEntries: ledger.length,
           periodFrom: from || null,
           periodTo: to || null,

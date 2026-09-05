@@ -41,12 +41,11 @@ Tenant (Company Workspace)
 | `loginhistories` | `LoginHistory.js` | ✅ | `tenantId + loginAt` |
 | `inv_categories` | `inv/Category.js` | ✅ | `tenantId + name`, `tenantId + code` |
 | `inv_products` | `inv/Product.js` | ✅ | `tenantId + sku`, `tenantId + barcode` |
-| `inv_warehouses` | `inv/Warehouse.js` | ✅ | `tenantId + code`, `tenantId + isDefault` |
-| `inv_stock_adjustments`| `inv/StockAdjustment.js`| ✅ | `tenantId + voucherNo`, `productId + warehouseId` |
+| `inv_stock_adjustments`| `inv/Adjustment.js`     | ✅ | `tenantId + voucherNo`, `productId + warehouseId` |
 | `inv_suppliers` | `inv/Supplier.js` | ✅ | `tenantId + name`, `tenantId + gstin` |
 | `inv_customers` | `inv/Customer.js` | ✅ | `tenantId + name`, `tenantId + gstin` |
 | `inv_bank_accounts` | `inv/BankAccount.js` | ✅ | `tenantId + accountNumber + deletedAt`, `tenantId + isActive` |
-| `inv_sequences` | `inv/Sequence.js` | ✅ | `tenantId + prefix + fiscalYear` |
+| `sequences`     | `Sequence.js`        | ✅ | `tenantId + prefix + fiscalYear` |
 | `inv_payment_transactions`| `inv/PaymentTransaction.js`| ✅ | `tenantId + voucherNo`, `tenantId + partyId + txnType`, `tenantId + bankAccountId` |
 
 ---

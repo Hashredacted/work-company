@@ -799,11 +799,11 @@ body {
 }
 
 .sidebar {
-  width: 260px;
-  min-width: 260px;
-  background: rgba(17, 17, 20, 0.95);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid var(--border);
+  width: 255px;
+  min-width: 255px;
+  background: radial-gradient(circle at 50% 0%, rgba(249, 115, 22, 0.18) 0%, transparent 65%), linear-gradient(180deg, #2b1206 0%, #200c03 50%, #160701 100%);
+  border-right: 1px solid rgba(249, 115, 22, 0.24);
+  box-shadow: 4px 0 24px rgba(234, 88, 12, 0.12), inset -1px 0 0 rgba(251, 146, 60, 0.15);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -812,172 +812,329 @@ body {
   z-index: 100;
   transition: transform 0.25s ease, width 0.25s ease;
   user-select: none;
+  font-family: var(--font);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.sidebar-header {
-  padding: 20px 18px 16px;
-  border-bottom: 1px solid var(--border);
+/* Sidebar Custom Scrollbar (Orange) */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.35);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.65);
+}
+
+/* ─── 1. Top Create Action (Split Pill Button) ────────────────────────────── */
+.sidebar-top-action {
+  padding: 14px 12px 6px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.split-create-btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  background: #fff7ed;
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  border-radius: 9999px;
+  height: 42px;
+  padding: 2px 2px 2px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.sidebar-header .brand {
+.split-create-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.3);
+}
+
+.btn-create-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  color: #431407;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
-.sidebar-header .brand-logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+.btn-create-main .action-icon {
+  flex-shrink: 0;
+  color: #c2410c;
+}
+
+.btn-create-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px var(--primary-glow);
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(249, 115, 22, 0.25);
+  cursor: pointer;
+  color: #9a3412;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
 }
 
-.sidebar-header .brand-text {
-  display: flex;
+.btn-create-arrow:hover {
+  background: rgba(249, 115, 22, 0.12);
+}
+
+/* Quick Create Flyout Menu */
+.create-quick-menu {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 12px;
+  right: 12px;
+  background: #1f0c03;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+  z-index: 1000;
+  display: none;
   flex-direction: column;
   gap: 2px;
+  backdrop-filter: blur(16px);
 }
 
-.sidebar-header .brand-name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #fff;
-  line-height: 1.1;
-}
-
-.sidebar-header .brand-badge {
-  font-size: 0.65rem;
-  font-weight: 800;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  padding: 1px 6px;
-  border-radius: 6px;
-  width: fit-content;
-  letter-spacing: 0.04em;
-}
-
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px 10px;
+.create-quick-menu.show {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  animation: quickMenuFade 0.16s ease-out;
 }
 
-/* Sidebar Scrollbar */
-.sidebar-nav::-webkit-scrollbar {
-  width: 4px;
+@keyframes quickMenuFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-/* Nav Item (Standalone e.g. Dashboard) */
-.nav-item {
+.create-menu-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 8px 12px;
   border-radius: 8px;
-  color: var(--text-sub);
-  font-size: 0.85rem;
+  color: #fed7aa;
+  font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.create-menu-item:hover {
+  background: rgba(249, 115, 22, 0.22);
+  color: #ffffff;
+}
+
+.create-menu-item .c-icon {
+  font-size: 1rem;
+}
+
+/* ─── 2. Plans and Pricing Banner (Golden-Amber Card) ─────────────────────── */
+.sidebar-pricing-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-radius: 9px;
+  margin: 4px 12px 12px;
+  padding: 9px 12px;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-pricing-banner:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+}
+
+.pricing-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #431407;
+  font-weight: 700;
+  font-size: 0.83rem;
+  letter-spacing: -0.01em;
+}
+
+.crown-icon {
+  flex-shrink: 0;
+  stroke: #9a3412;
+}
+
+.pricing-pill-badge {
+  border: 2px solid #ea580c;
+  background: #ffedd5;
+  border-radius: 9999px;
+  width: 46px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pricing-pill-inner {
+  width: 26px;
+  height: 8px;
+  background: rgba(234, 88, 12, 0.4);
+  border-radius: 9999px;
+}
+
+/* ─── 3. Section Header ────────────────────────────────────────────────────── */
+.sidebar-section-header {
+  color: #fb923c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 16px 6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ─── 4. Navigation Links List ─────────────────────────────────────────────── */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 16px;
+  flex: 1;
+}
+
+/* Standalone Nav Item */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  color: #fed7aa;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.12s ease, color 0.12s ease;
+  margin: 1px 10px;
+  cursor: pointer;
 }
 
 .nav-item:hover {
-  background: rgba(99, 102, 241, 0.1);
-  color: #fff;
+  background: rgba(249, 115, 22, 0.16);
+  color: #ffffff;
 }
 
+/* Active Nav Item: Blazing Radiant Orange Pill */
 .nav-item.active {
-  background: var(--primary);
-  color: #fff;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 2px 10px var(--primary-glow);
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(253, 186, 116, 0.4);
 }
 
 .nav-icon {
-  font-size: 1.05rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #fb923c;
+  transition: color 0.12s ease;
+}
+
+.nav-item:hover .nav-icon,
+.nav-item.active .nav-icon,
+.nav-group-header:hover .nav-icon {
+  color: #ffffff;
 }
 
 .nav-label {
   flex: 1;
-}
-
-/* Nav Group (Collapsible/Accordion) */
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  margin-top: 2px;
-}
-
-.nav-group-header {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  background: none;
-  border: none;
-  color: var(--text-sub);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s ease;
-}
-
-.nav-group-header:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
-}
-
-.nav-group.open>.nav-group-header {
-  color: #fff;
-  font-weight: 700;
-}
-
-.nav-group.active>.nav-group-header {
-  color: #a5b4fc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-chevron {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  transition: transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: #fdba74;
+  transition: transform 0.2s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.nav-item:hover .nav-chevron {
+  color: #ffffff;
+}
+
+/* Nav Accordion Group */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group-header {
+  width: calc(100% - 20px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #fed7aa;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  margin: 1px 10px;
+  transition: background 0.12s ease, color 0.12s ease;
+  font-family: inherit;
+}
+
+.nav-group-header:hover {
+  background: rgba(249, 115, 22, 0.16);
+  color: #ffffff;
+}
+
+.nav-group.open > .nav-group-header {
+  color: #ffffff;
 }
 
 .nav-group.open .nav-chevron {
   transform: rotate(180deg);
-  color: #fff;
+  color: #ffffff;
 }
 
-/* Sub-items Container */
+/* Nav Subitems Container */
 .nav-subitems {
   display: none;
   flex-direction: column;
   gap: 2px;
-  padding: 3px 0 6px 14px;
-  position: relative;
-  margin-left: 15px;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 0 6px;
 }
 
 .nav-group.open .nav-subitems {
@@ -988,60 +1145,127 @@ body {
 .nav-subitem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
-  border-radius: 6px;
-  color: var(--text-muted);
-  font-size: 0.82rem;
+  gap: 10px;
+  padding: 9px 16px;
+  margin: 2px 12px;
+  border-radius: 8px;
+  color: #fed7aa;
+  font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 }
 
 .nav-subitem:hover {
-  color: #fff;
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(249, 115, 22, 0.16);
+  color: #ffffff;
 }
 
+/* Active Sub-item: Radiant Orange Pill */
 .nav-subitem.active {
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
   font-weight: 700;
-  border-left: 2px solid var(--primary);
-  border-radius: 0 6px 6px 0;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(253, 186, 116, 0.4);
 }
 
-.nav-bullet {
-  font-size: 0.85rem;
+.subitem-dot {
+  font-size: 0.9rem;
+  color: #fb923c;
 }
 
-/* Sidebar Footer */
-.sidebar-footer {
-  padding: 12px 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
+.nav-subitem.active .subitem-dot {
+  color: #ffffff;
+}
+
+/* ─── 5. Floating Scroll Hint Pill ─────────────────────────────────────────── */
+.sidebar-scroll-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: 9999px;
+  padding: 5px 14px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ffedd5;
+  margin: 14px auto 10px;
+  width: fit-content;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-scroll-hint:hover {
+  background: rgba(249, 115, 22, 0.26);
+  color: #ffffff;
+}
+
+/* ─── 6. Bottom Trust Badges (100% Secure | ISO Certified) ─────────────────── */
+.sidebar-trust-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px;
+  border-top: 1px solid rgba(249, 115, 22, 0.2);
+  background: rgba(18, 7, 2, 0.6);
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.trust-badge-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(249, 115, 22, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fdba74;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ─── 7. Sidebar System Navigation (Back to Main & Sign Out) ─────────────── */
+.sidebar-footer {
+  padding: 8px 12px;
+  border-top: 1px solid rgba(249, 115, 22, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(18, 7, 2, 0.7);
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-footer-link {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 7px 10px;
   border-radius: 6px;
-  color: var(--text-muted);
-  font-size: 0.78rem;
+  color: #fed7aa;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-decoration: none;
-  border: 1px solid transparent;
-  transition: all 0.15s;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .sidebar-footer-link:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
-  border-color: var(--border);
+  background: rgba(249, 115, 22, 0.22);
+  color: #ffffff;
+  border-color: rgba(251, 146, 60, 0.45);
 }
 
 .sidebar-logout-btn {
@@ -1049,21 +1273,22 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  width: 100%;
   padding: 7px 10px;
   border-radius: 6px;
-  background: rgba(248, 113, 113, 0.08);
-  border: 1px solid rgba(248, 113, 113, 0.2);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .sidebar-logout-btn:hover {
-  background: rgba(248, 113, 113, 0.18);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.28);
+  color: #ffffff;
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
 /* Main Content Area */
@@ -1435,24 +1660,213 @@ td {
   color: var(--text);
 }
 
+/* ─── Light Mode: Purple Sidebar Theme ───────────────────────────────────────── */
 [data-theme="light"] .sidebar,
 [data-theme="light"] aside.sidebar {
-  background: #ffffff !important;
-  border-right: 1px solid #e2e8f0 !important;
-  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.03) !important;
+  background: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.2) 0%, transparent 65%), linear-gradient(180deg, #301259 0%, #230b42 50%, #190532 100%) !important;
+  border-right: 1px solid rgba(168, 85, 247, 0.25) !important;
+  box-shadow: 4px 0 24px rgba(76, 29, 149, 0.15), inset -1px 0 0 rgba(192, 132, 252, 0.18) !important;
+}
+
+/* Light Mode: Sidebar Scrollbar (Purple) */
+[data-theme="light"] .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.35) !important;
+}
+[data-theme="light"] .sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.65) !important;
 }
 
 [data-theme="light"] .sidebar-header {
-  border-bottom: 1px solid #e2e8f0 !important;
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2) !important;
 }
 
 [data-theme="light"] .company-badge {
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
+  background: rgba(168, 85, 247, 0.18) !important;
+  border: 1px solid rgba(192, 132, 252, 0.3) !important;
 }
 
 [data-theme="light"] .company-name-txt {
-  color: #0f172a !important;
+  color: #f3e8ff !important;
+}
+
+[data-theme="light"] .split-create-btn {
+  background: #fbf7ff !important;
+  border: 1px solid rgba(192, 132, 252, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+[data-theme="light"] .split-create-btn:hover {
+  background: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3) !important;
+}
+[data-theme="light"] .btn-create-main {
+  color: #2e1065 !important;
+}
+[data-theme="light"] .btn-create-main .action-icon {
+  color: #7c3aed !important;
+}
+[data-theme="light"] .btn-create-arrow {
+  border-left: 1px solid rgba(168, 85, 247, 0.25) !important;
+  color: #6d28d9 !important;
+}
+[data-theme="light"] .btn-create-arrow:hover {
+  background: rgba(168, 85, 247, 0.15) !important;
+}
+
+[data-theme="light"] .create-quick-menu {
+  background: #240b45 !important;
+  border: 1px solid rgba(192, 132, 252, 0.35) !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme="light"] .create-menu-item {
+  color: #e9d5ff !important;
+}
+[data-theme="light"] .create-menu-item:hover {
+  background: rgba(168, 85, 247, 0.25) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .sidebar-pricing-banner {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25) !important;
+}
+[data-theme="light"] .pricing-banner-left {
+  color: #1e1b4b !important;
+}
+[data-theme="light"] .crown-icon {
+  stroke: #312e81 !important;
+}
+[data-theme="light"] .pricing-pill-badge {
+  border: 2px solid #7c3aed !important;
+  background: #ede9fe !important;
+}
+[data-theme="light"] .pricing-pill-inner {
+  background: rgba(124, 58, 237, 0.4) !important;
+}
+
+[data-theme="light"] .sidebar-section-header {
+  color: #d8b4fe !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="light"] .nav-item,
+[data-theme="light"] .nav-group-header {
+  color: #e9d5ff !important;
+}
+[data-theme="light"] .nav-icon {
+  color: #c4b5fd !important;
+}
+[data-theme="light"] .nav-chevron {
+  color: #c4b5fd !important;
+}
+
+[data-theme="light"] .nav-item:hover,
+[data-theme="light"] .nav-group-header:hover {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #ffffff !important;
+}
+[data-theme="light"] .nav-item:hover .nav-icon,
+[data-theme="light"] .nav-group-header:hover .nav-icon,
+[data-theme="light"] .nav-item:hover .nav-chevron {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .nav-group.open > .nav-group-header {
+  color: #ffffff !important;
+}
+[data-theme="light"] .nav-group.open .nav-chevron {
+  color: #ffffff !important;
+}
+
+/* Active Nav Item: Vivid Royal Purple Pill */
+[data-theme="light"] .nav-item.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(216, 180, 254, 0.35) !important;
+}
+[data-theme="light"] .nav-item.active .nav-icon {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .nav-subitem {
+  color: #e9d5ff !important;
+}
+[data-theme="light"] .subitem-dot {
+  color: #c4b5fd !important;
+}
+[data-theme="light"] .nav-subitem:hover {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #ffffff !important;
+}
+[data-theme="light"] .nav-subitem:hover .subitem-dot {
+  color: #ffffff !important;
+}
+
+/* Active Sub-item: Vivid Royal Purple Pill */
+[data-theme="light"] .nav-subitem.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(216, 180, 254, 0.35) !important;
+}
+[data-theme="light"] .nav-subitem.active .subitem-dot {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .sidebar-scroll-hint {
+  background: rgba(168, 85, 247, 0.16) !important;
+  border-color: rgba(192, 132, 252, 0.32) !important;
+  color: #f3e8ff !important;
+}
+[data-theme="light"] .sidebar-scroll-hint:hover {
+  background: rgba(168, 85, 247, 0.3) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .sidebar-trust-footer {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-top: 1px solid rgba(168, 85, 247, 0.22) !important;
+}
+[data-theme="light"] .trust-badge-pill {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(192, 132, 252, 0.25) !important;
+  color: #d8b4fe !important;
+}
+
+[data-theme="light"] .sidebar-footer {
+  background: rgba(0, 0, 0, 0.18) !important;
+  border-top: 1px solid rgba(168, 85, 247, 0.22) !important;
+}
+[data-theme="light"] .sidebar-footer-link {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(192, 132, 252, 0.28) !important;
+  color: #e9d5ff !important;
+}
+[data-theme="light"] .sidebar-footer-link:hover {
+  background: rgba(168, 85, 247, 0.26) !important;
+  color: #ffffff !important;
+  border-color: rgba(192, 132, 252, 0.5) !important;
+}
+
+[data-theme="light"] .sidebar-logout-btn {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #fca5a5 !important;
+}
+[data-theme="light"] .sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.28) !important;
+  color: #ffffff !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+[data-theme="light"] .sidebar-toggle-btn {
+  background: #301259 !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  color: #e9d5ff !important;
 }
 
 [data-theme="light"] .top-header,
@@ -1728,71 +2142,7 @@ td {
   color: #312e81;
 }
 
-/* ─── Light Mode: Sidebar & Layout ────────────────────────────────────────── */
-[data-theme="light"] .sidebar {
-  background: rgba(255, 255, 255, 0.84) !important;
-  backdrop-filter: blur(20px) !important;
-  border-right: 1px solid rgba(99, 102, 241, 0.12) !important;
-}
 
-[data-theme="light"] .sidebar-header {
-  background: rgba(245, 243, 255, 0.75) !important;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.1) !important;
-}
-
-[data-theme="light"] .brand-name {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .brand-badge {
-  background: #e0e7ff !important;
-  color: #4338ca !important;
-}
-
-[data-theme="light"] .nav-item,
-[data-theme="light"] .nav-subitem {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .nav-item:hover,
-[data-theme="light"] .nav-subitem:hover {
-  background: rgba(241, 245, 249, 0.8) !important;
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .nav-item.active {
-  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%) !important;
-  color: #4338ca !important;
-  border: 1px solid #c4b5fd !important;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15) !important;
-}
-
-[data-theme="light"] .nav-group-header {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .nav-group-header:hover {
-  background: rgba(241, 245, 249, 0.8) !important;
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .sidebar-footer {
-  border-top: 1px solid rgba(99, 102, 241, 0.1) !important;
-}
-
-[data-theme="light"] .sidebar-footer-link {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .sidebar-footer-link:hover {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .sidebar-logout-btn {
-  background: #fee2e2 !important;
-  border-color: #fca5a5 !important;
-  color: #dc2626 !important;
-}
 
 [data-theme="light"] .main-content {
   background: transparent !important;
@@ -2208,23 +2558,7 @@ html[data-theme="light"] body,
   opacity: 0.025 !important;
 }
 
-/* ─── Light Mode: Colorful Sidebar Accents ───────────────────────────────────── */
-[data-theme="light"] .sidebar {
-  background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%) !important;
-  border-right: 1px solid #e2e8f0 !important;
-}
 
-[data-theme="light"] .sidebar-header {
-  background: linear-gradient(135deg, #f5f3ff, #eff6ff) !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-
-[data-theme="light"] .nav-item.active {
-  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%) !important;
-  color: #4338ca !important;
-  border: 1px solid #c4b5fd !important;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15) !important;
-}
 
 /* ─── Light Mode: Colorful KPI Cards ─────────────────────────────────────────── */
 [data-theme="light"] .kpi-card {

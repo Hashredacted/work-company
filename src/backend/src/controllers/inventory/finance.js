@@ -9,15 +9,8 @@ const Tenant = require('../../models/Tenant');
 const AuditLog = require('../../models/AuditLog');
 const { nextSeq } = require('../../utils/sequence');
 const { blindIndex, decrypt, mask } = require('../../utils/encryption');
-
-// Helper to sanitize tenant id
-function getTenantId(req) {
-  const rawTenant = req?.query?.tenantId || req?.headers?.['x-tenant-id'];
-  if (req?.isSuperAdmin && rawTenant && mongoose.Types.ObjectId.isValid(rawTenant)) {
-    return new mongoose.Types.ObjectId(rawTenant);
-  }
-  return req?.tenantId ? new mongoose.Types.ObjectId(req.tenantId) : null;
-}
+const { getTenantId } = require('../../utils/tenant');
+const { generateAutoReference } = require('../../utils/reference');
 
 // ─── GET /api/inventory/finance/bank-accounts ──────────────────────────────────
 async function getBankAccounts(req, res, next) {
@@ -862,21 +855,6 @@ async function getMoneyFlow(req, res, next) {
   } catch (e) {
     next(e);
   }
-}
-
-function generateAutoReference(mode, category) {
-  const rand6 = Math.floor(100000 + Math.random() * 900000);
-  const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
-  if (category === 'CASH_DEPOSIT_BANK') return `DEP-SLIP-${rand6}`;
-  if (category === 'CASH_WITHDRAWAL_BANK') return `CHQ-${rand6}`;
-  if (category === 'INTER_BANK_TRANSFER') return `IMPS-${rand12}`;
-  if (mode === 'UPI') return `UPI/${rand12}@okhdfc`;
-  if (mode === 'NEFT_RTGS') return `HDFCN${rand6}`;
-  if (mode === 'NET_BANKING') return `IMPS-${rand12}`;
-  if (mode === 'CHEQUE') return `CHQ-${rand6}`;
-  if (mode === 'CARD') return `POS-TXN-${rand6}`;
-  if (mode === 'CASH') return `CASH-SLIP-${rand6}`;
-  return `TXN-${rand6}`;
 }
 
 // ─── POST /api/inventory/finance/transfer (Contra Transfer: Cash <-> Bank, Bank <-> Bank) ─

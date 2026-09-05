@@ -119,11 +119,14 @@ work company/
 │   │       │       ├── category.js       ← Item categories
 │   │       │       ├── product.js        ← Catalog & stock levels
 │   │       │       ├── warehouse.js      ← Godowns & multi-loc stock
-│   │       │       ├── stockAdjustment.js← In/Out/Transfer movements
+│   │       │       ├── adjustment.js     ← In/Out/Transfer movements & commercial billing
 │   │       │       ├── supplier.js       ← Vendor register
 │   │       │       ├── customer.js       ← Debtor register
+│   │       │       ├── finance.js        ← Multi-bank accounts, cash registers & contra transfers
 │   │       │       ├── payment.js        ← Bill-wise payments, Khata & Daily analytics
-│   │       │       └── report.js         ← Stock valuation & dashboard KPIs
+│   │       │       ├── purchaseOrder.js  ← Purchase orders & procurement
+│   │       │       ├── salesOrder.js     ← Sales orders & dispatch
+│   │       │       └── reports.js        ← Stock valuation & dashboard KPIs
 │   │       ├── middlewares/
 │   │       │   ├── auth.js               ← authenticate, resolveTenant, authorize
 │   │       │   ├── security.js           ← Helmet CSP & Section 269ST limiters
@@ -131,35 +134,53 @@ work company/
 │   │       │   └── error.js              ← Global error handler
 │   │       ├── models/
 │   │       │   ├── Tenant.js, User.js, Role.js, Plan.js, Subscription.js, Invoice.js
-│   │       │   ├── AuditLog.js, LoginHistory.js, PasswordResetToken.js
+│   │       │   ├── AuditLog.js, LoginHistory.js, PasswordResetToken.js, Sequence.js
 │   │       │   └── inv/
-│   │       │       ├── Category.js, Product.js, Warehouse.js, StockAdjustment.js
-│   │       │       ├── Supplier.js, Customer.js, Sequence.js
+│   │       │       ├── Category.js, Product.js, Warehouse.js, Adjustment.js
+│   │       │       ├── Supplier.js, Customer.js, BankAccount.js, GRN.js
+│   │       │       ├── PurchaseOrder.js, SalesOrder.js, StockLedger.js
 │   │       │       └── PaymentTransaction.js ← Bill-wise transactions & settlements
 │   │       ├── routes/
 │   │       │   ├── auth.js, company.js, billing.js, dashboard.js, role.js, user.js, audit.js
 │   │       │   └── inventory.js          ← Central inventory & payment router
 │   │       ├── utils/
-│   │       │   └── sequence.js           ← Atomic financial voucher counter (INV/REC/BILL/PAY)
+│   │       │   ├── tenant.js             ← Centralized tenant resolution (getTenantId)
+│   │       │   ├── reference.js          ← Standardized commercial reference generator
+│   │       │   ├── response.js           ← Standardized API response formatters
+│   │       │   ├── sequence.js           ← Atomic financial voucher counter (INV/REC/BILL/PAY)
+│   │       │   └── encryption.js         ← Financial data masking & encryption
 │   │       └── scripts/
 │   │           ├── seed.js               ← SaaS core seeder
 │   │           ├── seed_payment_cases.js ← 7 realistic trade scenarios
-│   │           ├── test_payments.js      ← Automated test suite for payments
-│   │           └── validate_frontend_scripts.js ← Syntax compiler
+│   │           └── test_payments.js      ← Automated test suite for payments
 │   └── frontend/
-│       ├── index.html                    ← Login & Quick-fill
-│       ├── register.html                 ← Company registration / trial
-│       ├── forgot-password.html / reset-password.html
-│       ├── dashboard.html                ← Super Admin portal
-│       ├── company-dashboard.html        ← Company Admin dashboard
-│       ├── users.html, billing.html, audit.html, profile.html
-│       ├── inv-dashboard.html            ← Inventory ERP overview & alerts
-│       ├── inv-products.html             ← Catalog & quick stock
-│       ├── inv-suppliers.html            ← Supplier payables & ledger
-│       ├── inv-customers.html            ← Customer receivables & ledger
-│       ├── inv-payments.html             ← Bill-wise payments, daily summary & Khata Bahi
-│       ├── inv-reports.html              ← Valuation & Stock Ledger
-│       └── style.css                     ← Global dark-mode UI design system
+│       ├── css/
+│       │   └── style.css                 ← Core dark & light theme styling, modern sidebar layout
+│       ├── js/
+│       │   ├── utils/                    ← Modular frontend utility suite
+│       │   │   ├── api.js                ← Normalized entity fetchers & auth headers
+│       │   │   ├── dropdown.js           ← Universal dropdown engine & SearchableSelect
+│       │   │   ├── formatters.js         ← INR currency, date, number formatters
+│       │   │   ├── dom.js                ← XSS escaping, debounce, toasts, CSV, print
+│       │   │   ├── reference.js          ← Client-side commercial reference generator
+│       │   │   └── auth.js               ← Auth guard, session & sign-out helpers
+│       │   ├── app-utils.js              ← Self-contained bundle exposing window.AppUtils
+│       │   ├── sidebar.js                ← Modern sidebar navigation controller
+│       │   └── spreadsheet-viewer.js     ← Universal Excel previewer & modal renderer
+│       └── html/
+│           ├── index.html                ← Auth gateway
+│           ├── register.html             ← 7-day trial company registration
+│           ├── dashboard.html            ← Super Admin portal
+│           ├── company-dashboard.html    ← Company Admin dashboard
+│           ├── inv-dashboard.html        ← Inventory ERP overview & alerts
+│           ├── inv-invoice.html          ← GST Sales Invoices & Purchase Billing
+│           ├── inv-products.html         ← Products catalog & quick stock
+│           ├── inv-customers.html        ← Customer receivables & ledger
+│           ├── inv-suppliers.html        ← Supplier payables & ledger
+│           ├── inv-outstandings.html     ← Receivables & payables aging analysis
+│           ├── inv-payments.html         ← Bill-wise payments, daily summary & Khata Bahi
+│           ├── inv-finance.html          ← Cash in hand, Multi-Bank & Contra transfers
+│           └── inv-reports.html          ← Stock valuation & 11-col movement ledger
 ```
 
 ---
@@ -331,17 +352,70 @@ All responses follow standard JSON structure: `{ "data": ..., "message": "OK", "
 
 | Page | URL | Purpose |
 |---|---|---|
-| **Login** | `index.html` | Authentication with top tab switcher and demo role quick-fill |
+| **Login** | `index.html` | Authentication with role switcher, demo 1-click login, and JWT session handling |
 | **Registration** | `register.html` | 7-day trial company signup with instant workspace provisioning |
-| **Super Admin** | `dashboard.html` | Platform-level tenant & revenue controls |
-| **Company Admin** | `company-dashboard.html` | Workspace hub with grouped pill navigation and profile badge |
+| **Super Admin** | `dashboard.html` | Platform-level tenant controls, revenue metrics, and tenant context switching |
+| **Company Admin** | `company-dashboard.html` | Workspace hub with quick navigation cards, company profile, and team controls |
 | **Inventory Dashboard** | `inv-dashboard.html` | Stock valuation, Retail Trading bills, Liquidity cards, Outside Cash Flow modal |
-| **Products** | `inv-products.html` | Product catalog, barcode, HSN, Quick Stock modal |
-| **Customers** | `inv-customers.html` | Customer directory, credit terms, outstanding receivables |
-| **Suppliers** | `inv-suppliers.html` | Vendor directory, bank details, outstanding payables |
+| **Sales Invoicing & Billing** | `inv-invoice.html` | Full GST Sales Invoices, Purchase Bills, Quotations, Barcode scanning, Print tax invoice |
+| **Products Catalog** | `inv-products.html` | Product catalog, SKU & barcode generator, HSN codes, Quick Stock adjustments (+/-) |
+| **Customers Register** | `inv-customers.html` | Customer directory, GSTIN validation, credit terms, outstanding receivables |
+| **Suppliers Register** | `inv-suppliers.html` | Vendor directory, bank details, payment terms, outstanding payables |
+| **Outstandings & Aging** | `inv-outstandings.html` | Real-time receivables (Customer Lena) and payables (Supplier Dena) aging analysis (0-30, 31-60, 61-90, 90+ days) |
+| **Payments & Khata** | `inv-payments.html` | Bill-wise knockoff, FIFO allocation, Outside Cash Flow, party statements, WhatsApp reminders |
 | **Finance Master** | `inv-finance.html` | Liquid Cash in Hand register, Multi-Bank Accounts manager, Contra Transfers, and real-time Money Flow tracing |
-| **Payments & Khata** | `inv-payments.html` | Bill-wise knockoff, Outside Cash Flow modal, multi-type voucher pills, party statements, WhatsApp reminders |
-| **Reports** | `inv-reports.html` | Valuation summary (FIFO/Average) and stock ledgers |
+| **Reports & Analytics** | `inv-reports.html` | Stock valuation summary (FIFO/Average), 11-column enriched Stock Movement Ledger, party ledgers |
+
+---
+
+## 8. Frontend & Backend Utility Architecture
+
+### 1. Unified Frontend Utilities (`AppUtils` / `app-utils.js`)
+All frontend pages import `<script src="../js/app-utils.js"></script>`, exposing both `window.AppUtils` and direct global shortcuts:
+- **`dropdown.js` (Universal Dropdown & Combobox Engine)**:
+  - `populateProductDropdown()`: Formats item name, SKU, price, HSN, and tracking metadata.
+  - `populatePartyDropdown()`: Formats customer/supplier names, phone numbers, GSTIN, and current balance.
+  - `populateWarehouseDropdown()`: Formats warehouse locations and codes.
+  - `populateCategoryDropdown()`: Supports hierarchical category trees, icons, and indentation.
+  - `populateBankDropdown()`: Formats bank accounts with masked numbers (`•••• 1234`) and default badges.
+  - `populateCompanyDropdown()`: Multi-tenant company switcher selector.
+  - `makeSearchable()`: Enhanced combobox matching word prefixes AND partial substrings/numbers with auto-mutation synchronization.
+- **`api.js` (Normalized Entity Loaders)**:
+  - Centralizes `getApiBase()` and `getHeaders()` / `H()`.
+  - Normalizes varied API response structures: `fetchProducts()`, `fetchCustomers()`, `fetchSuppliers()`, `fetchWarehouses()`, `fetchCategories()`, `fetchBankAccounts()`, and `fetchCompanies()`.
+- **`formatters.js` (Accounting Formatters)**:
+  - `inr(val)` / `formatINR(val)`: Standard Indian Rupee currency format (`₹1,23,456.00`).
+  - `fmtDate(d)` / `formatDate(d)`: Standard Indian date format (`03 Sep 2026`).
+  - `formatNumber(val, decimals)`: Indian numeric grouping.
+  - `formatMasked(str, visibleEnd)`: Account number masking (`•••• 1234`).
+- **`dom.js` (DOM & UI Helpers)**:
+  - `escHtml(str)` / `escapeHtml(str)`: XSS sanitization.
+  - `debounce(fn, delay)`: Search input debouncer.
+  - `showToast(msg, type)`: Animated toast notification engine.
+  - `downloadCSV(filename, rows, headers)`: Universal spreadsheet exporter.
+  - `printContent(title, html)`: Standalone print window generator.
+- **`reference.js` (Reference Generator)**:
+  - `generateSmartRef(mode, category)`: Realistic references for UPI (`UPI/...@okhdfc`), NEFT, IMPS, Cheques, Cards, and Cash receipts.
+- **`auth.js` (Auth Guard & Session)**:
+  - `authGuard()`, `getCurrentUser()`, `getCurrentTenantId()`, and `signOut()`.
+
+### 2. Backend Utility Layer (`src/backend/src/utils/`)
+- **`tenant.js`**: `getTenantId(req)` extracts tenant context with SuperAdmin switching support and Mongoose ObjectId validation.
+- **`reference.js`**: `generateAutoReference(mode, category)` centralizes transaction references across `finance.js`, `payment.js`, and `adjustment.js`.
+- **`response.js`**: `sendSuccess()` and `sendError()` standardize JSON response structures.
+
+---
+
+## 9. Modern Accounting SaaS Navigation Sidebar
+
+All 9 inventory pages incorporate a shared vertical navigation sidebar powered by `sidebar.js`:
+1. **Split-Pill Quick Action Button**: Direct `+ Create Sales Invoice` button with an interactive flyout menu for 1-click creation of Sales Invoices, Purchase Bills, Quotations, Payments, and Items.
+2. **Plans & Pricing Banner**: Quick link to billing upgrades and subscription management.
+3. **Structured Accordion Navigation**: Organized under `GENERAL` with collapsible groups for **Parties**, **Items**, **Sales**, **Purchases**, and **Reports**, highlighting active pages in glowing solid indigo pills (`#3949ab`).
+4. **Dynamic System Navigation Footer**:
+   - **`← Back to Main`** (`#main-nav-link`): Dynamically resolves to `dashboard.html` for super admins or `company-dashboard.html` for tenant users.
+   - **`Sign Out`** (`#logout-btn`): Confirmation prompt with clean token removal and redirect to login.
+5. **Trust Badges**: Persistent footer pills for `100% Secure` and `ISO Certified`.
 
 ---
 

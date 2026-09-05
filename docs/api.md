@@ -44,15 +44,19 @@
 
 ---
 
-## 4. Inventory, Products & Warehouses (`/api/inventory`)
+## 4. Inventory, Products, Invoices & Warehouses (`/api/inventory`)
 - `GET /api/inventory/products`: List products with search, pagination, category filter.
+- `GET /api/inventory/products/low-stock`: Get items below reorder threshold.
 - `POST /api/inventory/products`: Create new product/SKU.
 - `PUT /api/inventory/products/:id`: Update product pricing and thresholds.
 - `GET /api/inventory/categories`: List item categories.
 - `POST /api/inventory/categories`: Create category.
 - `GET /api/inventory/warehouses`: List all godowns/warehouses.
 - `POST /api/inventory/warehouses`: Create warehouse.
-- `POST /api/inventory/stock-adjust`: Record stock adjustment (`IN`, `OUT`, `TRANSFER`) with credit bill/invoice creation.
+- `POST /api/inventory/invoices`: Issue GST sales invoices, purchase bills, or quotations with line items.
+- `POST /api/inventory/stock-adjust`: Record quick stock adjustment (`IN`, `OUT`, `TRANSFER`) with credit bill/invoice creation.
+- `GET /api/inventory/adjustments`: List historical stock adjustments.
+- `POST /api/inventory/adjustments`: Create custom stock adjustment movement.
 
 ---
 
@@ -153,6 +157,8 @@
   - `stockValue`: Total inventory valuation in INR.
   - `lowStockProducts`: Deficit count.
   - `overdueAlerts`: Critical overdue invoices and bills.
+- `GET /api/inventory/reports/stock-summary`: Complete inventory stock summary across godowns.
 - `GET /api/inventory/reports/valuation`: Stock valuation summary (FIFO & Weighted Average).
 - `GET /api/inventory/reports/stock-ledger/:productId`: Chronological stock ledger movement for SKU.
+- `GET /api/inventory/reports/bills-ledger`: Trading bills ledger with itemized profit & loss analysis.
 - `GET /api/inventory/reports/expiry-alerts`: Batches nearing expiration within 30/60/90 days.

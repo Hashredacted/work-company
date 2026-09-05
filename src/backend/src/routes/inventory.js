@@ -63,7 +63,8 @@ router.put   ('/products/:id', validateObjectId('id'), MANAGE, prodCtrl.update);
 router.delete('/products/:id', validateObjectId('id'), MANAGE, prodCtrl.remove);
 
 // ─── Direct Stock Management, Invoices & Adjustments ─────────────────────────
-router.post('/invoices',     financialLimiter, validateCashLimit, MANAGE, adjCtrl.createInvoice);
+router.get ('/invoices/next-number', READ,   adjCtrl.getNextInvoiceNumber);
+router.post('/invoices',             financialLimiter, validateCashLimit, MANAGE, adjCtrl.createInvoice);
 router.post('/stock-adjust', financialLimiter, validateCashLimit, MANAGE, adjCtrl.quickStock);
 router.get ('/adjustments',  READ,   adjCtrl.list);
 router.post('/adjustments',  MANAGE, adjCtrl.create);
@@ -121,6 +122,10 @@ router.get('/reports/stock-summary',                           READ, repCtrl.sto
 router.get('/reports/stock-ledger/:productId', validateObjectId('productId'), READ, repCtrl.stockLedger);
 router.get('/reports/valuation',                               READ, repCtrl.valuation);
 router.get('/reports/expiry-alerts',                           READ, repCtrl.expiryAlerts);
+router.get('/reports/bills-ledger',                            READ, repCtrl.billsLedger);
+router.get('/reports/gstr1',                                   READ, repCtrl.gstr1Report);
+router.get('/reports/gstr3b',                                  READ, repCtrl.gstr3bReport);
+router.get('/reports/msme-compliance',                         READ, repCtrl.msmeComplianceReport);
 
 module.exports = router;
 

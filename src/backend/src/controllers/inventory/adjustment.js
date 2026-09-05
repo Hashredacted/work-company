@@ -8,9 +8,11 @@ const Supplier           = require('../../models/inv/Supplier');
 const Customer           = require('../../models/inv/Customer');
 const BankAccount        = require('../../models/inv/BankAccount');
 const PaymentTransaction = require('../../models/inv/PaymentTransaction');
+const Sequence           = require('../../models/Sequence');
 const AuditLog           = require('../../models/AuditLog');
-const { nextSeq }        = require('../../utils/sequence');
+const { nextSeq, fyCode } = require('../../utils/sequence');
 const { decrypt, mask }  = require('../../utils/encryption');
+const { generateAutoReference } = require('../../utils/reference');
 
 // GET /api/inventory/adjustments
 async function list(req, res, next) {
@@ -88,17 +90,7 @@ async function quickStock(req, res, next) {
     const isCashMode = (paymentMode || 'UPI') === 'CASH';
     const acctDisplayName = isCashMode ? 'Cash in Hand (Drawer)' : (resolvedBankAccountName || 'Bank Account');
 
-    const rand6 = Math.floor(100000 + Math.random() * 900000);
-    const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
-    let autoRef = `TXN-${rand6}`;
-    if (paymentMode === 'UPI') autoRef = `UPI/${rand12}@okhdfc`;
-    else if (paymentMode === 'NEFT_RTGS') autoRef = `HDFCN${rand6}`;
-    else if (paymentMode === 'NET_BANKING') autoRef = `IMPS-${rand12}`;
-    else if (paymentMode === 'CHEQUE') autoRef = `CHQ-${rand6}`;
-    else if (paymentMode === 'CARD') autoRef = `POS-TXN-${rand6}`;
-    else if (paymentMode === 'CASH') autoRef = `CASH-RCPT-${rand6}`;
-
-    const finalRef = referenceNo ? referenceNo.trim() : autoRef;
+    const finalRef = referenceNo ? referenceNo.trim() : generateAutoReference(paymentMode || 'UPI');
 
     // If stock OUT, verify available stock
     if (type === 'OUT') {
@@ -403,48 +395,90 @@ async function create(req, res, next) {
   }
 }
 
-// POST /api/inventory/invoices (Create rich multi-item Sales Invoice or Purchase Bill)
+// POST /api/inventory/invoices (Create Sales Invoice, Purchase Bill, Credit Note, Debit Note, or Delivery Challan)
 async function createInvoice(req, res, next) {
   try {
     const {
-      invoiceType, // 'SALES' | 'PURCHASE'
-      prefix, // e.g. 'INV', 'BILL', 'SME'
-      invoiceNumber, // e.g. '128'
+      invoiceType, // 'SALES' | 'PURCHASE' | 'CREDIT_NOTE' | 'DEBIT_NOTE' | 'DELIVERY_CHALLAN' | 'QUOTATION'
+      prefix, // e.g. 'INV', 'BILL', 'CRN', 'DBN', 'DC', 'EST'
+      invoiceNumber,
       partyType, // 'CUSTOMER' | 'SUPPLIER'
       partyId,
       partyName,
       warehouseId,
+      targetWarehouseId,
       invoiceDate,
       paymentTerms, // in days e.g. 30
       dueDate,
-      items, // array of { productId, productName, sku, hsn, qty, unit, unitPrice, discountPct, taxPct, amount }
+      supplyType, // 'INTRA' | 'INTER'
+      items, // array of { productId, productName, sku, hsn, qty, freeQty, unit, unitPrice, discountPct, taxPct, amount }
       subtotal,
       discountTotal,
       taxTotal,
+      cgstTotal,
+      sgstTotal,
+      igstTotal,
       additionalCharges,
+      roundOff,
       totalAmount,
       // Payment Settlement
       paymentStatus, // 'PAID' | 'PARTIAL' | 'UNPAID'
       paidAmount,
       paymentMode, // 'CASH' | 'UPI' | 'NEFT_RTGS' | 'NET_BANKING' | 'CHEQUE' | 'CARD'
+      splitPayments, // [{ mode, amount, referenceNo, bankAccountId }]
       bankAccountId,
       referenceNo,
       notes,
       termsAndConditions,
-      // Transport & Compliance
+      // Credit & Debit Note Linkage (Rule 53)
+      originalInvoiceId,
+      originalVoucherNo,
+      originalInvoiceDate,
+      reasonForReturn,
+      // Logistics & E-Way Bill (Rule 138 & Rule 55)
       eWayBillNo,
-      dispatchedThrough,
+      eWayBillDate,
+      transporterId,
+      transporterName,
+      transportMode,
       vehicleNo,
+      vehicleType,
+      lrNo,
+      lrDate,
+      distanceKm,
+      dispatchedThrough,
+      shipTo,
+      // Statutory GST Compliance Flags
+      isRcm,
+      isB2C,
+      irn,
+      ackNo,
+      ackDate,
       emailId,
       poNumber,
     } = req.body;
 
     if (!invoiceType || !items || !items.length) {
-      return res.status(400).json({ data: null, message: 'invoiceType (SALES/PURCHASE) and items array are required', errors: null });
+      return res.status(400).json({ data: null, message: 'invoiceType and items array are required', errors: null });
     }
 
-    const isSales = invoiceType === 'SALES';
-    const finalPartyType = isSales ? 'CUSTOMER' : 'SUPPLIER';
+    const docType = String(invoiceType).toUpperCase();
+    const isSales = docType === 'SALES' || docType === 'INVOICE';
+    const isPurchase = docType === 'PURCHASE' || docType === 'BILL';
+    const isCreditNote = docType === 'CREDIT_NOTE';
+    const isDebitNote = docType === 'DEBIT_NOTE';
+    const isDeliveryChallan = docType === 'DELIVERY_CHALLAN';
+    const isQuotation = docType === 'QUOTATION' || docType === 'ESTIMATE';
+
+    let finalPartyType = 'CUSTOMER';
+    if (isPurchase || isDebitNote) {
+      finalPartyType = 'SUPPLIER';
+    } else if (partyType === 'SUPPLIER') {
+      finalPartyType = 'SUPPLIER';
+    }
+
+    const finalSupplyType = (supplyType || 'INTRA').toUpperCase() === 'INTER' ? 'INTER' : 'INTRA';
+    const isInter = finalSupplyType === 'INTER';
 
     // Find default warehouse if not provided
     let finalWarehouseId = warehouseId;
@@ -487,22 +521,39 @@ async function createInvoice(req, res, next) {
     let calcSubtotal = 0;
     let calcTax = 0;
     let calcDiscount = 0;
+    let calcCgst = 0;
+    let calcSgst = 0;
+    let calcIgst = 0;
 
     for (const item of items) {
-      const q = Math.abs(Number(item.qty) || 1);
+      const billedQty = Math.max(0, Number(item.qty) || 0);
+      const freeQty = Math.max(0, Number(item.freeQty) || 0);
+      const totalUnits = billedQty + freeQty;
       const rate = Number(item.unitPrice) || 0;
       const discPct = Number(item.discountPct) || 0;
       const taxPct = Number(item.taxPct) || 0;
 
-      const lineBase = q * rate;
+      // Base price is charged on billedQty only (freeQty is 0 cost to buyer)
+      const lineBase = billedQty * rate;
       const lineDisc = (lineBase * discPct) / 100;
       const lineTaxable = lineBase - lineDisc;
       const lineTax = (lineTaxable * taxPct) / 100;
       const lineAmt = Math.round((lineTaxable + lineTax) * 100) / 100;
 
+      const cgstR = isInter ? 0 : taxPct / 2;
+      const sgstR = isInter ? 0 : taxPct / 2;
+      const igstR = isInter ? taxPct : 0;
+
+      const cgstA = isInter ? 0 : Math.round((lineTax / 2) * 100) / 100;
+      const sgstA = isInter ? 0 : Math.round((lineTax / 2) * 100) / 100;
+      const igstA = isInter ? Math.round(lineTax * 100) / 100 : 0;
+
       calcSubtotal += lineBase;
       calcDiscount += lineDisc;
       calcTax += lineTax;
+      calcCgst += cgstA;
+      calcSgst += sgstA;
+      calcIgst += igstA;
 
       let prodObj = null;
       if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
@@ -510,16 +561,16 @@ async function createInvoice(req, res, next) {
       }
 
       if (isSales && prodObj && finalWarehouseId) {
-        // Check available stock
+        // Check available stock against total units moving out (billed + free)
         const stockAgg = await StockLedger.aggregate([
           { $match: { tenantId: req.tenantId, productId: prodObj._id, warehouseId: new mongoose.Types.ObjectId(finalWarehouseId) } },
           { $group: { _id: null, total: { $sum: '$qty' } } },
         ]);
         const available = stockAgg[0]?.total || 0;
-        if (available < q) {
+        if (available < totalUnits) {
           return res.status(400).json({
             data: null,
-            message: `Insufficient stock for "${prodObj.name}". Available: ${available} ${prodObj.unit}, Requested: ${q} ${prodObj.unit}`,
+            message: `Insufficient stock for "${prodObj.name}". Available: ${available} ${prodObj.unit}, Requested: ${totalUnits} ${prodObj.unit} (${billedQty} Billed + ${freeQty} Free)`,
             errors: null,
           });
         }
@@ -530,47 +581,126 @@ async function createInvoice(req, res, next) {
         productName: item.productName || prodObj?.name || 'Item',
         sku: item.sku || prodObj?.sku || '',
         hsn: item.hsn || prodObj?.hsnCode || '',
-        qty: q,
+        qty: billedQty,
+        freeQty: freeQty,
         unit: item.unit || prodObj?.unit || 'PCS',
         unitPrice: rate,
         discountPct: discPct,
         taxPct: taxPct,
+        cgstRate: cgstR,
+        sgstRate: sgstR,
+        igstRate: igstR,
+        cgstAmount: cgstA,
+        sgstAmount: sgstA,
+        igstAmount: igstA,
+        taxableAmount: lineTaxable,
         amount: lineAmt,
+        isFree: (billedQty === 0 && freeQty > 0) || rate === 0,
       });
 
-      if (prodObj && finalWarehouseId) {
+      // Prepare Stock Ledger movements (if not Quotation)
+      if (prodObj && finalWarehouseId && totalUnits > 0 && !isQuotation) {
+        let movementType = 'QUICK_STOCK_OUT';
+        let movementQty = -totalUnits;
+
+        if (isSales) {
+          movementType = 'QUICK_STOCK_OUT';
+          movementQty = -totalUnits;
+        } else if (isPurchase) {
+          movementType = 'QUICK_STOCK_IN';
+          movementQty = totalUnits;
+        } else if (isCreditNote) {
+          // Sales return brings stock back IN to warehouse
+          movementType = 'SALES_RETURN';
+          movementQty = totalUnits;
+        } else if (isDebitNote) {
+          // Purchase return sends stock back OUT to vendor
+          movementType = 'PURCHASE_RETURN';
+          movementQty = -totalUnits;
+        } else if (isDeliveryChallan) {
+          movementType = 'DELIVERY_CHALLAN_OUT';
+          movementQty = -totalUnits;
+        }
+
         stockEntries.push({
           tenantId: req.tenantId,
           productId: prodObj._id,
           warehouseId: finalWarehouseId,
-          txnType: isSales ? 'QUICK_STOCK_OUT' : 'QUICK_STOCK_IN',
+          txnType: movementType,
           refModel: 'InvPaymentTransaction',
           refId: null,
           date: invoiceDate ? new Date(invoiceDate) : new Date(),
-          qty: isSales ? -q : q,
+          qty: movementQty,
           unitCost: rate,
-          totalCost: Math.abs(q * rate),
-          remarks: `${isSales ? 'Sales Invoice' : 'Purchase Bill'} for ${resolvedPartyName}`,
+          totalCost: Math.abs(billedQty * rate),
+          remarks: `${docType} for ${resolvedPartyName}${freeQty > 0 ? ` (${freeQty} Free)` : ''}`,
           createdBy: req.user._id,
         });
+
+        // Inter-godown transfer under Delivery Challan
+        if (isDeliveryChallan && targetWarehouseId && mongoose.Types.ObjectId.isValid(targetWarehouseId)) {
+          stockEntries.push({
+            tenantId: req.tenantId,
+            productId: prodObj._id,
+            warehouseId: new mongoose.Types.ObjectId(targetWarehouseId),
+            txnType: 'DELIVERY_CHALLAN_IN',
+            refModel: 'InvPaymentTransaction',
+            refId: null,
+            date: invoiceDate ? new Date(invoiceDate) : new Date(),
+            qty: totalUnits,
+            unitCost: rate,
+            totalCost: Math.abs(billedQty * rate),
+            remarks: `Challan Inward from Godown ${finalWarehouseId}`,
+            createdBy: req.user._id,
+          });
+        }
       }
     }
 
     const finalSubtotal = subtotal !== undefined ? Number(subtotal) : calcSubtotal;
     const finalDiscTotal = discountTotal !== undefined ? Number(discountTotal) : calcDiscount;
     const finalTaxTotal = taxTotal !== undefined ? Number(taxTotal) : calcTax;
+    const finalCgstTotal = cgstTotal !== undefined ? Number(cgstTotal) : calcCgst;
+    const finalSgstTotal = sgstTotal !== undefined ? Number(sgstTotal) : calcSgst;
+    const finalIgstTotal = igstTotal !== undefined ? Number(igstTotal) : calcIgst;
     const finalExtra = Number(additionalCharges) || 0;
-    const finalTotalAmt = totalAmount !== undefined ? Number(totalAmount) : (finalSubtotal - finalDiscTotal + finalTaxTotal + finalExtra);
 
-    // Sequence / Voucher No
+    // Automatic Indian Statutory Round-Off Calculation (Nearest Integer Rupee)
+    const rawTotal = finalSubtotal - finalDiscTotal + finalTaxTotal + finalExtra;
+    const roundedTotal = Math.round(rawTotal);
+    const calculatedRoundOff = Math.round((roundedTotal - rawTotal) * 100) / 100;
+    const finalRoundOff = roundOff !== undefined ? Number(roundOff) : calculatedRoundOff;
+    const finalTotalAmt = totalAmount !== undefined ? Number(totalAmount) : (rawTotal + finalRoundOff);
+
+    // Sequence / Voucher No determination
+    let seqType = 'INV';
+    if (isPurchase) seqType = 'BILL';
+    else if (isCreditNote) seqType = 'CRN';
+    else if (isDebitNote) seqType = 'DBN';
+    else if (isDeliveryChallan) seqType = 'DC';
+    else if (isQuotation) seqType = 'EST';
+
     let finalVoucherNo = '';
-    const seqType = isSales ? 'INV' : 'BILL';
     if (invoiceNumber && prefix) {
       finalVoucherNo = `${prefix}-${invoiceNumber}`;
     } else if (invoiceNumber) {
       finalVoucherNo = `${seqType}-${invoiceNumber}`;
     } else {
       finalVoucherNo = await nextSeq(req.tenantId, seqType);
+    }
+
+    // Keep sequence counter in sync if a manual or auto-generated invoiceNumber was used
+    const numMatch = String(invoiceNumber || finalVoucherNo).match(/(\d+)$/);
+    if (numMatch) {
+      const val = parseInt(numMatch[1], 10);
+      if (val > 0) {
+        const fy = fyCode();
+        await Sequence.findOneAndUpdate(
+          { tenantId: req.tenantId, key: `${seqType}-${fy}` },
+          { $max: { value: val } },
+          { upsert: true }
+        );
+      }
     }
 
     const invDateObj = invoiceDate ? new Date(invoiceDate) : new Date();
@@ -603,19 +733,17 @@ async function createInvoice(req, res, next) {
 
     const isCashMode = (paymentMode || 'UPI') === 'CASH';
     const acctDisplayName = isCashMode ? 'Cash in Hand (Drawer)' : (resolvedBankAccountName || 'Bank Account');
+    const finalRef = referenceNo ? referenceNo.trim() : generateAutoReference(paymentMode || 'UPI');
 
-    const rand6 = Math.floor(100000 + Math.random() * 900000);
-    const rand12 = Math.floor(100000000000 + Math.random() * 900000000000);
-    let autoRef = `TXN-${rand6}`;
-    if (paymentMode === 'UPI') autoRef = `UPI/${rand12}@okhdfc`;
-    else if (paymentMode === 'NEFT_RTGS') autoRef = `HDFCN${rand6}`;
-    else if (paymentMode === 'NET_BANKING') autoRef = `IMPS-${rand12}`;
-    else if (paymentMode === 'CHEQUE') autoRef = `CHQ-${rand6}`;
-    else if (paymentMode === 'CARD') autoRef = `POS-TXN-${rand6}`;
-    else if (paymentMode === 'CASH') autoRef = `CASH-${rand6}`;
-    const finalRef = referenceNo ? referenceNo.trim() : autoRef;
+    // Transaction Type Mapping
+    let mappedTxnType = 'INVOICE';
+    if (isPurchase) mappedTxnType = 'BILL';
+    else if (isCreditNote) mappedTxnType = 'CREDIT_NOTE';
+    else if (isDebitNote) mappedTxnType = 'DEBIT_NOTE';
+    else if (isDeliveryChallan) mappedTxnType = 'DELIVERY_CHALLAN';
+    else if (isQuotation) mappedTxnType = 'ADJUSTMENT';
 
-    // Create Main Invoice / Bill Transaction
+    // Create Main Document / Voucher Transaction
     const invoiceTxn = await PaymentTransaction.create({
       tenantId: req.tenantId,
       voucherNo: finalVoucherNo,
@@ -623,23 +751,50 @@ async function createInvoice(req, res, next) {
       partyId: resolvedPartyId,
       partyName: resolvedPartyName,
       partyModel: resolvedPartyModel,
-      txnType: isSales ? 'INVOICE' : 'BILL',
+      txnType: mappedTxnType,
       amount: finalTotalAmt,
-      paymentMode: 'CREDIT',
+      paymentMode: isDeliveryChallan || isQuotation ? 'CASH' : 'CREDIT',
       paymentDate: invDateObj,
       dueDate: calculatedDueDate,
       referenceNo: finalRef,
-      notes: notes || `${isSales ? 'Sales Invoice' : 'Purchase Bill'} ${finalVoucherNo}`,
+      notes: (typeof notes === 'string') ? notes.trim() : '',
       items: processedItems,
+      supplyType: finalSupplyType,
       subtotal: finalSubtotal,
       discountTotal: finalDiscTotal,
       taxTotal: finalTaxTotal,
+      cgstTotal: finalCgstTotal,
+      sgstTotal: finalSgstTotal,
+      igstTotal: finalIgstTotal,
       additionalCharges: finalExtra,
+      roundOff: finalRoundOff,
       prefix: prefix || '',
       invoiceNumber: invoiceNumber || '',
+      // Credit & Debit Note Linkage (Rule 53)
+      originalInvoiceId: originalInvoiceId && mongoose.Types.ObjectId.isValid(originalInvoiceId) ? originalInvoiceId : null,
+      originalVoucherNo: originalVoucherNo || '',
+      originalInvoiceDate: originalInvoiceDate ? new Date(originalInvoiceDate) : null,
+      reasonForReturn: reasonForReturn || '',
+      // Logistics & E-Way Bill (Rule 138 & Rule 55)
       eWayBillNo: eWayBillNo || '',
-      dispatchedThrough: dispatchedThrough || '',
+      eWayBillDate: eWayBillDate ? new Date(eWayBillDate) : null,
+      transporterId: transporterId || '',
+      transporterName: transporterName || '',
+      transportMode: transportMode || 'ROAD',
       vehicleNo: vehicleNo || '',
+      vehicleType: vehicleType || 'REGULAR',
+      lrNo: lrNo || '',
+      lrDate: lrDate ? new Date(lrDate) : null,
+      distanceKm: Number(distanceKm) || 0,
+      dispatchedThrough: dispatchedThrough || '',
+      shipTo: shipTo || undefined,
+      // Statutory GST Compliance
+      isRcm: Boolean(isRcm),
+      isB2C: Boolean(isB2C),
+      irn: irn || '',
+      ackNo: ackNo || '',
+      ackDate: ackDate ? new Date(ackDate) : null,
+      splitPayments: Array.isArray(splitPayments) ? splitPayments : [],
       emailId: emailId || '',
       poNumber: poNumber || '',
       termsAndConditions: termsAndConditions || '',
@@ -652,54 +807,187 @@ async function createInvoice(req, res, next) {
       await StockLedger.insertMany(stockEntries);
     }
 
-    // Handle Payment Settlement
-    let createdPayment = null;
-    if (paymentStatus === 'PAID' || paymentStatus === 'PARTIAL') {
-      const settledAmt = paymentStatus === 'PAID' ? finalTotalAmt : Math.min(finalTotalAmt, Number(paidAmount || 0));
-      if (settledAmt > 0) {
-        const paySeqType = isSales ? 'REC' : 'PAY';
-        const payVoucherNo = await nextSeq(req.tenantId, paySeqType);
-        createdPayment = await PaymentTransaction.create({
-          tenantId: req.tenantId,
-          voucherNo: payVoucherNo,
-          partyType: finalPartyType,
-          partyId: resolvedPartyId,
-          partyName: resolvedPartyName,
-          partyModel: resolvedPartyModel,
-          txnType: isSales ? 'PAYMENT_IN' : 'PAYMENT_OUT',
-          amount: settledAmt,
-          paymentMode: paymentMode || 'UPI',
-          paymentDate: invDateObj,
-          referenceNo: finalRef,
-          bankAccount: resolvedBankAccountName,
-          bankAccountId: resolvedBankAccountId,
-          sourceName: isSales ? resolvedPartyName : acctDisplayName,
-          destinationName: isSales ? acctDisplayName : resolvedPartyName,
-          transferType: isSales ? 'PARTY_RECEIPT' : 'PARTY_PAYMENT',
-          notes: `Settlement for ${isSales ? 'Invoice' : 'Bill'} ${finalVoucherNo}`,
-          allocatedBills: [{
-            billId: invoiceTxn._id,
-            voucherNo: finalVoucherNo,
-            allocatedAmount: settledAmt,
-            remainingBillBalance: Math.max(0, finalTotalAmt - settledAmt),
-          }],
-          createdBy: req.user._id,
-        });
+    // Auto-settlement of Original Invoice when Credit Note or Debit Note is issued
+    if ((isCreditNote || isDebitNote) && originalInvoiceId && mongoose.Types.ObjectId.isValid(originalInvoiceId)) {
+      const origDoc = await PaymentTransaction.findOne({ _id: originalInvoiceId, tenantId: req.tenantId });
+      if (origDoc) {
+        const curSettled = origDoc.settledAmount || 0;
+        const newSettled = Math.min(origDoc.amount, curSettled + finalTotalAmt);
+        const newStatus = newSettled >= origDoc.amount ? 'PAID' : 'PARTIALLY_PAID';
+        await PaymentTransaction.updateOne(
+          { _id: origDoc._id },
+          { $set: { settledAmount: newSettled, paymentStatus: newStatus } }
+        );
+      }
+    }
 
-        const newStatus = settledAmt >= finalTotalAmt ? 'PAID' : 'PARTIALLY_PAID';
+    // Handle Payment Settlement (Single mode or Split Tender)
+    let createdPayment = null;
+    if ((paymentStatus === 'PAID' || paymentStatus === 'PARTIAL') && !isDeliveryChallan && !isQuotation) {
+      const PartyModel = isSales ? Customer : Supplier;
+      // If multi-mode Split Tender is provided
+      if (Array.isArray(splitPayments) && splitPayments.length > 0) {
+        let totalSplitPaid = 0;
+        let cumulativeSettledOnBill = 0;
+        let totalAdvanceAppliedOnBill = 0;
+        const totalRawSplit = splitPayments.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+        const splitOverpayment = Math.max(0, totalRawSplit - finalTotalAmt);
+
+        for (const sp of splitPayments) {
+          const spAmt = Number(sp.amount) || 0;
+          if (spAmt <= 0) continue;
+          totalSplitPaid += spAmt;
+
+          const isSpAdvance = (sp.mode || '').toUpperCase() === 'ADVANCE';
+          if (isSpAdvance && resolvedPartyId) {
+            await PartyModel.updateOne({ _id: resolvedPartyId, tenantId: req.tenantId }, { $inc: { advanceBalance: -spAmt } });
+          }
+
+          // Portioned allocation to this bill
+          const neededOnBill = Math.max(0, finalTotalAmt - cumulativeSettledOnBill);
+          const allocToBill = Math.min(spAmt, neededOnBill);
+          cumulativeSettledOnBill += allocToBill;
+          if (isSpAdvance) {
+            totalAdvanceAppliedOnBill += allocToBill;
+          }
+          const spExcess = spAmt - allocToBill;
+
+          const paySeq = isSales ? 'REC' : 'PAY';
+          const splitVoucherNo = await nextSeq(req.tenantId, paySeq);
+          await PaymentTransaction.create({
+            tenantId: req.tenantId,
+            voucherNo: splitVoucherNo,
+            partyType: finalPartyType,
+            partyId: resolvedPartyId,
+            partyName: resolvedPartyName,
+            partyModel: resolvedPartyModel,
+            txnType: isSales ? 'PAYMENT_IN' : 'PAYMENT_OUT',
+            amount: spAmt,
+            advanceAmount: spExcess,
+            appliedAdvanceAmount: isSpAdvance ? spAmt : 0,
+            paymentMode: isSpAdvance ? 'ADVANCE' : (sp.mode || 'CASH'),
+            paymentDate: invDateObj,
+            referenceNo: sp.referenceNo || (isSpAdvance ? `ADV-${splitVoucherNo}` : finalRef),
+            bankAccountId: isSpAdvance ? null : (sp.bankAccountId || resolvedBankAccountId),
+            bankAccount: isSpAdvance ? 'Party Advance Account' : undefined,
+            sourceName: isSales ? (isSpAdvance ? `${resolvedPartyName} (Advance Credit)` : resolvedPartyName) : (isSpAdvance ? 'Company Advance Account' : (sp.mode === 'CASH' ? 'Cash Drawer' : 'Bank')),
+            destinationName: isSales ? (isSpAdvance ? 'Company Accounts' : (sp.mode === 'CASH' ? 'Cash Drawer' : 'Bank')) : (isSpAdvance ? `${resolvedPartyName} (Advance Credit)` : resolvedPartyName),
+            transferType: isSales ? 'PARTY_RECEIPT' : 'PARTY_PAYMENT',
+            notes: isSpAdvance
+              ? `Split Payment (Advance Credit) for ${finalVoucherNo}`
+              : `Split Payment (${sp.mode}) for ${finalVoucherNo}${spExcess > 0 ? ` [₹${spExcess.toLocaleString('en-IN')} to Advance]` : ''}`,
+            allocatedBills: allocToBill > 0 ? [{
+              billId: invoiceTxn._id,
+              voucherNo: finalVoucherNo,
+              allocatedAmount: allocToBill,
+              remainingBillBalance: Math.max(0, finalTotalAmt - cumulativeSettledOnBill),
+            }] : [],
+            createdBy: req.user._id,
+          });
+        }
+
+        if (splitOverpayment > 0 && resolvedPartyId) {
+          await PartyModel.updateOne({ _id: resolvedPartyId, tenantId: req.tenantId }, { $inc: { advanceBalance: splitOverpayment } });
+        }
+        let autoBillNote = (typeof notes === 'string' && notes.trim()) ? notes.trim() : '';
+        if (!autoBillNote) {
+          if (totalAdvanceAppliedOnBill > 0 && splitOverpayment > 0) {
+            autoBillNote = `Advance Credit Applied: ₹${totalAdvanceAppliedOnBill.toLocaleString('en-IN')} | Extra to Advance: ₹${splitOverpayment.toLocaleString('en-IN')}`;
+          } else if (totalAdvanceAppliedOnBill > 0) {
+            autoBillNote = `Advance Payment Applied: ₹${totalAdvanceAppliedOnBill.toLocaleString('en-IN')}`;
+          } else if (splitOverpayment > 0) {
+            autoBillNote = `Extra Payment to Advance: ₹${splitOverpayment.toLocaleString('en-IN')}`;
+          }
+        }
+
+        const effectiveSettled = Math.min(finalTotalAmt, totalSplitPaid);
+        const splitStatus = effectiveSettled >= finalTotalAmt ? 'PAID' : (effectiveSettled > 0 ? 'PARTIALLY_PAID' : 'UNPAID');
         await PaymentTransaction.updateOne(
           { _id: invoiceTxn._id },
-          { $set: { settledAmount: settledAmt, paymentStatus: newStatus } }
+          { $set: { settledAmount: effectiveSettled, paymentStatus: splitStatus, appliedAdvanceAmount: totalAdvanceAppliedOnBill, notes: autoBillNote } }
         );
-        invoiceTxn.settledAmount = settledAmt;
-        invoiceTxn.paymentStatus = newStatus;
+        invoiceTxn.settledAmount = effectiveSettled;
+        invoiceTxn.paymentStatus = splitStatus;
+        invoiceTxn.appliedAdvanceAmount = totalAdvanceAppliedOnBill;
+        invoiceTxn.notes = autoBillNote;
+      } else {
+        // Standard single payment settlement
+        const rawPaid = Number(paidAmount || 0);
+        const isSingleAdvance = (paymentMode || '').toUpperCase() === 'ADVANCE';
+        const totalTendered = (paymentStatus === 'PAID' && rawPaid <= 0) ? finalTotalAmt : (paymentStatus === 'PAID' && rawPaid > 0 ? Math.max(finalTotalAmt, rawPaid) : rawPaid);
+
+        if (totalTendered > 0) {
+          const settledAmt = Math.min(finalTotalAmt, totalTendered);
+          const singleOverpayment = isSingleAdvance ? 0 : Math.max(0, totalTendered - finalTotalAmt);
+          const appliedAdvance = isSingleAdvance ? settledAmt : 0;
+
+          if (isSingleAdvance && resolvedPartyId && appliedAdvance > 0) {
+            await PartyModel.updateOne({ _id: resolvedPartyId, tenantId: req.tenantId }, { $inc: { advanceBalance: -appliedAdvance } });
+          } else if (singleOverpayment > 0 && resolvedPartyId) {
+            await PartyModel.updateOne({ _id: resolvedPartyId, tenantId: req.tenantId }, { $inc: { advanceBalance: singleOverpayment } });
+          }
+
+          const paySeqType = isSales ? 'REC' : 'PAY';
+          const payVoucherNo = await nextSeq(req.tenantId, paySeqType);
+          createdPayment = await PaymentTransaction.create({
+            tenantId: req.tenantId,
+            voucherNo: payVoucherNo,
+            partyType: finalPartyType,
+            partyId: resolvedPartyId,
+            partyName: resolvedPartyName,
+            partyModel: resolvedPartyModel,
+            txnType: isSales ? 'PAYMENT_IN' : 'PAYMENT_OUT',
+            amount: totalTendered,
+            advanceAmount: singleOverpayment,
+            appliedAdvanceAmount: appliedAdvance,
+            paymentMode: isSingleAdvance ? 'ADVANCE' : (paymentMode || 'UPI'),
+            paymentDate: invDateObj,
+            referenceNo: isSingleAdvance ? `ADV-${payVoucherNo}` : finalRef,
+            bankAccount: isSingleAdvance ? 'Party Advance Account' : resolvedBankAccountName,
+            bankAccountId: isSingleAdvance ? null : resolvedBankAccountId,
+            sourceName: isSales ? (isSingleAdvance ? `${resolvedPartyName} (Advance Credit)` : resolvedPartyName) : (isSingleAdvance ? 'Company Advance Account' : acctDisplayName),
+            destinationName: isSales ? (isSingleAdvance ? 'Company Accounts' : acctDisplayName) : (isSingleAdvance ? `${resolvedPartyName} (Advance Credit)` : resolvedPartyName),
+            transferType: isSales ? 'PARTY_RECEIPT' : 'PARTY_PAYMENT',
+            notes: isSingleAdvance
+              ? `Knockoff via Advance Credit for ${finalVoucherNo}`
+              : `Settlement for ${seqType} ${finalVoucherNo}${singleOverpayment > 0 ? ` [Advance Credited: ₹${singleOverpayment.toLocaleString('en-IN')}]` : ''}`,
+            allocatedBills: [{
+              billId: invoiceTxn._id,
+              voucherNo: finalVoucherNo,
+              allocatedAmount: settledAmt,
+              remainingBillBalance: Math.max(0, finalTotalAmt - settledAmt),
+            }],
+            createdBy: req.user._id,
+          });
+
+          let autoBillNote = (typeof notes === 'string' && notes.trim()) ? notes.trim() : '';
+          if (!autoBillNote) {
+            if (isSingleAdvance && appliedAdvance > 0) {
+              autoBillNote = `Advance Payment: ₹${appliedAdvance.toLocaleString('en-IN')} (Settled via Advance Credit)`;
+            } else if (singleOverpayment > 0) {
+              autoBillNote = `Advance Credited: ₹${singleOverpayment.toLocaleString('en-IN')}`;
+            } else if (paymentStatus === 'PARTIAL' && totalTendered > 0) {
+              autoBillNote = `Advance Payment Received: ₹${totalTendered.toLocaleString('en-IN')} (Balance Due: ₹${Math.max(0, finalTotalAmt - totalTendered).toLocaleString('en-IN')})`;
+            }
+          }
+
+          const newStatus = settledAmt >= finalTotalAmt ? 'PAID' : 'PARTIALLY_PAID';
+          await PaymentTransaction.updateOne(
+            { _id: invoiceTxn._id },
+            { $set: { settledAmount: settledAmt, paymentStatus: newStatus, appliedAdvanceAmount: appliedAdvance, notes: autoBillNote } }
+          );
+          invoiceTxn.settledAmount = settledAmt;
+          invoiceTxn.paymentStatus = newStatus;
+          invoiceTxn.appliedAdvanceAmount = appliedAdvance;
+          invoiceTxn.notes = autoBillNote;
+        }
       }
     }
 
     await AuditLog.create({
       tenantId: req.tenantId,
       userId: req.user._id,
-      action: isSales ? 'SALES_INVOICE_CREATE' : 'PURCHASE_BILL_CREATE',
+      action: `${docType}_CREATE`,
       resource: 'inventory',
       resourceId: invoiceTxn._id.toString(),
       details: {
@@ -716,7 +1004,7 @@ async function createInvoice(req, res, next) {
         invoice: invoiceTxn,
         payment: createdPayment,
       },
-      message: `${isSales ? 'Sales Invoice' : 'Purchase Bill'} ${finalVoucherNo} created successfully!`,
+      message: `${seqType} ${finalVoucherNo} created successfully!`,
       errors: null,
     });
   } catch (e) {
@@ -724,4 +1012,46 @@ async function createInvoice(req, res, next) {
   }
 }
 
-module.exports = { list, quickStock, create, createInvoice };
+// GET /api/inventory/invoices/next-number?type=SALES
+async function getNextInvoiceNumber(req, res, next) {
+  try {
+    const docType = String(req.query.type || 'SALES').toUpperCase();
+    const isPurchase = docType === 'PURCHASE' || docType === 'BILL';
+    const isCreditNote = docType === 'CREDIT_NOTE';
+    const isDebitNote = docType === 'DEBIT_NOTE';
+    const isDeliveryChallan = docType === 'DELIVERY_CHALLAN';
+    const isQuotation = docType === 'QUOTATION' || docType === 'ESTIMATE';
+
+    let seqType = 'INV';
+    if (isPurchase) seqType = 'BILL';
+    else if (isCreditNote) seqType = 'CRN';
+    else if (isDebitNote) seqType = 'DBN';
+    else if (isDeliveryChallan) seqType = 'DC';
+    else if (isQuotation) seqType = 'EST';
+
+    const fy = fyCode();
+    const key = `${seqType}-${fy}`;
+    const seqDoc = await Sequence.findOne({ tenantId: req.tenantId, key }).lean();
+    const nextVal = (seqDoc?.value || 0) + 1;
+    const paddedSeq = String(nextVal).padStart(4, '0');
+    const invoiceNumber = `${fy}-${paddedSeq}`;
+    const fullVoucherNo = `${seqType}-${invoiceNumber}`;
+
+    res.json({
+      data: {
+        prefix: seqType,
+        financialYear: fy,
+        sequenceValue: nextVal,
+        paddedSeq,
+        invoiceNumber,
+        fullVoucherNo,
+      },
+      message: 'OK',
+      errors: null,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+module.exports = { list, quickStock, create, createInvoice, getNextInvoiceNumber };

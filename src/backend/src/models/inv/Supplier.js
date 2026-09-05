@@ -24,6 +24,18 @@ const SupplierSchema = new mongoose.Schema({
   pincode:     { type: String, trim: true },
   paymentTerms: { type: Number, default: 30 }, // days
   creditLimit:  { type: Number, default: 0 },  // INR
+  advanceBalance: { type: Number, default: 0, min: 0 }, // Advance payment balance paid to vendor (INR)
+
+  // MSME Section 43B(h) Compliance
+  msmeType: {
+    type: String,
+    enum: ['MICRO', 'SMALL', 'MEDIUM', 'NON_MSME'],
+    default: 'NON_MSME',
+    index: true,
+  },
+  udyamNumber: { type: String, trim: true, uppercase: true, default: '' }, // e.g. UDYAM-MH-12-0012345
+  msmeAgreedDays: { type: Number, default: 45, min: 1, max: 45 }, // Statutory limit under MSMED Act
+
   bankDetails: {
     accountNo: {
       type: String,

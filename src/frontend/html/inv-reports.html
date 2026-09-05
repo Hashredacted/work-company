@@ -327,28 +327,31 @@
     }
 
     /* Subtabs for Ledgers */
+    /* Subtabs for Ledgers */
     .ledger-subtabs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 20px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 14px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .subtab-btn {
       background: var(--surface-2);
       border: 1px solid var(--border);
       color: var(--text-sub);
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       font-weight: 600;
       transition: all 0.2s;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
 
     .subtab-btn:hover {
@@ -428,6 +431,7 @@
       font-size: 0.75rem;
       font-weight: 600;
       transition: all 0.15s;
+      white-space: nowrap;
     }
 
     .quick-period-btn.active,
@@ -435,6 +439,175 @@
       background: rgba(99, 102, 241, 0.15);
       border-color: rgba(99, 102, 241, 0.4);
       color: #a5b4fc;
+    }
+
+    .bills-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1200px) {
+      .bills-stat-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .bills-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .bills-stat-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .bill-stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 15px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .bill-stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .bill-stat-card.accent-total { border-top: 3px solid #6366f1; }
+    .bill-stat-card.accent-flow { border-top: 3px solid #0284c7; }
+    .bill-stat-card.accent-tax { border-top: 3px solid #9333ea; }
+    .bill-stat-card.accent-settled { border-top: 3px solid #10b981; }
+    .bill-stat-card.accent-due { border-top: 3px solid #ef4444; }
+
+    .bill-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .bill-type-badge.sales {
+      background: rgba(34, 197, 94, 0.14);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .bill-type-badge.purchase {
+      background: rgba(56, 189, 248, 0.14);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .bill-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .bill-status-pill.paid {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .bill-status-pill.unpaid {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .bill-status-pill.partial {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .bill-status-pill.overdue {
+      background: rgba(220, 38, 38, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(220, 38, 38, 0.45);
+    }
+
+    .voucher-link {
+      font-family: monospace;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .voucher-link:hover {
+      text-decoration: underline;
+    }
+
+    .modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(15, 23, 42, 0.75) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999 !important;
+      padding: 20px !important;
+      box-sizing: border-box !important;
+    }
+
+    .modal-overlay.open {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .modal-card {
+      max-width: 820px;
+      width: 100%;
+      max-height: 90vh;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      position: relative;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      margin: auto !important;
+      animation: modalScaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalScaleUp {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
 
     @media print {
@@ -482,6 +655,7 @@
     }
   </style>
   <script src="../js/spreadsheet-viewer.js"></script>
+  <script src="../js/app-utils.js"></script>
 </head>
 
 <body>
@@ -498,110 +672,207 @@
   <div class="app-layout">
     <!-- Left Vertical Navigation Sidebar -->
     <aside class="sidebar" id="app-sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <div class="brand-logo">
-            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="8" fill="url(#pG)" />
-              <path d="M8 20L14 8L20 20H8Z" fill="white" opacity="0.9" />
-              <defs>
-                <linearGradient id="pG" x1="0" y1="0" x2="28" y2="28">
-                  <stop offset="0%" stop-color="#6366f1" />
-                  <stop offset="100%" stop-color="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <div class="brand-text">
-            <span class="brand-name">WorkSpace</span>
-            <span class="brand-badge">📦 INVENTORY</span>
-          </div>
+      <!-- 1. Top Create Action (Split Pill Button) -->
+      <div class="sidebar-top-action">
+        <div class="split-create-btn">
+          <a href="inv-invoice.html?type=sales" class="btn-create-main" title="Create Sales Invoice">
+            <svg class="action-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Create Sales Invoice</span>
+          </a>
+          <button type="button" class="btn-create-arrow" onclick="toggleCreateMenu(event)" aria-label="More Quick Actions" title="More Quick Actions">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+        </div>
+        <!-- Quick Menu Dropdown -->
+        <div class="create-quick-menu" id="create-quick-menu">
+          <a href="inv-invoice.html?type=sales" class="create-menu-item">
+            <span class="c-icon">📄</span> <span>Sales Invoice</span>
+          </a>
+          <a href="inv-invoice.html?type=purchase" class="create-menu-item">
+            <span class="c-icon">📥</span> <span>Purchase Bill</span>
+          </a>
+          <a href="inv-invoice.html?type=quotation" class="create-menu-item">
+            <span class="c-icon">📝</span> <span>Quotation / Estimate</span>
+          </a>
+          <a href="inv-payments.html?tab=customers" class="create-menu-item">
+            <span class="c-icon">💵</span> <span>Payment In (Receipt)</span>
+          </a>
+          <a href="inv-payments.html?tab=suppliers" class="create-menu-item">
+            <span class="c-icon">💸</span> <span>Payment Out (Voucher)</span>
+          </a>
+          <a href="inv-products.html" class="create-menu-item">
+            <span class="c-icon">📦</span> <span>Add New Item</span>
+          </a>
         </div>
       </div>
 
-      <!-- Navigation Groups -->
+      <!-- 2. Plans and Pricing Banner (Golden Card with Pill) -->
+      <a href="billing.html" class="sidebar-pricing-banner" title="Plans & Pricing — Your data always secure">
+        <div class="pricing-banner-left">
+          <svg class="crown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+          </svg>
+          <span class="pricing-banner-title">Plans and Pricing</span>
+        </div>
+        <div class="pricing-pill-badge" title="Secure & Active">
+          <span class="pricing-pill-inner"></span>
+        </div>
+      </a>
+
+      <!-- 3. Navigation Links List -->
       <nav class="sidebar-nav">
-        <!-- 1. Dashboard -->
-        <a href="inv-dashboard.html" class="nav-item">
-          <span class="nav-icon">📊</span>
+        <!-- Section Header -->
+        <div class="sidebar-section-header">GENERAL</div>
+
+        <!-- Dashboard -->
+        <a href="inv-dashboard.html" class="nav-item" id="nav-item-dashboard">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          </span>
           <span class="nav-label">Dashboard</span>
+          <span class="nav-chevron">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span>
         </a>
 
-        <!-- 2. Master -->
-        <div class="nav-group">
+        <!-- Parties -->
+        <div class="nav-group" id="nav-grp-parties">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">🏢</span>
-            <span class="nav-label">Master</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <span class="nav-label">Parties</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-products.html" class="nav-subitem">
-              <span class="nav-bullet">📦</span> Products
+            <a href="inv-customers.html" class="nav-subitem" id="nav-sub-customers">
+              <span class="subitem-dot">•</span> <span>Customers</span>
             </a>
-            <a href="inv-customers.html" class="nav-subitem">
-              <span class="nav-bullet">👥</span> Customers
-            </a>
-            <a href="inv-suppliers.html" class="nav-subitem">
-              <span class="nav-bullet">🏭</span> Suppliers
-            </a>
-            <a href="inv-finance.html" class="nav-subitem">
-              <span class="nav-bullet">🏦</span> Finance
+            <a href="inv-suppliers.html" class="nav-subitem" id="nav-sub-suppliers">
+              <span class="subitem-dot">•</span> <span>Suppliers</span>
             </a>
           </div>
         </div>
 
-        <!-- 3. Transactions -->
-        <div class="nav-group">
+        <!-- Items -->
+        <a href="inv-products.html" class="nav-item" id="nav-item-items">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <span class="nav-label">Items</span>
+        </a>
+
+        <!-- Sales -->
+        <div class="nav-group" id="nav-grp-sales">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">💼</span>
-            <span class="nav-label">Transactions</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </span>
+            <span class="nav-label">Sales</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="inv-invoice.html?type=sales" class="nav-subitem">
-              <span class="nav-bullet">📈</span> Sales
+            <a href="inv-invoice.html?type=sales" class="nav-subitem" id="nav-sub-sales-inv">
+              <span>Sales Invoices</span>
             </a>
-            <a href="inv-invoice.html?type=purchase" class="nav-subitem">
-              <span class="nav-bullet">📥</span> Purchases
+            <a href="inv-invoice.html?type=quotation" class="nav-subitem" id="nav-sub-quotation">
+              <span>Quotation / Estimate</span>
             </a>
-            <a href="inv-payments.html?tab=suppliers" class="nav-subitem">
-              <span class="nav-bullet">💸</span> Payments
-            </a>
-            <a href="inv-payments.html?tab=customers" class="nav-subitem">
-              <span class="nav-bullet">💵</span> Received
+            <a href="inv-payments.html?tab=customers" class="nav-subitem" id="nav-sub-payment-in">
+              <span>Payment In (Collections)</span>
             </a>
           </div>
         </div>
 
-        <!-- 4. Reports -->
-        <div class="nav-group open">
+        <!-- Purchases -->
+        <div class="nav-group" id="nav-grp-purchases">
           <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
-            <span class="nav-icon">📈</span>
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </span>
+            <span class="nav-label">Purchases</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </button>
+          <div class="nav-subitems">
+            <a href="inv-invoice.html?type=purchase" class="nav-subitem" id="nav-sub-purchase-bill">
+              <span>Purchase Bills</span>
+            </a>
+            <a href="inv-payments.html?tab=suppliers" class="nav-subitem" id="nav-sub-payment-out">
+              <span>Payment Out (Vouchers)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reports (Active Open) -->
+        <div class="nav-group open" id="nav-grp-reports">
+          <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </span>
             <span class="nav-label">Reports</span>
-            <span class="nav-chevron">▾</span>
+            <span class="nav-chevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
           </button>
           <div class="nav-subitems">
-            <a href="javascript:void(0)" onclick="switchTab('ledger')" id="nav-sub-ledger" class="nav-subitem">
-              <span class="nav-bullet">📋</span> Ledger
+            <a href="javascript:void(0)" onclick="switchTab('ledger')" class="nav-subitem active" id="nav-sub-ledger">
+              <span>All Bills &amp; Ledger</span>
             </a>
-            <a href="inv-outstandings.html" class="nav-subitem">
-              <span class="nav-bullet">💰</span> Outstandings
+            <a href="inv-outstandings.html" class="nav-subitem" id="nav-sub-outstandings">
+              <span>Outstandings &amp; Aging</span>
             </a>
-            <a href="javascript:void(0)" onclick="switchTab('stock')" id="nav-sub-stock" class="nav-subitem active">
-              <span class="nav-bullet">📦</span> Stock
+            <a href="javascript:void(0)" onclick="switchTab('stock')" class="nav-subitem" id="nav-sub-stock">
+              <span>Stock Summary</span>
+            </a>
+            <a href="inv-finance.html" class="nav-subitem" id="nav-sub-finance">
+              <span>Bank &amp; Cash Accounts</span>
             </a>
           </div>
         </div>
+
+        <!-- Scroll for more options indicator -->
+        <div class="sidebar-scroll-hint" onclick="scrollSidebarMore()" title="Scroll for more options">
+          <span>Scroll for more options</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+        </div>
+
+        <!-- Settings -->
+        <a href="company-dashboard.html" class="nav-item" id="nav-item-settings">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="nav-label">Settings</span>
+        </a>
       </nav>
 
-      <!-- Sidebar Footer -->
+      <!-- 4. Sidebar System Navigation (Back to Main & Sign Out) -->
       <div class="sidebar-footer">
-        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link">
-          <span>←</span> <span>Back to Main</span>
+        <a id="main-nav-link" href="company-dashboard.html" class="sidebar-footer-link" title="Back to Main Dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back to Main</span>
         </a>
-        <button id="logout-btn" class="sidebar-logout-btn">
+        <button id="logout-btn" class="sidebar-logout-btn" type="button" title="Sign Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Sign Out</span>
         </button>
+      </div>
+
+      <!-- 5. Bottom Trust Badges -->
+      <div class="sidebar-trust-footer">
+        <div class="trust-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <span>100% Secure</span>
+        </div>
+        <div class="trust-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          <span>ISO Certified</span>
+        </div>
       </div>
     </aside>
 
@@ -633,10 +904,12 @@
 
       <!-- Main Report Tabs -->
       <div class="report-tabs">
-        <button class="tab-btn active" onclick="switchTab('stock')">📦 Stock Summary</button>
-        <button class="tab-btn" onclick="switchTab('valuation')">💰 Valuation</button>
-        <button class="tab-btn" onclick="switchTab('expiry')">⏰ Expiry Alerts</button>
-        <button class="tab-btn" onclick="switchTab('ledger')">📋 Ledgers (खाता बही)</button>
+        <button class="tab-btn active" id="tab-btn-stock" onclick="switchTab('stock')">📦 Stock Summary</button>
+        <button class="tab-btn" id="tab-btn-valuation" onclick="switchTab('valuation')">💰 Valuation</button>
+        <button class="tab-btn" id="tab-btn-expiry" onclick="switchTab('expiry')">⏰ Expiry Alerts</button>
+        <button class="tab-btn" id="tab-btn-ledger" onclick="switchTab('ledger')">📋 Ledgers (खाता बही)</button>
+        <button class="tab-btn" id="tab-btn-gst" onclick="switchTab('gst')">🏛️ GST Returns (GSTR-1 &amp; 3B)</button>
+        <button class="tab-btn" id="tab-btn-stickers" onclick="switchTab('stickers')">🏷️ Barcode Stickers</button>
       </div>
 
       <!-- Stock Summary -->
@@ -753,61 +1026,129 @@
         <div class="card">
           <!-- Ledger Subtabs Navigation -->
           <div class="ledger-subtabs">
-            <button type="button" class="subtab-btn active" id="subtab-btn-stock" onclick="switchLedgerSubtab('stock')">📦 Stock Movement Ledger</button>
-            <button type="button" class="subtab-btn" id="subtab-btn-customer" onclick="switchLedgerSubtab('customer')">👥 Customer Ledger (खाता बही)</button>
-            <button type="button" class="subtab-btn" id="subtab-btn-supplier" onclick="switchLedgerSubtab('supplier')">🏭 Supplier Ledger (खाता बही)</button>
+            <button type="button" class="subtab-btn active" id="subtab-btn-stock" onclick="switchLedgerSubtab('stock')">📦 Stock Movement</button>
+            <button type="button" class="subtab-btn" id="subtab-btn-customer" onclick="switchLedgerSubtab('customer')">👥 Customer Khata (ग्राहक)</button>
+            <button type="button" class="subtab-btn" id="subtab-btn-supplier" onclick="switchLedgerSubtab('supplier')">🏭 Supplier Khata (सप्लायर)</button>
+            <button type="button" class="subtab-btn" id="subtab-btn-bills" onclick="switchLedgerSubtab('bills')">🧾 All Bills &amp; Invoices (बिल सूची)</button>
           </div>
 
           <!-- 1. Stock Ledger Subpanel -->
           <div id="ledger-subpanel-stock">
-            <div class="filter-row" style="align-items:flex-end;gap:12px;margin-bottom:18px;">
-              <div class="form-group-inline" style="flex:1.8;min-width:240px;">
-                <div class="form-label">Select Product *</div>
-                <select id="ledger-product" class="form-select" onchange="loadLedger()" style="width:100%;">
-                  <option value="">— Select Product —</option>
-                </select>
-              </div>
-              <div class="form-group-inline" style="flex:1.4;min-width:260px;">
-                <div class="form-label">Quick Period</div>
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                  <button type="button" class="quick-period-btn active" onclick="setPeriod('stock', 'all', this)">All Time</button>
-                  <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'this_month', this)">This Month</button>
-                  <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'last_month', this)">Last Month</button>
-                  <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'this_fy', this)">This FY</button>
+            <!-- Product Selection & Date Filter Toolbar -->
+            <div class="bills-filter-card" style="margin-bottom:18px;">
+              <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;">
+                <div class="form-group-inline" style="flex:2;min-width:280px;">
+                  <div class="form-label" style="font-weight:700;">Select Product (उत्पाद चुनें) *</div>
+                  <select id="ledger-product" class="form-select" onchange="loadLedger()" style="width:100%;">
+                    <option value="">— Select Product —</option>
+                  </select>
+                </div>
+                <div class="form-group-inline" style="flex:1.4;min-width:260px;">
+                  <div class="form-label" style="font-weight:700;">Quick Period</div>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button type="button" class="quick-period-btn active" onclick="setPeriod('stock', 'all', this)">All Time</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'today', this)">Today</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'this_month', this)">This Month</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'last_month', this)">Last Month</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('stock', 'this_fy', this)">This FY</button>
+                  </div>
                 </div>
               </div>
-              <div class="form-group-inline" style="flex:1;min-width:135px;">
-                <div class="form-label">From Date</div>
-                <input id="ledger-from" class="form-input" type="date" onchange="loadLedger()" style="width:100%;" />
-              </div>
-              <div class="form-group-inline" style="flex:1;min-width:135px;">
-                <div class="form-label">To Date</div>
-                <input id="ledger-to" class="form-input" type="date" onchange="loadLedger()" style="width:100%;" />
-              </div>
-              <div class="form-group-inline" style="flex:0 0 auto;">
-                <button onclick="loadLedger()"
-                  style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:0.85rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
-                  <span>⚡</span> Load Movement
-                </button>
+
+              <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+                <div class="form-group-inline" style="flex:1;min-width:135px;">
+                  <div class="form-label" style="font-weight:700;">From Date</div>
+                  <input id="ledger-from" class="form-input" type="date" onchange="loadLedger()" style="width:100%;" />
+                </div>
+                <div class="form-group-inline" style="flex:1;min-width:135px;">
+                  <div class="form-label" style="font-weight:700;">To Date</div>
+                  <input id="ledger-to" class="form-input" type="date" onchange="loadLedger()" style="width:100%;" />
+                </div>
+                <div class="form-group-inline" style="flex:0 0 auto;">
+                  <button onclick="loadLedger()"
+                    style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;font-size:0.85rem;font-weight:700;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                    <span>⚡</span> Fetch Movement
+                  </button>
+                </div>
               </div>
             </div>
+
+            <!-- Product Stats & Pricing Overview Card (Dynamic) -->
+            <div id="stock-ledger-overview" style="display:none;margin-bottom:18px;">
+              <!-- Product Profile Info Bar -->
+              <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div id="stock-card-icon" style="width:42px;height:42px;border-radius:10px;background:rgba(99,102,241,0.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:1px solid rgba(99,102,241,0.25);">📦</div>
+                  <div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span id="stock-card-name" style="font-size:1.1rem;font-weight:800;color:var(--text);">Product Name</span>
+                      <span id="stock-card-sku" style="font-size:0.75rem;font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;color:var(--text-muted);">SKU-123</span>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;" id="stock-card-meta">Category: General · HSN: — · GST: 18% · Unit: PCS</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                  <div style="text-align:right;">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Price Structure</div>
+                    <div style="font-size:0.84rem;font-weight:700;color:var(--text);" id="stock-card-prices">Purchase: ₹0 · MRP: ₹0 · Selling: ₹0</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5-Column Stats & Per Item Cost Grid -->
+              <div class="bills-stat-grid" style="margin-bottom:0;">
+                <div class="bill-stat-card accent-total">
+                  <div class="party-kpi-lbl">AVG PER ITEM COST (लागत प्रति नग)</div>
+                  <div class="party-kpi-val" id="stock-kpi-avg-cost" style="color:#818cf8;">₹ 0.00</div>
+                  <div class="party-kpi-sub" id="stock-kpi-avg-cost-sub">Purchase Rate: ₹ 0.00</div>
+                </div>
+                <div class="bill-stat-card accent-flow">
+                  <div class="party-kpi-lbl">CURRENT IN-STOCK (उपलब्ध स्टॉक)</div>
+                  <div class="party-kpi-val" id="stock-kpi-current-qty" style="color:#0284c7;">0 PCS</div>
+                  <div class="party-kpi-sub" id="stock-kpi-stock-status" style="color:#10b981;font-weight:700;">🟢 Adequate Stock</div>
+                </div>
+                <div class="bill-stat-card accent-tax">
+                  <div class="party-kpi-lbl">TOTAL INWARD (कुल आवक)</div>
+                  <div class="party-kpi-val" id="stock-kpi-inward-qty" style="color:#9333ea;">+0 PCS</div>
+                  <div class="party-kpi-sub" id="stock-kpi-inward-val">Inward Value: ₹ 0.00</div>
+                </div>
+                <div class="bill-stat-card accent-settled">
+                  <div class="party-kpi-lbl">TOTAL OUTWARD / SALES (कुल जावक)</div>
+                  <div class="party-kpi-val" id="stock-kpi-outward-qty" style="color:#10b981;">-0 PCS</div>
+                  <div class="party-kpi-sub" id="stock-kpi-outward-val">Outward Value: ₹ 0.00</div>
+                </div>
+                <div class="bill-stat-card accent-due">
+                  <div class="party-kpi-lbl">STOCK VALUATION (स्टॉक मूल्य)</div>
+                  <div class="party-kpi-val" id="stock-kpi-valuation" style="color:#f59e0b;">₹ 0.00</div>
+                  <div class="party-kpi-sub" id="stock-kpi-movement-count">0 Movement Records</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Movement Data Table -->
             <div style="overflow-x:auto;">
               <table>
                 <thead>
                   <tr>
-                    <th style="width:40px;text-align:center;">#</th>
-                    <th>Date</th>
-                    <th>Movement Type</th>
-                    <th>Godown</th>
-                    <th>Batch</th>
-                    <th style="text-align:right;">Qty</th>
-                    <th style="text-align:right;">Unit Cost ₹</th>
+                    <th style="width:36px;text-align:center;">#</th>
+                    <th style="width:95px;">Date</th>
+                    <th style="width:130px;text-align:center;">Movement Type</th>
+                    <th>Godown / Warehouse</th>
+                    <th style="width:90px;">Batch #</th>
+                    <th style="text-align:right;color:#10b981;width:95px;">Inward (+)</th>
+                    <th style="text-align:right;color:#ef4444;width:95px;">Outward (-)</th>
+                    <th style="text-align:right;width:105px;">Per Item Cost ₹</th>
+                    <th style="text-align:right;width:115px;">Total Value ₹</th>
+                    <th style="text-align:right;font-weight:800;width:110px;">Running Stock</th>
                     <th>Remarks</th>
                   </tr>
                 </thead>
                 <tbody id="ledger-tbody">
                   <tr>
-                    <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Select a product to view its stock ledger movements.</td>
+                    <td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);">
+                      <div style="font-size:1.5rem;margin-bottom:6px;">📦</div>
+                      Select a product to view its stock ledger movements.
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -827,6 +1168,7 @@
                 <div class="form-label">Quick Period</div>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
                   <button type="button" class="quick-period-btn active" onclick="setPeriod('cust', 'all', this)">All Time</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'today', this)">Today</button>
                   <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'this_month', this)">This Month</button>
                   <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'last_month', this)">Last Month</button>
                   <button type="button" class="quick-period-btn" onclick="setPeriod('cust', 'this_fy', this)">This FY</button>
@@ -925,6 +1267,7 @@
                 <div class="form-label">Quick Period</div>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;">
                   <button type="button" class="quick-period-btn active" onclick="setPeriod('supp', 'all', this)">All Time</button>
+                  <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'today', this)">Today</button>
                   <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'this_month', this)">This Month</button>
                   <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'last_month', this)">Last Month</button>
                   <button type="button" class="quick-period-btn" onclick="setPeriod('supp', 'this_fy', this)">This FY</button>
@@ -1010,9 +1353,698 @@
             </div>
           </div>
 
+          <!-- 4. All Invoices & Bills Ledger Subpanel -->
+          <div id="ledger-subpanel-bills" style="display:none;">
+            <!-- Filter Toolbar Card -->
+            <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;">
+              <!-- Row 1: Flow Type, Payment Status, and Quick Period Pills -->
+              <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+                <div style="flex:1;min-width:180px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">Bill / Flow Type</div>
+                  <select id="bills-filter-type" class="form-select" onchange="loadBillsLedger()" style="width:100%;height:38px;">
+                    <option value="ALL">All Bills &amp; Invoices</option>
+                    <option value="SALES">🟢 Sales Invoices (विक्रय)</option>
+                    <option value="PURCHASE">🔵 Purchase Bills (क्रय)</option>
+                  </select>
+                </div>
+
+                <div style="flex:1;min-width:180px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">Payment Status</div>
+                  <select id="bills-filter-status" class="form-select" onchange="loadBillsLedger()" style="width:100%;height:38px;">
+                    <option value="ALL">All Payment Statuses</option>
+                    <option value="PAID">🟢 Fully Paid / Settled</option>
+                    <option value="PARTIAL">🟡 Partial Paid</option>
+                    <option value="UNPAID">🔴 Unpaid / Credit</option>
+                    <option value="OVERDUE">⚠️ Overdue Bills</option>
+                  </select>
+                </div>
+
+
+                <div style="flex:1;min-width:160px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">Payment Method</div>
+                  <select id="bills-filter-paymode" class="form-select" onchange="loadBillsLedger()" style="width:100%;height:38px;">
+                    <option value="ALL">All Methods</option>
+                    <option value="CREDIT">📋 Credit / Due (उधार)</option>
+                    <option value="CASH">💵 Cash (नकद)</option>
+                    <option value="UPI">📱 UPI / QR</option>
+                    <option value="BANK_TRANSFER">🏦 Bank Transfer / NEFT</option>
+                    <option value="CHEQUE">🧾 Cheque / DD</option>
+                    <option value="CARD">💳 Card / POS</option>
+                    <option value="NEFT_RTGS">🏦 NEFT / RTGS</option>
+                    <option value="NET_BANKING">🌐 Net Banking</option>
+                    <option value="ONLINE">🌐 Online</option>
+                  </select>
+                </div>
+
+                <div style="flex:1.8;min-width:320px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">Quick Period Presets</div>
+                  <div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;">
+                    <button type="button" class="quick-period-btn active" onclick="setPeriod('bills', 'all', this)">All Time</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('bills', 'today', this)">Today</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('bills', 'this_month', this)">This Month</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('bills', 'last_month', this)">Last Month</button>
+                    <button type="button" class="quick-period-btn" onclick="setPeriod('bills', 'this_fy', this)">This FY</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 2: From Date, To Date, Search Input & Action Buttons -->
+              <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+                <div style="flex:0 0 140px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">From Date</div>
+                  <input id="bills-from" class="form-input" type="date" onchange="loadBillsLedger()" style="width:100%;height:38px;" />
+                </div>
+
+                <div style="flex:0 0 140px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">To Date</div>
+                  <input id="bills-to" class="form-input" type="date" onchange="loadBillsLedger()" style="width:100%;height:38px;" />
+                </div>
+
+                <div style="flex:1;min-width:200px;">
+                  <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:6px;">Search / Live Filter</div>
+                  <input id="bills-search" class="form-input" type="text" placeholder="🔍 Search bill #, party, GSTIN, phone, item..." oninput="debounceBillsSearch()" style="width:100%;height:38px;" />
+                </div>
+
+                <div style="flex:0 0 auto;display:flex;gap:8px;align-items:center;">
+                  <button type="button" onclick="loadBillsLedger()"
+                    style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:0 16px;cursor:pointer;font-size:0.84rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                    <span>⚡</span> Fetch
+                  </button>
+                  <button type="button" onclick="exportBillsLedgerCSV()"
+                    style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0 14px;cursor:pointer;font-size:0.84rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                    <span>📥</span> CSV
+                  </button>
+                  <button type="button" onclick="printBillsLedgerTable()"
+                    style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0 14px;cursor:pointer;font-size:0.84rem;font-weight:600;height:38px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                    <span>🖨️</span> Print
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- KPI Summary Stats Cards (5 balanced columns) -->
+            <div class="bills-stat-grid" id="bills-kpi-container">
+              <div class="bill-stat-card accent-total">
+                <div class="party-kpi-lbl">Total Billed Turnover</div>
+                <div class="party-kpi-val" id="kpi-bills-total" style="color:var(--text);">₹ 0.00</div>
+                <div class="party-kpi-sub" id="kpi-bills-count">0 Invoices / Bills</div>
+              </div>
+              <div class="bill-stat-card accent-flow">
+                <div class="party-kpi-lbl">Sales vs Purchases</div>
+                <div style="font-size:0.82rem;font-weight:700;margin-top:4px;">
+                  <span style="color:#22c55e;">🟢 Sales: <span id="kpi-bills-sales">₹ 0.00</span></span>
+                </div>
+                <div style="font-size:0.82rem;font-weight:700;margin-top:2px;">
+                  <span style="color:#38bdf8;">🔵 Purch: <span id="kpi-bills-purch">₹ 0.00</span></span>
+                </div>
+              </div>
+              <div class="bill-stat-card accent-tax">
+                <div class="party-kpi-lbl">Total GST Tax</div>
+                <div class="party-kpi-val" id="kpi-bills-tax" style="color:#a855f7;">₹ 0.00</div>
+                <div class="party-kpi-sub" id="kpi-bills-tax-split" style="font-size:0.72rem;">CGST: ₹0 · SGST: ₹0 · IGST: ₹0</div>
+              </div>
+              <div class="bill-stat-card accent-settled">
+                <div class="party-kpi-lbl">Settled / Collected</div>
+                <div class="party-kpi-val" id="kpi-bills-settled" style="color:#10b981;">₹ 0.00</div>
+                <div class="party-kpi-sub" id="kpi-bills-settled-count">0 fully paid bills</div>
+              </div>
+              <div class="bill-stat-card accent-due">
+                <div class="party-kpi-lbl">Outstanding Balance Due</div>
+                <div class="party-kpi-val" id="kpi-bills-due" style="color:#ef4444;">₹ 0.00</div>
+                <div class="party-kpi-sub" id="kpi-bills-overdue" style="color:#f59e0b;font-weight:700;">⚠️ 0 Overdue Bills</div>
+              </div>
+            </div>
+
+            <!-- Bills Data Table -->
+            <div style="overflow-x:auto;">
+              <table id="bills-ledger-table">
+                <thead>
+                  <tr>
+                    <th style="width:36px;text-align:center;">#</th>
+                    <th style="width:95px;">Date</th>
+                    <th style="width:115px;">Bill / Voucher #</th>
+                    <th style="width:85px;text-align:center;">Type</th>
+                    <th>Party / Account Name</th>
+                    <th style="text-align:right;">Taxable ₹</th>
+                    <th style="text-align:right;">GST ₹</th>
+                    <th style="text-align:right;font-weight:800;">Grand Total ₹</th>
+                    <th style="text-align:right;color:#10b981;">Settled ₹</th>
+                    <th style="text-align:right;color:#ef4444;">Balance Due ₹</th>
+                    <th style="text-align:center;width:95px;">Status</th>
+                    <th style="width:95px;">Due Date</th>
+                    <th style="text-align:center;width:75px;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="bills-ledger-tbody">
+                  <tr>
+                    <td colspan="13" style="text-align:center;padding:30px;color:var(--text-muted);">
+                      <div style="font-size:1.5rem;margin-bottom:6px;">🧾</div>
+                      Click "Fetch" or adjust date filter to load all bills and invoices.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════════════ -->
+      <!-- PANEL 5: GST COMPLIANCE & RETURN FILING (GSTR-1 & GSTR-3B) -->
+      <!-- ═══════════════════════════════════════════════════════════════════════ -->
+      <div id="panel-gst" class="report-panel">
+        <div class="card">
+          <!-- GST Filter & Return Action Toolbar -->
+          <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+              <div>
+                <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;">
+                  🏛️ Indian GST Return Filing &amp; Statutory Compliance Center
+                </h3>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:3px;">
+                  CGST Rules 59 &amp; 61 compliance · 100% Audit-ready reconciliation for GSTR-1, GSTR-3B &amp; HSN Tables
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="btn-action" onclick="exportGstr1Json()"
+                  style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.35);color:#c084fc;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                  <span>📤</span> Export GSTR-1 JSON (Portal Upload)
+                </button>
+                <button type="button" class="btn-action" onclick="exportGstr1Excel()"
+                  style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#4ade80;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                  <span>📥</span> CA Audit Excel Sheet
+                </button>
+                <button type="button" class="btn-action" onclick="window.print()"
+                  style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">
+                  <span>🖨️</span> Print Return
+                </button>
+              </div>
+            </div>
+
+            <!-- Period Presets & Date Filters -->
+            <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+              <div style="flex:0 0 140px;">
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">From Date</div>
+                <input id="gst-from-date" class="form-input" type="date" onchange="loadGstReports()" style="width:100%;height:36px;" />
+              </div>
+              <div style="flex:0 0 140px;">
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">To Date</div>
+                <input id="gst-to-date" class="form-input" type="date" onchange="loadGstReports()" style="width:100%;height:36px;" />
+              </div>
+              <div style="flex:1;min-width:320px;">
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">Quick Return Periods</div>
+                <div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;">
+                  <button type="button" class="quick-period-btn active" onclick="setGstPeriod('this_month', this)">This Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setGstPeriod('last_month', this)">Last Month</button>
+                  <button type="button" class="quick-period-btn" onclick="setGstPeriod('q1', this)">Q1 (Apr-Jun)</button>
+                  <button type="button" class="quick-period-btn" onclick="setGstPeriod('q2', this)">Q2 (Jul-Sep)</button>
+                  <button type="button" class="quick-period-btn" onclick="setGstPeriod('q3', this)">Q3 (Oct-Dec)</button>
+                  <button type="button" class="quick-period-btn" onclick="setGstPeriod('q4', this)">Q4 (Jan-Mar)</button>
+                  <button type="button" class="quick-period-btn" onclick="setGstPeriod('full_fy', this)">Full FY</button>
+                </div>
+              </div>
+              <button type="button" onclick="loadGstReports()"
+                style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;font-size:0.85rem;font-weight:700;height:36px;">
+                ⚡ Fetch Returns
+              </button>
+            </div>
+          </div>
+
+          <!-- GST Sub-tabs Switcher -->
+          <div class="ledger-subtabs" style="margin-bottom:16px;">
+            <button type="button" class="ledger-subtab-btn active" id="gst-subtab-gstr1" onclick="switchGstSubtab('gstr1')">
+              <span>📋 GSTR-1: Outward Supplies (विक्रय रिटर्न)</span>
+            </button>
+            <button type="button" class="ledger-subtab-btn" id="gst-subtab-gstr3b" onclick="switchGstSubtab('gstr3b')">
+              <span>⚖️ GSTR-3B: Tax Off-Set vs ITC (कर देनदारी व इनपुट टैक्स)</span>
+            </button>
+          </div>
+
+          <!-- 1. GSTR-1 Section -->
+          <div id="gst-view-gstr1">
+            <!-- GSTR-1 KPI Summary Grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px;">
+              <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Taxable Outward Value</div>
+                <div style="font-size:1.25rem;font-weight:800;color:var(--text);" id="gstr1-tot-taxable">₹ 0</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Subtotal less discounts</div>
+              </div>
+              <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:0.7rem;font-weight:700;color:#38bdf8;text-transform:uppercase;">Total CGST (Central)</div>
+                <div style="font-size:1.25rem;font-weight:800;color:#38bdf8;" id="gstr1-tot-cgst">₹ 0</div>
+              </div>
+              <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:0.7rem;font-weight:700;color:#38bdf8;text-transform:uppercase;">Total SGST (State)</div>
+                <div style="font-size:1.25rem;font-weight:800;color:#38bdf8;" id="gstr1-tot-sgst">₹ 0</div>
+              </div>
+              <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:0.7rem;font-weight:700;color:#c084fc;text-transform:uppercase;">Total IGST (Inter-State)</div>
+                <div style="font-size:1.25rem;font-weight:800;color:#a855f7;" id="gstr1-tot-igst">₹ 0</div>
+              </div>
+              <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:0.7rem;font-weight:700;color:#4ade80;text-transform:uppercase;">Total Invoiced (Gross)</div>
+                <div style="font-size:1.25rem;font-weight:800;color:#22c55e;" id="gstr1-tot-invoice">₹ 0</div>
+              </div>
+            </div>
+
+            <!-- Table 4: B2B Invoices Section -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;font-size:0.92rem;font-weight:800;color:var(--text);">
+                  📄 Table 4: B2B Invoices (Taxable Outward Supplies to Registered Persons)
+                </h4>
+                <span style="font-size:0.75rem;color:var(--text-muted);" id="gstr1-b2b-count">0 Invoices</span>
+              </div>
+              <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+                <table>
+                  <thead>
+                    <tr style="background:var(--surface-2);">
+                      <th style="width:40px;text-align:center;">#</th>
+                      <th>Recipient Name &amp; GSTIN</th>
+                      <th>Invoice #</th>
+                      <th>Date</th>
+                      <th>Place of Supply</th>
+                      <th style="text-align:right;">Taxable Value (₹)</th>
+                      <th style="text-align:right;">CGST (₹)</th>
+                      <th style="text-align:right;">SGST (₹)</th>
+                      <th style="text-align:right;">IGST (₹)</th>
+                      <th style="text-align:right;">Total Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gstr1-b2b-tbody">
+                    <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">No B2B invoices in selected period.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Table 7: B2C Small Invoices Section -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;font-size:0.92rem;font-weight:800;color:var(--text);">
+                  🛍️ Table 7: B2CS (Supplies to Unregistered Consumers / Retail)
+                </h4>
+                <span style="font-size:0.75rem;color:var(--text-muted);" id="gstr1-b2cs-count">0 Invoices</span>
+              </div>
+              <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+                <table>
+                  <thead>
+                    <tr style="background:var(--surface-2);">
+                      <th style="width:40px;text-align:center;">#</th>
+                      <th>Type / Place of Supply</th>
+                      <th style="text-align:center;">Applicable Rate (%)</th>
+                      <th style="text-align:right;">Total Taxable Value (₹)</th>
+                      <th style="text-align:right;">CGST (₹)</th>
+                      <th style="text-align:right;">SGST (₹)</th>
+                      <th style="text-align:right;">IGST (₹)</th>
+                      <th style="text-align:right;">Total Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gstr1-b2cs-tbody">
+                    <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No B2CS transactions in selected period.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Table 9: Credit & Debit Notes Section -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;font-size:0.92rem;font-weight:800;color:var(--text);">
+                  ↩️ Table 9B: Credit &amp; Debit Notes (CDNR &amp; CDNUR)
+                </h4>
+                <span style="font-size:0.75rem;color:var(--text-muted);" id="gstr1-cdnr-count">0 Notes</span>
+              </div>
+              <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+                <table>
+                  <thead>
+                    <tr style="background:var(--surface-2);">
+                      <th style="width:40px;text-align:center;">#</th>
+                      <th>Recipient Name &amp; GSTIN</th>
+                      <th>Note Type</th>
+                      <th>Note # &amp; Date</th>
+                      <th>Original Invoice # &amp; Date</th>
+                      <th>Reason</th>
+                      <th style="text-align:right;">Taxable Value (₹)</th>
+                      <th style="text-align:right;">CGST (₹)</th>
+                      <th style="text-align:right;">SGST (₹)</th>
+                      <th style="text-align:right;">Total Note Value (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gstr1-cdnr-tbody">
+                    <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">No credit / debit notes in selected period.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Table 12: HSN Summary of Outward Supplies -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;font-size:0.92rem;font-weight:800;color:var(--text);">
+                  📊 Table 12: HSN Summary of Outward Supplies
+                </h4>
+                <span style="font-size:0.75rem;color:var(--text-muted);" id="gstr1-hsn-count">0 HSN Codes</span>
+              </div>
+              <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+                <table>
+                  <thead>
+                    <tr style="background:var(--surface-2);">
+                      <th style="width:40px;text-align:center;">#</th>
+                      <th style="text-align:center;">HSN / SAC</th>
+                      <th>Description</th>
+                      <th style="text-align:center;">UQC (Unit)</th>
+                      <th style="text-align:right;">Total Qty</th>
+                      <th style="text-align:right;">Total Value (₹)</th>
+                      <th style="text-align:right;">Taxable Value (₹)</th>
+                      <th style="text-align:right;">CGST (₹)</th>
+                      <th style="text-align:right;">SGST (₹)</th>
+                      <th style="text-align:right;">IGST (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gstr1-hsn-tbody">
+                    <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">Loading HSN data…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Table 13: Document Series Summary -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;font-size:0.92rem;font-weight:800;color:var(--text);">
+                  🔢 Table 13: Documents Issued During the Tax Period
+                </h4>
+              </div>
+              <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+                <table>
+                  <thead>
+                    <tr style="background:var(--surface-2);">
+                      <th style="width:40px;text-align:center;">#</th>
+                      <th>Nature of Document</th>
+                      <th>From Serial #</th>
+                      <th>To Serial #</th>
+                      <th style="text-align:center;">Total Number</th>
+                      <th style="text-align:center;">Cancelled</th>
+                      <th style="text-align:center;">Net Issued</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gstr1-docs-tbody">
+                    <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Loading document series…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. GSTR-3B Section -->
+          <div id="gst-view-gstr3b" style="display:none;">
+            <!-- GSTR-3B Comparison Summary Card -->
+            <div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.06));border:1px solid rgba(99,102,241,0.25);border-radius:12px;padding:18px;margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+                <div>
+                  <h4 style="margin:0;font-size:1.05rem;font-weight:800;color:var(--text);">
+                    ⚖️ GSTR-3B Tax Liability vs Input Tax Credit (ITC) Comparison
+                  </h4>
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
+                    Summary of Output Tax collected on Sales vs Input Tax Credit paid on Purchases
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span id="gstr3b-net-status-badge" style="font-size:0.85rem;font-weight:800;padding:4px 12px;border-radius:6px;background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">
+                    🟢 Net Cash Payable
+                  </span>
+                </div>
+              </div>
+
+              <!-- Output vs ITC vs Net Cash Table -->
+              <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                  <thead>
+                    <tr style="background:var(--surface-2);border-bottom:1px solid var(--border);">
+                      <th style="padding:10px;text-align:left;">Component</th>
+                      <th style="padding:10px;text-align:right;color:#a855f7;">Integrated Tax (IGST)</th>
+                      <th style="padding:10px;text-align:right;color:#38bdf8;">Central Tax (CGST)</th>
+                      <th style="padding:10px;text-align:right;color:#38bdf8;">State Tax (SGST)</th>
+                      <th style="padding:10px;text-align:right;font-weight:800;">Total Tax (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="border-bottom:1px solid var(--border);">
+                      <td style="padding:10px;font-weight:700;">
+                        1. Outward Tax Liability (Table 3.1)
+                        <div style="font-size:0.7rem;font-weight:400;color:var(--text-muted);">Tax collected on Sales &amp; Invoices</div>
+                      </td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;" id="gstr3b-out-igst">₹0.00</td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;" id="gstr3b-out-cgst">₹0.00</td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;" id="gstr3b-out-sgst">₹0.00</td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;font-weight:700;color:#f87171;" id="gstr3b-out-total">₹0.00</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border);">
+                      <td style="padding:10px;font-weight:700;">
+                        2. Eligible Input Tax Credit (Table 4)
+                        <div style="font-size:0.7rem;font-weight:400;color:var(--text-muted);">Tax paid on Purchase Bills from Suppliers</div>
+                      </td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;" id="gstr3b-itc-igst">₹0.00</td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;" id="gstr3b-itc-cgst">₹0.00</td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;" id="gstr3b-itc-sgst">₹0.00</td>
+                      <td style="padding:10px;text-align:right;font-family:monospace;font-weight:700;color:#4ade80;" id="gstr3b-itc-total">₹0.00</td>
+                    </tr>
+                    <tr style="background:rgba(255,255,255,0.03);font-weight:900;">
+                      <td style="padding:12px 10px;font-weight:900;color:var(--text);" id="gstr3b-net-row-label">
+                        3. Net Tax Payable in Cash (Electronic Cash Ledger)
+                      </td>
+                      <td style="padding:12px 10px;text-align:right;font-family:monospace;color:#a855f7;" id="gstr3b-net-igst">₹0.00</td>
+                      <td style="padding:12px 10px;text-align:right;font-family:monospace;color:#38bdf8;" id="gstr3b-net-cgst">₹0.00</td>
+                      <td style="padding:12px 10px;text-align:right;font-family:monospace;color:#38bdf8;" id="gstr3b-net-sgst">₹0.00</td>
+                      <td style="padding:12px 10px;text-align:right;font-family:monospace;font-size:1.05rem;color:#fbbf24;" id="gstr3b-net-total">₹0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════════════ -->
+      <!-- PANEL 6: BARCODE LABEL & PRICE TAG STICKER SHEET GENERATOR -->
+      <!-- ═══════════════════════════════════════════════════════════════════════ -->
+      <div id="panel-stickers" class="report-panel">
+        <div class="card">
+          <!-- Sticker Configuration Toolbar -->
+          <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+              <div>
+                <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;">
+                  🏷️ Shelf Barcode Label &amp; Price Tag Sticker Sheet Generator
+                </h3>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:3px;">
+                  Generate printable sticky labels formatted for standard A4 sticker sheets (24 / 32 / 40 labels per page)
+                </div>
+              </div>
+              <div>
+                <button type="button" class="btn-action" onclick="printStickerSheet()"
+                  style="background:var(--primary);color:#fff;border-color:var(--primary);padding:8px 20px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                  <span>🖨️</span> Print Sticker Sheet (A4)
+                </button>
+              </div>
+            </div>
+
+            <!-- Configuration Options Grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:flex-end;">
+              <div>
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">Filter by Category</div>
+                <select id="sticker-filter-cat" class="form-select" onchange="filterStickerProducts()" style="width:100%;height:36px;">
+                  <option value="">All Categories</option>
+                </select>
+              </div>
+              <div>
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">Select Product</div>
+                <select id="sticker-filter-prod" class="form-select" onchange="generateStickerPreview()" style="width:100%;height:36px;">
+                  <option value="ALL">All Active Inventory Items</option>
+                </select>
+              </div>
+              <div>
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">Sheet Layout / Grid</div>
+                <select id="sticker-layout" class="form-select" onchange="generateStickerPreview()" style="width:100%;height:36px;">
+                  <option value="24">24 Labels (3 cols × 8 rows · 63.5 × 33.9 mm)</option>
+                  <option value="32">32 Labels (4 cols × 8 rows · 48.5 × 33.9 mm)</option>
+                  <option value="40" selected>40 Labels (4 cols × 10 rows · 48.5 × 25.4 mm)</option>
+                </select>
+              </div>
+              <div>
+                <div class="form-label" style="font-size:0.75rem;font-weight:700;margin-bottom:4px;">Copies Per Product</div>
+                <input type="number" id="sticker-copies" class="form-input" value="1" min="1" max="100" onchange="generateStickerPreview()" style="width:100%;height:36px;" />
+              </div>
+            </div>
+
+            <div style="display:flex;gap:18px;align-items:center;margin-top:14px;flex-wrap:wrap;font-size:0.8rem;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="stk-show-comp" checked onchange="generateStickerPreview()" /> Show Store Name
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="stk-show-mrp" checked onchange="generateStickerPreview()" /> Show MRP (₹)
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="stk-show-sku" checked onchange="generateStickerPreview()" /> Show SKU Code
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="stk-show-barcode" checked onchange="generateStickerPreview()" /> Render Barcode
+              </label>
+            </div>
+          </div>
+
+          <!-- Printable Sheet Canvas Wrapper -->
+          <div style="background:#0b0d13;border:1px solid var(--border);border-radius:10px;padding:24px;overflow-x:auto;display:flex;justify-content:center;">
+            <div id="sticker-sheet-paper" class="sticker-sheet-canvas" style="background:#ffffff;color:#0f172a;width:210mm;min-height:297mm;box-shadow:0 12px 40px rgba(0,0,0,0.5);padding:10mm 6mm;box-sizing:border-box;">
+              <!-- Dynamically populated label stickers -->
+            </div>
+          </div>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Bill Details Modal (Root-level for proper viewport centering & stacking) -->
+  <div class="modal-overlay" id="bill-detail-modal" onclick="if(event.target===this) closeBillDetailModal();">
+    <div class="modal-card">
+      <!-- Modal Header -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:1px solid rgba(99,102,241,0.3);">
+            🧾
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="modal-bill-type-badge" class="bill-type-badge sales">🟢 Sales Invoice</span>
+              <span id="modal-bill-voucher" style="font-size:1.25rem;font-weight:900;color:var(--text);font-family:monospace;">—</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:3px;" id="modal-bill-date">Date: — · Due Date: —</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="modal-bill-status-pill" class="bill-status-pill paid">—</span>
+          <button type="button" onclick="closeBillDetailModal()" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);font-size:1.2rem;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+        </div>
+      </div>
+
+      <!-- Party & Payment Meta 2-Col Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.68rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">BILL TO / PARTY DETAILS</div>
+          <div style="font-weight:800;font-size:0.96rem;color:var(--text);margin-top:3px;" id="modal-bill-party">—</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;line-height:1.4;" id="modal-bill-party-meta">GSTIN: — · Phone: —</div>
+        </div>
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.68rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">PAYMENT &amp; LOGISTICS</div>
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text);margin-top:3px;" id="modal-bill-paymode">Mode: UPI</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;line-height:1.4;" id="modal-bill-ref">Ref #: —</div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div style="overflow-x:auto;max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:16px;background:var(--surface-2);">
+        <table style="width:100%;font-size:0.8rem;border-collapse:collapse;">
+          <thead>
+            <tr style="background:var(--surface);border-bottom:1px solid var(--border);">
+              <th style="padding:8px 10px;width:32px;text-align:center;">#</th>
+              <th style="padding:8px 10px;">Item / Service Description</th>
+              <th style="padding:8px 10px;text-align:center;width:75px;">HSN</th>
+              <th style="padding:8px 10px;text-align:right;width:80px;">Qty</th>
+              <th style="padding:8px 10px;text-align:right;width:90px;">Rate (₹)</th>
+              <th style="padding:8px 10px;text-align:right;width:60px;">GST %</th>
+              <th style="padding:8px 10px;text-align:right;width:100px;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="modal-bill-items-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Financial Summary Totals Card -->
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;gap:18px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Taxable Subtotal</div>
+            <div id="modal-bill-subtotal" style="font-size:0.95rem;font-weight:700;color:var(--text);font-family:monospace;margin-top:2px;">₹ 0.00</div>
+          </div>
+          <div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Total GST Tax</div>
+            <div id="modal-bill-tax" style="font-size:0.95rem;font-weight:700;color:#a855f7;font-family:monospace;margin-top:2px;">₹ 0.00</div>
+          </div>
+          <div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Tax Breakup</div>
+            <div id="modal-bill-tax-breakup" style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;">CGST: ₹0 · SGST: ₹0</div>
+          </div>
+        </div>
+
+        <div style="text-align:right;">
+          <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;">Grand Total</div>
+          <div style="font-size:1.4rem;font-weight:900;color:var(--text);font-family:monospace;margin-top:2px;" id="modal-bill-grandtotal">₹ 0.00</div>
+          <div style="font-size:0.76rem;margin-top:3px;">
+            <span style="color:#10b981;font-weight:700;">Paid: <span id="modal-bill-settled">₹ 0</span></span>
+            <span style="color:var(--border);margin:0 4px;">|</span>
+            <span style="color:#ef4444;font-weight:700;">Due: <span id="modal-bill-due">₹ 0</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Per-Item Cost Stats Panel (hidden until toggled) -->
+      <div id="modal-bill-stats-panel" style="display:none;margin-bottom:16px;">
+        <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:14px 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:0.72rem;font-weight:800;color:#818cf8;text-transform:uppercase;letter-spacing:0.07em;">📊 Live Cost Analysis (लागत विश्लेषण)</div>
+            <div id="modal-stats-loading" style="font-size:0.72rem;color:var(--text-muted);">⏳ Loading live costs...</div>
+          </div>
+          <!-- Summary KPIs -->
+          <div id="modal-stats-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;"></div>
+          <!-- Per-Item Table -->
+          <div style="overflow-x:auto;">
+            <table style="width:100%;font-size:0.76rem;border-collapse:collapse;">
+              <thead>
+                <tr style="background:rgba(99,102,241,0.1);border-radius:6px;">
+                  <th style="padding:7px 8px;text-align:left;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">#</th>
+                  <th style="padding:7px 8px;text-align:left;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Item</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Qty</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Bill Price ₹</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:#818cf8;font-size:0.68rem;text-transform:uppercase;">Avg Cost ₹</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Total Cost ₹</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Total Bill ₹</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Profit ₹</th>
+                  <th style="padding:7px 8px;text-align:right;font-weight:800;color:var(--text-muted);font-size:0.68rem;text-transform:uppercase;">Margin %</th>
+                </tr>
+              </thead>
+              <tbody id="modal-stats-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--border);padding-top:14px;">
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="modal-stats-btn" onclick="toggleBillStats()" 
+            style="background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.3);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;font-size:0.82rem;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;">
+            📊 Item Stats
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" onclick="closeBillDetailModal()" 
+            style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:600;font-size:0.84rem;">
+            Close
+          </button>
+          <button type="button" onclick="printCurrentModalBill()"
+            style="background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:600;font-size:0.84rem;display:inline-flex;align-items:center;gap:6px;">
+            <span>🖨️</span> Print Voucher
+          </button>
+          <a id="modal-bill-open-link" href="javascript:void(0)" 
+            style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;text-decoration:none;font-weight:700;font-size:0.84rem;display:inline-flex;align-items:center;gap:6px;">
+            <span>🧾</span> Open in Invoice Editor
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1067,11 +2099,25 @@
       }
     });
 
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modalEl = document.getElementById('bill-detail-modal');
+        if (modalEl && modalEl.classList.contains('open')) {
+          closeBillDetailModal();
+        }
+      }
+    });
+
     let warehouses = [], products = [], customers = [], suppliers = [];
     let currentLedgerSubtab = 'stock';
 
     function switchTab(name) {
-      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['stock', 'valuation', 'expiry', 'ledger'][i] === name));
+      const allTabs = ['stock', 'valuation', 'expiry', 'ledger', 'gst', 'stickers'];
+      allTabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (btn) btn.classList.toggle('active', t === name);
+      });
       document.querySelectorAll('.report-panel').forEach(p => p.classList.remove('active'));
       const panel = document.getElementById(`panel-${name}`);
       if (panel) panel.classList.add('active');
@@ -1085,11 +2131,17 @@
       if (name === 'valuation') loadValuation();
       if (name === 'expiry') loadExpiry();
       if (name === 'ledger') switchLedgerSubtab(currentLedgerSubtab);
+      if (name === 'gst') loadGstReports();
+      if (name === 'stickers') initStickersTab();
     }
+
+    let cachedBillsList = [];
+    let cachedBillsStats = {};
+    let billsSearchDebounce = null;
 
     function switchLedgerSubtab(subtab) {
       currentLedgerSubtab = subtab;
-      ['stock', 'customer', 'supplier'].forEach(st => {
+      ['stock', 'customer', 'supplier', 'bills'].forEach(st => {
         const btn = document.getElementById(`subtab-btn-${st}`);
         const panel = document.getElementById(`ledger-subpanel-${st}`);
         if (btn) btn.classList.toggle('active', st === subtab);
@@ -1097,7 +2149,16 @@
       });
 
       if (subtab === 'stock') {
-        const prod = document.getElementById('ledger-product')?.value;
+        let prod = document.getElementById('ledger-product')?.value;
+        if (!prod && products.length > 0) {
+          const ledgProd = document.getElementById('ledger-product');
+          if (ledgProd) {
+            ledgProd.value = products[0]._id;
+            const wrap = ledgProd.parentElement?.querySelector('.searchable-input');
+            if (wrap) wrap.value = `${products[0].name} (${products[0].sku})`;
+            prod = products[0]._id;
+          }
+        }
         if (prod) loadLedger();
       } else if (subtab === 'customer') {
         const cusId = document.getElementById('cust-ledger-select')?.value;
@@ -1105,6 +2166,8 @@
       } else if (subtab === 'supplier') {
         const supId = document.getElementById('supp-ledger-select')?.value;
         if (supId) loadSupplierLedger();
+      } else if (subtab === 'bills') {
+        loadBillsLedger();
       }
     }
 
@@ -1113,14 +2176,17 @@
         btn.parentElement.querySelectorAll('.quick-period-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       }
-      const fromEl = type === 'stock' ? document.getElementById('ledger-from') : document.getElementById(`${type}-ledger-from`);
-      const toEl = type === 'stock' ? document.getElementById('ledger-to') : document.getElementById(`${type}-ledger-to`);
+      const fromEl = type === 'stock' ? document.getElementById('ledger-from') : (type === 'bills' ? document.getElementById('bills-from') : document.getElementById(`${type}-ledger-from`));
+      const toEl = type === 'stock' ? document.getElementById('ledger-to') : (type === 'bills' ? document.getElementById('bills-to') : document.getElementById(`${type}-ledger-to`));
       if (!fromEl || !toEl) return;
 
       const now = new Date();
       if (period === 'all') {
         fromEl.value = '';
         toEl.value = '';
+      } else if (period === 'today') {
+        fromEl.value = now.toISOString().split('T')[0];
+        toEl.value = now.toISOString().split('T')[0];
       } else if (period === 'this_month') {
         const first = new Date(now.getFullYear(), now.getMonth(), 1);
         fromEl.value = first.toISOString().split('T')[0];
@@ -1140,94 +2206,60 @@
       if (type === 'cust') loadCustomerLedger();
       else if (type === 'supp') loadSupplierLedger();
       else if (type === 'stock') loadLedger();
+      else if (type === 'bills') loadBillsLedger();
     }
 
     async function init() {
       try {
-        const [wr, pr, cr, cusRes, supRes] = await Promise.all([
-          fetch(`${API}/inventory/warehouses`, { headers: H() }),
-          fetch(`${API}/inventory/products?limit=500`, { headers: H() }),
-          fetch(`${API}/inventory/categories`, { headers: H() }),
-          fetch(`${API}/inventory/customers?limit=500`, { headers: H() }),
-          fetch(`${API}/inventory/suppliers?limit=500`, { headers: H() }),
+        const [wList, pList, cList, cusList, supList] = await Promise.all([
+          fetchWarehouses(),
+          fetchProducts(),
+          fetchCategories(),
+          fetchCustomers(),
+          fetchSuppliers(),
         ]);
-        const wRaw = wr.ok ? ((await wr.json()).data || []) : [];
-        const pRaw = pr.ok ? ((await pr.json()).data?.products || []) : [];
-        const cRaw = cr.ok ? ((await cr.json()).data || []) : [];
-        const cusData = cusRes.ok ? ((await cusRes.json()).data?.items || []) : [];
-        const supData = supRes.ok ? ((await supRes.json()).data?.items || []) : [];
 
-        // Deduplicate datasets
-        warehouses = Array.from(new Map(wRaw.map(w => [w._id, w])).values());
-        products = Array.from(new Map(pRaw.map(p => [p._id, p])).values());
-        const categories = Array.from(new Map(cRaw.map(c => [c._id, c])).values());
-        customers = Array.from(new Map(cusData.map(c => [c._id, c])).values());
-        suppliers = Array.from(new Map(supData.map(s => [s._id, s])).values());
+        warehouses = wList;
+        products = pList;
+        const categories = cList;
+        customers = cusList;
+        suppliers = supList;
 
-        const whSel = document.getElementById('stock-wh');
-        if (whSel) {
-          whSel.innerHTML = '<option value="">All Warehouses</option>';
-          warehouses.forEach(w => whSel.innerHTML += `<option value="${w._id}">${escHtml(w.name)} (${escHtml(w.code)})</option>`);
-          makeSearchable('stock-wh', '🔍 Search warehouse…');
+        populateWarehouseDropdown('stock-wh', warehouses, { placeholder: 'All Warehouses' });
+        populateCategoryDropdown('stock-cat', categories, { placeholder: 'All Categories' });
+        const ledgProd = populateProductDropdown('ledger-product', products, { placeholder: '— Select Product —' });
+        if (ledgProd && !ledgProd.value && products.length > 0) {
+          ledgProd.value = products[0]._id;
+          if (ledgProd._searchableSelect) ledgProd._searchableSelect.refresh();
         }
 
-        const catSel = document.getElementById('stock-cat');
-        if (catSel) {
-          catSel.innerHTML = '<option value="">All Categories</option>';
-          const rootCats = categories.filter(c => !c.parentId);
-          const subCats = categories.filter(c => c.parentId);
-          rootCats.forEach(root => {
-            const children = subCats.filter(s => (s.parentId?._id || s.parentId) === root._id);
-            const icon = root.icon || '📦';
-            if (children.length > 0) {
-              let optGroupHtml = `<optgroup label="${icon} ${root.name}">`;
-              optGroupHtml += `<option value="${root._id}">${icon} All ${root.name}</option>`;
-              children.forEach(sub => {
-                optGroupHtml += `<option value="${sub._id}">  └ ${sub.name}</option>`;
-              });
-              optGroupHtml += `</optgroup>`;
-              catSel.innerHTML += optGroupHtml;
-            } else {
-              catSel.innerHTML += `<option value="${root._id}">${icon} ${root.name}</option>`;
-            }
-          });
-          makeSearchable('stock-cat', '🔍 Search category…');
-        }
+        populatePartyDropdown('cust-ledger-select', customers, {
+          type: 'CUSTOMER',
+          placeholder: '— Select Customer —',
+          searchPlaceholder: '🔍 Type customer name, phone or GSTIN…',
+        });
 
-        const ledgProd = document.getElementById('ledger-product');
-        if (ledgProd) {
-          ledgProd.innerHTML = '<option value="">— Select Product —</option>';
-          products.forEach(p => ledgProd.innerHTML += `<option value="${p._id}">${escHtml(p.name)} (${escHtml(p.sku)})</option>`);
-          makeSearchable('ledger-product', '🔍 Type product name or SKU…');
-        }
+        populatePartyDropdown('supp-ledger-select', suppliers, {
+          type: 'SUPPLIER',
+          placeholder: '— Select Supplier —',
+          searchPlaceholder: '🔍 Type supplier name, phone or GSTIN…',
+        });
 
-        const cusSel = document.getElementById('cust-ledger-select');
-        if (cusSel) {
-          cusSel.innerHTML = '<option value="">— Select Customer —</option>';
-          customers.forEach(c => {
-            const extra = [c.gstin, c.phone].filter(Boolean).join(' · ');
-            cusSel.innerHTML += `<option value="${c._id}">${escHtml(c.name)}${extra ? ` (${escHtml(extra)})` : ''}</option>`;
-          });
-          makeSearchable('cust-ledger-select', '🔍 Type customer name, phone or GSTIN…');
-        }
-
-        const supSel = document.getElementById('supp-ledger-select');
-        if (supSel) {
-          supSel.innerHTML = '<option value="">— Select Supplier —</option>';
-          suppliers.forEach(s => {
-            const extra = [s.gstin, s.phone].filter(Boolean).join(' · ');
-            supSel.innerHTML += `<option value="${s._id}">${escHtml(s.name)}${extra ? ` (${escHtml(extra)})` : ''}</option>`;
-          });
-          makeSearchable('supp-ledger-select', '🔍 Type supplier name, phone or GSTIN…');
-        }
-
-        // Handle URL parameters for initial tab and party pre-selection
+        // Handle URL parameters for initial tab and party/product pre-selection
         const urlParams = new URLSearchParams(window.location.search);
         const initTab = urlParams.get('tab') || 'stock';
-        const initSub = urlParams.get('sub') || (initTab === 'customer-ledger' ? 'customer' : (initTab === 'supplier-ledger' ? 'supplier' : 'stock'));
+        const initSub = urlParams.get('sub') || (initTab === 'customer-ledger' ? 'customer' : (initTab === 'supplier-ledger' ? 'supplier' : (initTab === 'bills-ledger' || initTab === 'bills' ? 'bills' : 'stock')));
         const targetPartyId = urlParams.get('partyId');
+        const targetProductId = urlParams.get('productId');
 
-        if (initTab === 'customer-ledger' || initTab === 'supplier-ledger' || initTab === 'ledger') {
+        if (targetProductId && ledgProd) {
+          ledgProd.value = targetProductId;
+          const found = products.find(p => p._id === targetProductId);
+          const wrap = ledgProd.parentElement?.querySelector('.searchable-input');
+          if (wrap && found) wrap.value = `${found.name} (${found.sku})`;
+        }
+
+        if (initTab === 'customer-ledger' || initTab === 'supplier-ledger' || initTab === 'bills-ledger' || initTab === 'bills' || initTab === 'ledger') {
           switchTab('ledger');
           switchLedgerSubtab(initSub);
           if (targetPartyId) {
@@ -1339,47 +2371,136 @@
 
     async function loadLedger() {
       const productId = document.getElementById('ledger-product').value;
-      if (!productId) { return; }
+      const tbody = document.getElementById('ledger-tbody');
+      const overview = document.getElementById('stock-ledger-overview');
+
+      if (!productId) {
+        if (overview) overview.style.display = 'none';
+        if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);"><div style="font-size:1.5rem;margin-bottom:6px;">📦</div>Please select a product to view stock movements.</td></tr>`;
+        return;
+      }
+
       const from = document.getElementById('ledger-from').value;
       const to = document.getElementById('ledger-to').value;
       const params = new URLSearchParams({ ...(from && { from }), ...(to && { to }) });
-      const r = await fetch(`${API}/inventory/reports/stock-ledger/${productId}?${params}`, { headers: H() });
-      const { data } = await r.json();
-      rawLedgerReport = data || [];
-      const tbody = document.getElementById('ledger-tbody');
-      if (!data?.length) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);">No stock movements found for selected range.</td></tr>`; return; }
-      tbody.innerHTML = data.map((e, idx) => `
-        <tr>
-          <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
-          <td>${fmtDate(e.date)}</td>
-          <td><span class="txn-badge txn-${e.txnType}">${e.txnType.replace('_', ' ')}</span></td>
-          <td>${e.warehouseId?.name || '—'}</td>
-          <td style="font-family:monospace;">${e.batchNo || '—'}</td>
-          <td style="text-align:right;font-weight:700;color:${e.qty > 0 ? '#4ade80' : '#f87171'};">${e.qty > 0 ? '+' : ''}${e.qty}</td>
-          <td style="text-align:right;">${inr(e.unitCost)}</td>
-          <td style="font-size:0.78rem;">${e.remarks || '—'}</td>
-        </tr>`).join('');
+
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);"><div style="font-size:1.4rem;animation:spin 1s linear infinite;display:inline-block;margin-bottom:6px;">⏳</div><div>Loading stock movements &amp; cost metrics…</div></td></tr>`;
+      }
+
+      try {
+        const r = await fetch(`${API}/inventory/reports/stock-ledger/${productId}?${params}`, { headers: H() });
+        const json = await r.json();
+        if (!r.ok) {
+          if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">${escHtml(json.message || 'Failed to load stock movements.')}</td></tr>`;
+          return;
+        }
+
+        const { product, stats, entries } = json.data || {};
+        rawLedgerReport = entries || [];
+
+        // 1. Update Product Overview & KPI Stats
+        if (overview && product && stats) {
+          overview.style.display = 'block';
+          document.getElementById('stock-card-icon').textContent = product.categoryIcon || '📦';
+          document.getElementById('stock-card-name').textContent = product.name;
+          document.getElementById('stock-card-sku').textContent = product.sku || 'NO-SKU';
+          
+          const metaParts = [
+            product.category ? `Category: ${product.category}` : '',
+            product.hsnCode ? `HSN: ${product.hsnCode}` : '',
+            `GST: ${product.gstRate}%`,
+            `Unit: ${product.unit || 'PCS'}`,
+          ].filter(Boolean).join(' · ');
+          document.getElementById('stock-card-meta').textContent = metaParts;
+
+          document.getElementById('stock-card-prices').textContent = `Purchase: ${inr(stats.purchasePrice)} · MRP: ${inr(stats.mrp)} · Selling: ${inr(stats.sellingPrice)}`;
+
+          // 5 KPI Cards
+          document.getElementById('stock-kpi-avg-cost').textContent = inr(stats.avgInwardCost);
+          document.getElementById('stock-kpi-avg-cost-sub').textContent = `Purchase Rate: ${inr(stats.purchasePrice)} · MRP: ${inr(stats.mrp)}`;
+
+          const unit = product.unit || 'PCS';
+          document.getElementById('stock-kpi-current-qty').textContent = `${stats.currentStock} ${unit}`;
+          const isLow = stats.isLowStock;
+          const statusEl = document.getElementById('stock-kpi-stock-status');
+          statusEl.style.color = isLow ? '#ef4444' : '#10b981';
+          statusEl.textContent = isLow 
+            ? `⚠️ Low Stock (Reorder Level: ${stats.reorderLevel})` 
+            : `🟢 Adequate Stock (Reorder: ${stats.reorderLevel})`;
+
+          document.getElementById('stock-kpi-inward-qty').textContent = `+${stats.totalInwardQty} ${unit}`;
+          document.getElementById('stock-kpi-inward-val').textContent = `Inward Value: ${inr(stats.totalInwardValue)}`;
+
+          document.getElementById('stock-kpi-outward-qty').textContent = `-${stats.totalOutwardQty} ${unit}`;
+          document.getElementById('stock-kpi-outward-val').textContent = `Outward Value: ${inr(stats.totalOutwardValue)}`;
+
+          document.getElementById('stock-kpi-valuation').textContent = inr(stats.stockValuation);
+          document.getElementById('stock-kpi-movement-count').textContent = `${stats.totalTransactionsCount} Total Movements Recorded`;
+        }
+
+        // 2. Render Movements Table
+        if (!entries || entries.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted);"><div style="font-size:1.5rem;margin-bottom:6px;">🔍</div>No stock movements found for the selected date range.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = entries.map((e, idx) => {
+          const isPos = e.qty > 0;
+          const isNeg = e.qty < 0;
+          const inwardDisplay = isPos ? `+${e.qty}` : '—';
+          const outwardDisplay = isNeg ? `${Math.abs(e.qty)}` : '—';
+
+          let txnBadgeClass = 'badge-ok';
+          let txnLabel = (e.txnType || '').replace(/_/g, ' ');
+          if (e.txnType === 'STOCK_IN' || e.txnType === 'QUICK_STOCK_IN' || e.txnType === 'GRN' || e.txnType === 'OPENING') {
+            txnBadgeClass = 'badge-ok';
+          } else if (e.txnType === 'STOCK_OUT' || e.txnType === 'QUICK_STOCK_OUT' || e.txnType === 'SO_DISPATCH') {
+            txnBadgeClass = 'badge-low';
+          }
+
+          return `
+            <tr>
+              <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.78rem;">${idx + 1}</td>
+              <td style="white-space:nowrap;font-size:0.8rem;">${fmtDate(e.date)}</td>
+              <td style="text-align:center;"><span class="${txnBadgeClass}" style="font-size:0.72rem;padding:3px 8px;border-radius:6px;font-weight:700;letter-spacing:0.02em;">${escHtml(txnLabel)}</span></td>
+              <td style="font-weight:600;color:var(--text);">${escHtml(e.warehouseId?.name || '—')}</td>
+              <td style="font-family:monospace;font-size:0.78rem;color:var(--text-muted);">${escHtml(e.batchNo || '—')}</td>
+              <td style="text-align:right;font-family:monospace;font-weight:700;color:#10b981;font-size:0.84rem;">${inwardDisplay}</td>
+              <td style="text-align:right;font-family:monospace;font-weight:700;color:#ef4444;font-size:0.84rem;">${outwardDisplay}</td>
+              <td style="text-align:right;font-family:monospace;font-size:0.82rem;">${inr(e.unitCost)}</td>
+              <td style="text-align:right;font-family:monospace;font-size:0.82rem;font-weight:600;">${inr(e.movementValue)}</td>
+              <td style="text-align:right;font-family:monospace;font-weight:800;color:var(--text);font-size:0.86rem;">${e.runningBalance}</td>
+              <td style="font-size:0.78rem;color:var(--text-muted);">${escHtml(e.remarks || '—')}</td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error('loadLedger error:', err);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--error);">Failed to load stock movements: ${escHtml(err.message)}</td></tr>`;
+      }
     }
 
     async function loadCustomerLedger() {
-      const partyId = document.getElementById('cust-ledger-select').value;
+      const partyId = document.getElementById('cust-ledger-select')?.value;
       const tbody = document.getElementById('cust-ledger-tbody');
       const overview = document.getElementById('cust-ledger-overview');
       if (!partyId) {
         if (overview) overview.style.display = 'none';
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Please select a customer to view ledger.</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Please select a customer to view ledger.</td></tr>';
         return;
       }
-      const from = document.getElementById('cust-ledger-from').value;
-      const to = document.getElementById('cust-ledger-to').value;
+      const from = document.getElementById('cust-ledger-from')?.value;
+      const to = document.getElementById('cust-ledger-to')?.value;
       const params = new URLSearchParams({ partyType: 'CUSTOMER', partyId, ...(from && { from }), ...(to && { to }) });
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Khata statement…</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Khata statement…</td></tr>';
 
       try {
         const r = await fetch(`${API}/inventory/payments/statement?${params}`, { headers: H() });
         const json = await r.json();
         if (!r.ok) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">${json.message || 'Failed to load ledger.'}</td></tr>`;
+          if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">${json.message || 'Failed to load ledger.'}</td></tr>`;
           return;
         }
         const { party, statement, summary } = json.data || {};
@@ -1388,69 +2509,86 @@
         // Update Overview & KPIs
         if (overview && party) {
           overview.style.display = 'block';
-          document.getElementById('cust-card-name').textContent = party.name;
-          document.getElementById('cust-card-gstin').textContent = party.gstin || 'Unregistered';
-          document.getElementById('cust-card-phone').textContent = party.phone || '—';
-          document.getElementById('cust-card-email').textContent = party.email || '—';
-          document.getElementById('cust-card-addr').textContent = [party.billingAddress, party.city, party.state].filter(Boolean).join(', ');
+          const nameEl = document.getElementById('cust-card-name');
+          if (nameEl) nameEl.textContent = party.name;
+          const gstinEl = document.getElementById('cust-card-gstin');
+          if (gstinEl) gstinEl.textContent = party.gstin || 'Unregistered';
+          const phoneEl = document.getElementById('cust-card-phone');
+          if (phoneEl) phoneEl.textContent = party.phone || '—';
+          const emailEl = document.getElementById('cust-card-email');
+          if (emailEl) emailEl.textContent = party.email || '—';
+          const addrEl = document.getElementById('cust-card-addr');
+          if (addrEl) addrEl.textContent = [party.billingAddress, party.city, party.state].filter(Boolean).join(', ');
 
-          document.getElementById('cust-kpi-opening').textContent = `${inr(summary?.openingBalance)} ${summary?.openingBalanceType || 'Dr'}`;
-          document.getElementById('cust-kpi-debit').textContent = inr(summary?.totalDebit);
-          document.getElementById('cust-kpi-credit').textContent = inr(summary?.totalCredit);
-          document.getElementById('cust-kpi-closing').textContent = `${inr(summary?.closingBalance)} ${summary?.closingBalanceType || 'Dr'}`;
+          const openEl = document.getElementById('cust-kpi-opening');
+          if (openEl) openEl.textContent = `${inr(summary?.openingBalance)} ${summary?.openingBalanceType || 'Dr'}`;
+          const debEl = document.getElementById('cust-kpi-debit');
+          if (debEl) debEl.textContent = inr(summary?.totalDebit);
+          const credEl = document.getElementById('cust-kpi-credit');
+          if (credEl) credEl.textContent = inr(summary?.totalCredit);
+          const closEl = document.getElementById('cust-kpi-closing');
+          if (closEl) {
+            closEl.innerHTML = `${inr(summary?.closingBalance)} ${summary?.closingBalanceType || 'Dr'}${party.advanceBalance > 0 ? `<div style="font-size:0.75rem;color:#4ade80;font-weight:700;">🎁 Advance: ${inr(party.advanceBalance)}</div>` : ''}`;
+          }
         }
 
         if (!statement || !statement.length) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history found for this customer in selected period.</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history found for this customer in selected period.</td></tr>';
           return;
         }
 
-        tbody.innerHTML = statement.map((row, idx) => {
-          const billLinks = (row.allocatedBills && row.allocatedBills.length)
-            ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" title="${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
-            : '';
+        if (tbody) {
+          tbody.innerHTML = statement.map((row, idx) => {
+            const billLinks = (row.allocatedBills && row.allocatedBills.length)
+              ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" title="${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+              : '';
+            const advTag = row.advanceAmount > 0
+              ? `<span style="background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#4ade80;font-size:0.68rem;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:4px;">+ Advance ${inr(row.advanceAmount)}</span>`
+              : ((row.appliedAdvanceAmount > 0 || row.paymentMode === 'ADVANCE') ? `<span style="background:rgba(59,130,246,0.15);border:1px solid #3b82f6;color:#60a5fa;font-size:0.68rem;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:4px;">🎁 From Advance</span>` : '');
 
-          return `
-            <tr>
-              <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
-              <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
-              <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
-              <td>
-                <div style="font-weight:500;">${escHtml(row.notes || row.txnType)}</div>
-                ${billLinks}
-              </td>
-              <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
-              <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
-              <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
-              <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
-              <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
-            </tr>`;
-        }).join('');
+            return `
+              <tr>
+                <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+                <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+                <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
+                <td>
+                  <div style="font-weight:500;">${escHtml(row.notes || row.txnType)} ${advTag}</div>
+                  ${billLinks}
+                </td>
+                <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
+                <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+                <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
+                <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
+                <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+              </tr>`;
+          }).join('');
+        }
       } catch (err) {
-        console.error(err);
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Server error loading customer statement.</td></tr>';
+        console.error('loadCustomerLedger error:', err);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Server error loading customer statement.</td></tr>';
       }
     }
 
+    // ─── Tab 4: Supplier Khata Ledger Report ──────────────────────────────────
     async function loadSupplierLedger() {
-      const partyId = document.getElementById('supp-ledger-select').value;
+      const partyId = document.getElementById('supp-ledger-select')?.value;
       const tbody = document.getElementById('supp-ledger-tbody');
       const overview = document.getElementById('supp-ledger-overview');
       if (!partyId) {
         if (overview) overview.style.display = 'none';
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Please select a supplier to view ledger.</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Please select a supplier to view ledger.</td></tr>';
         return;
       }
-      const from = document.getElementById('supp-ledger-from').value;
-      const to = document.getElementById('supp-ledger-to').value;
+      const from = document.getElementById('supp-ledger-from')?.value;
+      const to = document.getElementById('supp-ledger-to')?.value;
       const params = new URLSearchParams({ partyType: 'SUPPLIER', partyId, ...(from && { from }), ...(to && { to }) });
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Khata statement…</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Loading Khata statement…</td></tr>';
 
       try {
         const r = await fetch(`${API}/inventory/payments/statement?${params}`, { headers: H() });
         const json = await r.json();
         if (!r.ok) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">${json.message || 'Failed to load ledger.'}</td></tr>`;
+          if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">${json.message || 'Failed to load ledger.'}</td></tr>`;
           return;
         }
         const { party, statement, summary } = json.data || {};
@@ -1459,48 +2597,465 @@
         // Update Overview & KPIs
         if (overview && party) {
           overview.style.display = 'block';
-          document.getElementById('supp-card-name').textContent = party.name;
-          document.getElementById('supp-card-gstin').textContent = party.gstin || 'Unregistered';
-          document.getElementById('supp-card-phone').textContent = party.phone || '—';
-          document.getElementById('supp-card-email').textContent = party.email || '—';
-          document.getElementById('supp-card-addr').textContent = [party.billingAddress, party.city, party.state].filter(Boolean).join(', ');
+          const nameEl = document.getElementById('supp-card-name');
+          if (nameEl) nameEl.textContent = party.name;
+          const gstinEl = document.getElementById('supp-card-gstin');
+          if (gstinEl) gstinEl.textContent = party.gstin || 'Unregistered';
+          const phoneEl = document.getElementById('supp-card-phone');
+          if (phoneEl) phoneEl.textContent = party.phone || '—';
+          const emailEl = document.getElementById('supp-card-email');
+          if (emailEl) emailEl.textContent = party.email || '—';
+          const addrEl = document.getElementById('supp-card-addr');
+          if (addrEl) addrEl.textContent = [party.billingAddress, party.city, party.state].filter(Boolean).join(', ');
 
-          document.getElementById('supp-kpi-opening').textContent = `${inr(summary?.openingBalance)} ${summary?.openingBalanceType || 'Cr'}`;
-          document.getElementById('supp-kpi-credit').textContent = inr(summary?.totalCredit);
-          document.getElementById('supp-kpi-debit').textContent = inr(summary?.totalDebit);
-          document.getElementById('supp-kpi-closing').textContent = `${inr(summary?.closingBalance)} ${summary?.closingBalanceType || 'Cr'}`;
+          const openEl = document.getElementById('supp-kpi-opening');
+          if (openEl) openEl.textContent = `${inr(summary?.openingBalance)} ${summary?.openingBalanceType || 'Cr'}`;
+          const credEl = document.getElementById('supp-kpi-credit');
+          if (credEl) credEl.textContent = inr(summary?.totalCredit);
+          const debEl = document.getElementById('supp-kpi-debit');
+          if (debEl) debEl.textContent = inr(summary?.totalDebit);
+          const closEl = document.getElementById('supp-kpi-closing');
+          if (closEl) {
+            closEl.innerHTML = `${inr(summary?.closingBalance)} ${summary?.closingBalanceType || 'Cr'}${party.advanceBalance > 0 ? `<div style="font-size:0.75rem;color:#4ade80;font-weight:700;">🎁 Advance: ${inr(party.advanceBalance)}</div>` : ''}`;
+          }
         }
 
         if (!statement || !statement.length) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history found for this supplier in selected period.</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No transaction history found for this supplier in selected period.</td></tr>';
           return;
         }
 
-        tbody.innerHTML = statement.map((row, idx) => {
-          const billLinks = (row.allocatedBills && row.allocatedBills.length)
-            ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" title="${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
-            : '';
+        if (tbody) {
+          tbody.innerHTML = statement.map((row, idx) => {
+            const billLinks = (row.allocatedBills && row.allocatedBills.length)
+              ? '<div style="margin-top:2px;">' + row.allocatedBills.map(b => `<span class="bill-tag" title="${b.voucherNo}">📑 ${b.voucherNo} (${inr(b.allocatedAmount)})</span>`).join(' ') + '</div>'
+              : '';
+            const advTag = row.advanceAmount > 0
+              ? `<span style="background:rgba(34,197,94,0.15);border:1px solid #22c55e;color:#4ade80;font-size:0.68rem;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:4px;">+ Advance ${inr(row.advanceAmount)}</span>`
+              : ((row.appliedAdvanceAmount > 0 || row.paymentMode === 'ADVANCE') ? `<span style="background:rgba(59,130,246,0.15);border:1px solid #3b82f6;color:#60a5fa;font-size:0.68rem;padding:2px 5px;border-radius:4px;font-weight:700;margin-left:4px;">🎁 From Advance</span>` : '');
 
-          return `
-            <tr>
-              <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
-              <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
-              <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
-              <td>
-                <div style="font-weight:500;">${escHtml(row.notes || row.txnType)}</div>
-                ${billLinks}
-              </td>
-              <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
-              <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
-              <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
-              <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
-              <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
-            </tr>`;
-        }).join('');
+            return `
+              <tr>
+                <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.8rem;">${idx + 1}</td>
+                <td style="font-family:monospace;font-size:0.78rem;">${fmtDate(row.date)}</td>
+                <td style="font-weight:700;font-family:monospace;font-size:0.78rem;color:var(--primary);">${escHtml(row.voucherNo)}</td>
+                <td>
+                  <div style="font-weight:500;">${escHtml(row.notes || row.txnType)} ${advTag}</div>
+                  ${billLinks}
+                </td>
+                <td><span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.72rem;font-weight:600;">${escHtml(row.paymentMode || '—')}</span></td>
+                <td style="font-family:monospace;font-size:0.75rem;">${escHtml(row.referenceNo || '—')}</td>
+                <td style="text-align:right;font-family:monospace;color:${row.debit ? '#f87171' : 'var(--text-muted)'};font-weight:${row.debit ? '700' : '400'};">${row.debit ? inr(row.debit) : '—'}</td>
+                <td style="text-align:right;font-family:monospace;color:${row.credit ? '#4ade80' : 'var(--text-muted)'};font-weight:${row.credit ? '700' : '400'};">${row.credit ? inr(row.credit) : '—'}</td>
+                <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(row.runningBalance)} <span style="font-size:0.7rem;color:var(--text-muted);">${escHtml(row.balanceType)}</span></td>
+              </tr>`;
+          }).join('');
+        }
       } catch (err) {
-        console.error(err);
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Server error loading supplier statement.</td></tr>';
+        console.error('loadSupplierLedger error:', err);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--error);">Server error loading supplier statement.</td></tr>';
       }
+    }
+
+    // ─── 4. Bills & Invoices Ledger Master Operations ────────────────────────
+    async function loadBillsLedger() {
+      const type = document.getElementById('bills-filter-type')?.value || 'ALL';
+      const status = document.getElementById('bills-filter-status')?.value || 'ALL';
+      const paymentMode = document.getElementById('bills-filter-paymode')?.value || 'ALL';
+      const from = document.getElementById('bills-from')?.value || '';
+      const to = document.getElementById('bills-to')?.value || '';
+      const search = document.getElementById('bills-search')?.value || '';
+
+      const tbody = document.getElementById('bills-ledger-tbody');
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--text-muted);">
+          <div style="font-size:1.5rem;animation:spin 1s linear infinite;display:inline-block;margin-bottom:6px;">⏳</div>
+          <div>Loading verified bills &amp; invoices...</div>
+        </td></tr>`;
+      }
+
+      try {
+        const params = new URLSearchParams({
+          type,
+          status,
+          ...(paymentMode !== 'ALL' && { paymentMode }),
+          ...(from && { from }),
+          ...(to && { to }),
+          ...(search && { search }),
+        });
+
+        const res = await fetch(`${API}/inventory/reports/bills-ledger?${params}`, { headers: H() });
+        if (!res.ok) throw new Error('Failed to load bills ledger');
+        const json = await res.json();
+        
+        cachedBillsList = json.data?.bills || [];
+        cachedBillsStats = json.data?.stats || {};
+
+        renderBillsLedgerTable(cachedBillsList, cachedBillsStats);
+      } catch (e) {
+        console.error('loadBillsLedger error:', e);
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:30px;color:#ef4444;">
+            Failed to load bills: ${escHtml(e.message)}
+          </td></tr>`;
+        }
+      }
+    }
+
+    function renderBillsLedgerTable(bills, stats) {
+      // 1. Update KPI Summary Stats
+      document.getElementById('kpi-bills-total').textContent = inr(stats?.totalBilledAmount || 0);
+      document.getElementById('kpi-bills-count').textContent = `${stats?.totalBillsCount || 0} Invoices / Bills (Avg ${inr((stats?.totalBilledAmount || 0) / Math.max(1, stats?.totalBillsCount || 1))})`;
+      document.getElementById('kpi-bills-sales').textContent = `${inr(stats?.totalSalesAmount || 0)} (${stats?.salesCount || 0})`;
+      document.getElementById('kpi-bills-purch').textContent = `${inr(stats?.totalPurchaseAmount || 0)} (${stats?.purchasesCount || 0})`;
+      document.getElementById('kpi-bills-tax').textContent = inr(stats?.totalTaxAmount || 0);
+      document.getElementById('kpi-bills-tax-split').textContent = `CGST: ${inr(stats?.totalCgst || 0)} · SGST: ${inr(stats?.totalSgst || 0)} · IGST: ${inr(stats?.totalIgst || 0)}`;
+      document.getElementById('kpi-bills-settled').textContent = inr(stats?.totalSettledAmount || 0);
+      document.getElementById('kpi-bills-settled-count').textContent = `${stats?.paidBillsCount || 0} fully paid · ${stats?.partialBillsCount || 0} partial`;
+      document.getElementById('kpi-bills-due').textContent = inr(stats?.totalBalanceDue || 0);
+      document.getElementById('kpi-bills-overdue').textContent = stats?.overdueBillsCount > 0 
+        ? `⚠️ ${stats?.overdueBillsCount} Overdue (${inr(stats?.overdueAmount || 0)})`
+        : `✅ 0 Overdue Bills`;
+
+      // 2. Render Table Rows
+      const tbody = document.getElementById('bills-ledger-tbody');
+      if (!tbody) return;
+
+      if (!bills || bills.length === 0) {
+        tbody.innerHTML = `<tr>
+          <td colspan="13" style="text-align:center;padding:35px;color:var(--text-muted);">
+            <div style="font-size:1.6rem;margin-bottom:6px;">🔍</div>
+            No invoices or bills found matching the selected filters.
+          </td>
+        </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = bills.map((b, idx) => {
+        const isSales = b.txnType === 'INVOICE';
+        const typeBadge = isSales 
+          ? `<span class="bill-type-badge sales">🟢 Sales</span>`
+          : `<span class="bill-type-badge purchase">🔵 Purchase</span>`;
+
+        let statusPill = `<span class="bill-status-pill unpaid">🔴 Unpaid</span>`;
+        if (b.paymentStatus === 'PAID') {
+          statusPill = `<span class="bill-status-pill paid">🟢 Paid</span>`;
+        } else if (b.paymentStatus === 'PARTIAL') {
+          statusPill = `<span class="bill-status-pill partial">🟡 Partial</span>`;
+        }
+        if (b.isOverdue && b.pendingAmount > 0) {
+          statusPill += `<div style="font-size:0.68rem;color:#f87171;font-weight:700;margin-top:2px;">⚠️ ${b.daysOverdue}d Overdue</div>`;
+        }
+
+        const partyMeta = [
+          b.partyGstin ? `GST: ${b.partyGstin}` : '',
+          b.partyPhone ? `📞 ${b.partyPhone}` : '',
+        ].filter(Boolean).join(' · ');
+
+        return `
+          <tr>
+            <td style="text-align:center;color:var(--text-muted);font-weight:700;font-size:0.78rem;">${idx + 1}</td>
+            <td style="white-space:nowrap;font-size:0.8rem;">${fmtDate(b.date)}</td>
+            <td>
+              <a href="javascript:void(0)" class="voucher-link" onclick="openBillDetailModal('${b._id}')" title="View details">
+                <span>📄</span> ${escHtml(b.voucherNo)}
+              </a>
+            </td>
+            <td style="text-align:center;">${typeBadge}</td>
+            <td>
+              <div style="font-weight:700;color:var(--text);">${escHtml(b.partyName)}</div>
+              ${partyMeta ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${escHtml(partyMeta)}</div>` : ''}
+            </td>
+            <td style="text-align:right;font-family:monospace;font-size:0.82rem;">${inr(b.subtotal)}</td>
+            <td style="text-align:right;font-family:monospace;font-size:0.82rem;color:#a855f7;">${inr(b.taxTotal)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:800;color:var(--text);font-size:0.86rem;">${inr(b.amount)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:700;color:#10b981;font-size:0.82rem;">
+              ${inr(b.settledAmount)}
+              ${b.advanceAmount > 0 ? `<div style="font-size:0.68rem;color:#4ade80;font-weight:700;">+ Adv ${inr(b.advanceAmount)}</div>` : ''}
+              ${b.appliedAdvanceAmount > 0 ? `<div style="font-size:0.68rem;color:#60a5fa;font-weight:700;">🎁 From Adv ${inr(b.appliedAdvanceAmount)}</div>` : ''}
+            </td>
+            <td style="text-align:right;font-family:monospace;font-weight:800;color:${b.pendingAmount > 0 ? '#ef4444' : '#64748b'};font-size:0.84rem;">${inr(b.pendingAmount)}</td>
+            <td style="text-align:center;">${statusPill}</td>
+            <td style="white-space:nowrap;font-size:0.78rem;color:var(--text-muted);">${b.dueDate ? fmtDate(b.dueDate) : '—'}</td>
+            <td style="text-align:center;white-space:nowrap;">
+              <button type="button" onclick="openBillDetailModal('${b._id}')" 
+                style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#818cf8;border-radius:6px;padding:4px 8px;font-size:0.75rem;font-weight:700;cursor:pointer;" title="View Details">
+                👁️ View
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function debounceBillsSearch() {
+      clearTimeout(billsSearchDebounce);
+      billsSearchDebounce = setTimeout(() => {
+        loadBillsLedger();
+      }, 300);
+    }
+
+    let currentViewingBill = null;
+
+    function openBillDetailModal(billId) {
+      const bill = cachedBillsList.find(b => String(b._id) === String(billId));
+      if (!bill) return;
+      currentViewingBill = bill;
+
+      // Reset stats state for each new bill
+      billStatsOpen = false;
+      billStatsFetched = false;
+      const statsPanel = document.getElementById('modal-bill-stats-panel');
+      if (statsPanel) statsPanel.style.display = 'none';
+      const statsBtn = document.getElementById('modal-stats-btn');
+      if (statsBtn) { statsBtn.textContent = '📊 Item Stats'; statsBtn.style.background = 'rgba(99,102,241,0.12)'; statsBtn.style.borderColor = 'rgba(99,102,241,0.3)'; }
+      const statsTbody = document.getElementById('modal-stats-tbody');
+      if (statsTbody) statsTbody.innerHTML = '';
+      const statsKpis = document.getElementById('modal-stats-kpis');
+      if (statsKpis) statsKpis.innerHTML = '';
+      const statsLoading = document.getElementById('modal-stats-loading');
+      if (statsLoading) statsLoading.textContent = '⏳ Loading live costs...';
+
+      const isSales = bill.txnType === 'INVOICE';
+      const badge = document.getElementById('modal-bill-type-badge');
+      if (badge) {
+        badge.className = `bill-type-badge ${isSales ? 'sales' : 'purchase'}`;
+        badge.textContent = isSales ? '🟢 Sales Invoice (विक्रय)' : '🔵 Purchase Bill (क्रय)';
+      }
+      document.getElementById('modal-bill-voucher').textContent = bill.voucherNo;
+      document.getElementById('modal-bill-date').textContent = `Date: ${fmtDate(bill.date)}${bill.dueDate ? ` · Due Date: ${fmtDate(bill.dueDate)}` : ''}`;
+
+      const statusPill = document.getElementById('modal-bill-status-pill');
+      statusPill.className = `bill-status-pill ${bill.paymentStatus.toLowerCase()}`;
+      statusPill.textContent = bill.paymentStatus === 'PAID' ? '🟢 PAID' : (bill.paymentStatus === 'PARTIAL' ? '🟡 PARTIAL' : '🔴 UNPAID');
+
+      document.getElementById('modal-bill-party').textContent = bill.partyName || '—';
+      const partyMeta = [
+        bill.partyGstin ? `GSTIN: ${bill.partyGstin}` : '',
+        bill.partyPhone ? `Phone: ${bill.partyPhone}` : '',
+        bill.partyEmail ? `Email: ${bill.partyEmail}` : '',
+      ].filter(Boolean).join(' · ');
+      document.getElementById('modal-bill-party-meta').textContent = partyMeta || 'No contact metadata';
+
+      document.getElementById('modal-bill-paymode').textContent = `Mode: ${bill.paymentMode || 'UPI'}`;
+      document.getElementById('modal-bill-ref').textContent = bill.referenceNo ? `Ref #: ${bill.referenceNo}` : (bill.bankName ? `Bank: ${bill.bankName}` : 'Ref #: —');
+
+      const tbody = document.getElementById('modal-bill-items-tbody');
+      if (bill.items && bill.items.length > 0) {
+        tbody.innerHTML = bill.items.map((it, idx) => `
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="padding:8px 10px;text-align:center;color:var(--text-muted);font-weight:700;">${idx + 1}</td>
+            <td style="padding:8px 10px;font-weight:700;color:var(--text);">${escHtml(it.productName || 'Item')}</td>
+            <td style="padding:8px 10px;text-align:center;font-family:monospace;color:var(--text-muted);">${escHtml(it.hsn || '—')}</td>
+            <td style="padding:8px 10px;text-align:right;font-weight:600;">${it.qty || 1} ${escHtml(it.unit || 'PCS')}${it.freeQty > 0 ? ` <span style="color:#22c55e;font-size:0.72rem;font-weight:700;">(+${it.freeQty} Free)</span>` : ''}</td>
+            <td style="padding:8px 10px;text-align:right;font-family:monospace;">${inr(it.unitPrice || 0)}</td>
+            <td style="padding:8px 10px;text-align:right;color:#a855f7;font-weight:700;">${it.taxPct || 0}%</td>
+            <td style="padding:8px 10px;text-align:right;font-weight:800;font-family:monospace;color:var(--text);">${inr(it.amount || 0)}</td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--text-muted);">Direct bill transaction without itemized lines.</td></tr>`;
+      }
+
+      document.getElementById('modal-bill-subtotal').textContent = inr(bill.subtotal);
+      document.getElementById('modal-bill-tax').textContent = inr(bill.taxTotal);
+      const taxBreakup = `CGST: ${inr(bill.cgstTotal || 0)} · SGST: ${inr(bill.sgstTotal || 0)}${bill.igstTotal > 0 ? ` · IGST: ${inr(bill.igstTotal)}` : ''}`;
+      document.getElementById('modal-bill-tax-breakup').textContent = taxBreakup;
+      document.getElementById('modal-bill-grandtotal').textContent = inr(bill.amount);
+      document.getElementById('modal-bill-settled').textContent = inr(bill.settledAmount);
+      document.getElementById('modal-bill-due').textContent = inr(bill.pendingAmount);
+
+      const openLink = document.getElementById('modal-bill-open-link');
+      if (openLink) {
+        openLink.href = `inv-invoice.html?type=${isSales ? 'sales' : 'purchase'}&edit=${bill._id}`;
+      }
+
+      const modalEl = document.getElementById('bill-detail-modal');
+      modalEl.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBillDetailModal() {
+      const modalEl = document.getElementById('bill-detail-modal');
+      if (modalEl) modalEl.classList.remove('open');
+      document.body.style.overflow = '';
+      currentViewingBill = null;
+    }
+
+    function printCurrentModalBill() {
+      if (!currentViewingBill) return;
+      window.open(`inv-invoice.html?type=${currentViewingBill.txnType === 'INVOICE' ? 'sales' : 'purchase'}&edit=${currentViewingBill._id}&print=1`, '_blank');
+    }
+
+    let billStatsOpen = false;
+    let billStatsFetched = false;
+
+    async function toggleBillStats() {
+      const panel = document.getElementById('modal-bill-stats-panel');
+      const btn = document.getElementById('modal-stats-btn');
+      if (!panel) return;
+
+      billStatsOpen = !billStatsOpen;
+      panel.style.display = billStatsOpen ? 'block' : 'none';
+      btn.style.background = billStatsOpen ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.12)';
+      btn.style.borderColor = billStatsOpen ? 'rgba(99,102,241,0.6)' : 'rgba(99,102,241,0.3)';
+      btn.textContent = billStatsOpen ? '📊 Hide Stats' : '📊 Item Stats';
+
+      if (billStatsOpen && !billStatsFetched) {
+        await fetchBillItemStats();
+      }
+    }
+
+    async function fetchBillItemStats() {
+      if (!currentViewingBill) return;
+      const loadingEl = document.getElementById('modal-stats-loading');
+      const tbody = document.getElementById('modal-stats-tbody');
+      const kpisEl = document.getElementById('modal-stats-kpis');
+      if (!tbody) return;
+
+      const isSales = currentViewingBill.txnType === 'INVOICE';
+      const items = currentViewingBill.items || [];
+      if (items.length === 0) {
+        if (loadingEl) loadingEl.textContent = 'No itemized lines in this bill.';
+        return;
+      }
+
+      if (loadingEl) loadingEl.textContent = '⏳ Fetching live stock costs...';
+
+      // Fetch avg cost for each unique product from stock ledger
+      const productIds = [...new Set(items.map(it => it.productId).filter(Boolean))];
+      const costMap = {};
+
+      await Promise.allSettled(productIds.map(async (pid) => {
+        try {
+          const r = await fetch(`${API}/inventory/reports/stock-ledger/${pid}`, { headers: H() });
+          const json = await r.json();
+          if (json?.data?.stats) {
+            costMap[String(pid)] = json.data.stats.avgInwardCost || json.data.stats.purchasePrice || 0;
+          }
+        } catch (e) {
+          // silent
+        }
+      }));
+
+      if (loadingEl) loadingEl.textContent = '✅ Live costs loaded';
+      billStatsFetched = true;
+
+      let totalBillAmt = 0, totalCostAmt = 0, totalProfit = 0;
+      let rowsHtml = '';
+
+      items.forEach((it, idx) => {
+        const qty = Number(it.qty) || 1;
+        const billRate = Number(it.unitPrice) || 0;
+        const lineAmt = Number(it.amount) || (qty * billRate);
+        const liveCost = costMap[String(it.productId)] || 0;
+        const totalCost = liveCost * qty;
+        const profit = lineAmt - totalCost;
+        const margin = lineAmt > 0 ? (profit / lineAmt * 100) : 0;
+
+        totalBillAmt += lineAmt;
+        totalCostAmt += totalCost;
+        totalProfit += profit;
+
+        const profitColor = profit >= 0 ? '#10b981' : '#ef4444';
+        const marginColor = margin >= 15 ? '#10b981' : (margin >= 0 ? '#f59e0b' : '#ef4444');
+        const marginBg = margin >= 15 ? 'rgba(16,185,129,0.08)' : (margin >= 0 ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)');
+        const costBadge = liveCost > 0 ? '' : `<span style="font-size:0.64rem;color:#f59e0b;">⚠ no data</span>`;
+
+        const itemIsLoss = profit < 0;
+        const profitDisplay = liveCost > 0
+          ? (itemIsLoss
+              ? `<span style="background:rgba(239,68,68,0.1);color:#ef4444;border-radius:5px;padding:2px 7px;font-weight:800;font-size:0.75rem;">▼ LOSS ${inr(Math.abs(profit))}</span>`
+              : `<span style="color:#10b981;font-weight:800;">${inr(profit)}</span>`)
+          : '—';
+
+        rowsHtml += `
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+            <td style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:700;">${idx + 1}</td>
+            <td style="padding:7px 8px;font-weight:700;color:var(--text);">${escHtml(it.productName || 'Item')}</td>
+            <td style="padding:7px 8px;text-align:right;font-weight:600;">${qty} ${escHtml(it.unit || '')}</td>
+            <td style="padding:7px 8px;text-align:right;font-family:monospace;">${inr(billRate)}</td>
+            <td style="padding:7px 8px;text-align:right;font-family:monospace;color:#818cf8;font-weight:700;">
+              ${liveCost > 0 ? inr(liveCost) : '—'} ${costBadge}
+            </td>
+            <td style="padding:7px 8px;text-align:right;font-family:monospace;color:var(--text-muted);">${liveCost > 0 ? inr(totalCost) : '—'}</td>
+            <td style="padding:7px 8px;text-align:right;font-family:monospace;font-weight:700;">${inr(lineAmt)}</td>
+            <td style="padding:7px 8px;text-align:right;">${profitDisplay}</td>
+            <td style="padding:7px 8px;text-align:right;">
+              ${liveCost > 0 ? `<span style="background:${marginBg};color:${marginColor};border-radius:5px;padding:2px 7px;font-weight:800;font-size:0.75rem;">${itemIsLoss ? '▼ ' : ''}${Math.abs(margin).toFixed(1)}%</span>` : '—'}
+            </td>
+          </tr>`;
+      });
+
+      tbody.innerHTML = rowsHtml;
+
+      // Add totals row
+      const totalMargin = totalBillAmt > 0 ? (totalProfit / totalBillAmt * 100) : 0;
+      const totalProfitColor = totalProfit >= 0 ? '#10b981' : '#ef4444';
+      tbody.innerHTML += `
+        <tr style="border-top:2px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.06);font-weight:900;">
+          <td colspan="5" style="padding:8px 10px;text-align:right;color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Bill Totals →</td>
+          <td style="padding:8px 10px;text-align:right;font-family:monospace;color:var(--text-muted);">${totalCostAmt > 0 ? inr(totalCostAmt) : '—'}</td>
+          <td style="padding:8px 10px;text-align:right;font-family:monospace;font-weight:900;">${inr(totalBillAmt)}</td>
+          <td style="padding:8px 10px;text-align:right;font-family:monospace;font-weight:900;color:${totalProfitColor};">${totalCostAmt > 0 ? inr(totalProfit) : '—'}</td>
+          <td style="padding:8px 10px;text-align:right;">
+            ${totalCostAmt > 0 ? `<span style="background:${totalMargin >= 15 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'};color:${totalMargin >= 15 ? '#10b981' : '#ef4444'};border-radius:5px;padding:3px 8px;font-size:0.78rem;">${totalMargin.toFixed(1)}%</span>` : '—'}
+          </td>
+        </tr>`;
+
+      // Summary KPIs
+      const isLoss = totalProfit < 0;
+      const kpis = [
+        { label: 'Total Bill Value', value: inr(totalBillAmt), color: 'var(--text)', sub: 'Grand total' },
+        { label: 'Total Cost (at avg)', value: totalCostAmt > 0 ? inr(totalCostAmt) : '—', color: '#818cf8', sub: 'Avg inward cost × qty' },
+        { label: isSales ? (isLoss ? '🔴 Gross Loss' : '🟢 Gross Profit') : 'Cost Saved / Diff', value: totalCostAmt > 0 ? inr(Math.abs(totalProfit)) : '—', color: totalProfit >= 0 ? '#10b981' : '#ef4444', sub: isSales ? (isLoss ? 'Sold below cost price' : 'Bill − Cost') : '' },
+        { label: isSales ? (isLoss ? '🔴 Loss Margin' : '🟢 Gross Margin') : 'Margin %', value: totalCostAmt > 0 ? `${Math.abs(totalMargin).toFixed(1)}%` : '—', color: totalMargin >= 15 ? '#10b981' : (totalMargin >= 0 ? '#f59e0b' : '#ef4444'), sub: isSales ? '% of bill value' : '' },
+      ];
+      kpisEl.innerHTML = kpis.map(k => `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:0.65rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">${k.label}</div>
+          <div style="font-size:1.05rem;font-weight:900;color:${k.color};font-family:monospace;">${k.value}</div>
+          ${k.sub ? `<div style="font-size:0.66rem;color:var(--text-muted);margin-top:2px;">${k.sub}</div>` : ''}
+        </div>`).join('');
+    }
+
+    function exportBillsLedgerCSV() {
+      if (!cachedBillsList || cachedBillsList.length === 0) {
+        alert('No bills data to export.');
+        return;
+      }
+      const headers = ['#', 'Date', 'Voucher Number', 'Type', 'Party Name', 'GSTIN', 'Phone', 'Taxable Amt (INR)', 'GST Tax (INR)', 'Grand Total (INR)', 'Settled Amt (INR)', 'Balance Due (INR)', 'Payment Status', 'Due Date', 'Payment Mode', 'Reference No'];
+      const rows = cachedBillsList.map((b, idx) => [
+        idx + 1,
+        fmtDate(b.date),
+        b.voucherNo,
+        b.txnType === 'INVOICE' ? 'Sales Invoice' : 'Purchase Bill',
+        b.partyName,
+        b.partyGstin || '',
+        b.partyPhone || '',
+        b.subtotal,
+        b.taxTotal,
+        b.amount,
+        b.settledAmount,
+        b.pendingAmount,
+        b.paymentStatus,
+        b.dueDate ? fmtDate(b.dueDate) : '',
+        b.paymentMode || '',
+        b.referenceNo || '',
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].map(e => e.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `All_Bills_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function printBillsLedgerTable() {
+      window.print();
     }
 
     function getActiveReportRows() {
@@ -1562,7 +3117,26 @@
           ]);
         });
       } else if (tabName === 'ledger') {
-        if (currentLedgerSubtab === 'customer') {
+        if (currentLedgerSubtab === 'bills') {
+          if (!cachedBillsList || cachedBillsList.length === 0) return null;
+          rows.push(['#', 'Date', 'Voucher #', 'Type', 'Party Name', 'Taxable (INR)', 'GST Tax (INR)', 'Grand Total (INR)', 'Settled (INR)', 'Balance Due (INR)', 'Status', 'Due Date']);
+          cachedBillsList.forEach((b, idx) => {
+            rows.push([
+              idx + 1,
+              fmtDate(b.date),
+              b.voucherNo || '',
+              b.txnType === 'INVOICE' ? 'Sales' : 'Purchase',
+              b.partyName || '',
+              b.subtotal || 0,
+              b.taxTotal || 0,
+              b.amount || 0,
+              b.settledAmount || 0,
+              b.pendingAmount || 0,
+              b.paymentStatus || '',
+              b.dueDate ? fmtDate(b.dueDate) : '',
+            ]);
+          });
+        } else if (currentLedgerSubtab === 'customer') {
           if (!rawCustomerLedgerReport || rawCustomerLedgerReport.length === 0) return null;
           rows.push(['#', 'Date', 'Voucher #', 'Particulars', 'Payment Mode', 'Ref / UTR', 'Debit (INR)', 'Credit (INR)', 'Running Due (INR)', 'Type']);
           rawCustomerLedgerReport.forEach((e, idx) => {
@@ -1598,16 +3172,21 @@
           });
         } else {
           if (!rawLedgerReport || rawLedgerReport.length === 0) return null;
-          rows.push(['#', 'Date', 'Transaction Type', 'Warehouse', 'Batch No', 'Qty Movement', 'Unit Cost (INR)', 'Remarks']);
+          rows.push(['#', 'Date', 'Movement Type', 'Warehouse', 'Batch No', 'Inward Qty (+)', 'Outward Qty (-)', 'Unit Cost (INR)', 'Total Value (INR)', 'Running Stock', 'Remarks']);
           rawLedgerReport.forEach((e, idx) => {
+            const isPos = e.qty > 0;
+            const isNeg = e.qty < 0;
             rows.push([
               idx + 1,
               fmtDate(e.date),
-              e.txnType || '',
+              (e.txnType || '').replace(/_/g, ' '),
               e.warehouseId?.name || '',
               e.batchNo || '',
-              e.qty || 0,
+              isPos ? e.qty : 0,
+              isNeg ? Math.abs(e.qty) : 0,
               e.unitCost || 0,
+              e.movementValue || 0,
+              e.runningBalance || 0,
               e.remarks || '',
             ]);
           });
@@ -1632,21 +3211,475 @@
         ledger_stock: 'Stock Movement Ledger Report',
         ledger_customer: 'Customer Khata Bahi Ledger Report',
         ledger_supplier: 'Supplier Khata Bahi Ledger Report',
+        ledger_bills: 'All Bills & Invoices Ledger Report',
       };
       if (typeof showSpreadsheetPreview === 'function') {
         showSpreadsheetPreview(data.rows, titles[data.tabName] || 'Inventory Report', `Inventory_Report_${data.tabName.toUpperCase()}`);
       }
     }
+    // ═════════════════════════════════════════════════════════════════════════
+    // GST COMPLIANCE & RETURN FILING (GSTR-1 & GSTR-3B)
+    // ═════════════════════════════════════════════════════════════════════════
+    let cachedGstr1 = null;
+    let cachedGstr3b = null;
+
+    function switchGstSubtab(tab) {
+      document.getElementById('gst-subtab-gstr1').classList.toggle('active', tab === 'gstr1');
+      document.getElementById('gst-subtab-gstr3b').classList.toggle('active', tab === 'gstr3b');
+      document.getElementById('gst-view-gstr1').style.display = tab === 'gstr1' ? 'block' : 'none';
+      document.getElementById('gst-view-gstr3b').style.display = tab === 'gstr3b' ? 'block' : 'none';
+    }
+
+    function setGstPeriod(type, btn) {
+      document.querySelectorAll('#panel-gst .quick-period-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth(); // 0-indexed
+
+      let fromD, toD;
+
+      if (type === 'this_month') {
+        fromD = new Date(y, m, 1);
+        toD = now;
+      } else if (type === 'last_month') {
+        fromD = new Date(y, m - 1, 1);
+        toD = new Date(y, m, 0);
+      } else if (type === 'q1') {
+        const fyYear = m >= 3 ? y : y - 1;
+        fromD = new Date(fyYear, 3, 1);
+        toD = new Date(fyYear, 5, 30);
+      } else if (type === 'q2') {
+        const fyYear = m >= 3 ? y : y - 1;
+        fromD = new Date(fyYear, 6, 1);
+        toD = new Date(fyYear, 8, 30);
+      } else if (type === 'q3') {
+        const fyYear = m >= 3 ? y : y - 1;
+        fromD = new Date(fyYear, 9, 1);
+        toD = new Date(fyYear, 11, 31);
+      } else if (type === 'q4') {
+        const fyYear = m >= 3 ? y + 1 : y;
+        fromD = new Date(fyYear, 0, 1);
+        toD = new Date(fyYear, 2, 31);
+      } else if (type === 'full_fy') {
+        const fyYear = m >= 3 ? y : y - 1;
+        fromD = new Date(fyYear, 3, 1);
+        toD = new Date(fyYear + 1, 2, 31);
+      }
+
+      if (fromD && toD) {
+        document.getElementById('gst-from-date').value = fromD.toISOString().split('T')[0];
+        document.getElementById('gst-to-date').value = toD.toISOString().split('T')[0];
+      }
+      loadGstReports();
+    }
+
+    async function loadGstReports() {
+      const from = document.getElementById('gst-from-date')?.value || '';
+      const to = document.getElementById('gst-to-date')?.value || '';
+
+      try {
+        const q = (from && to) ? `?from=${from}&to=${to}` : '';
+        const [r1, r3b] = await Promise.all([
+          fetch(`${API}/inventory/reports/gstr1${q}`, { headers: H() }),
+          fetch(`${API}/inventory/reports/gstr3b${q}`, { headers: H() })
+        ]);
+
+        if (r1.ok) {
+          const j1 = await r1.json();
+          cachedGstr1 = j1.data;
+          renderGstr1(cachedGstr1);
+        }
+        if (r3b.ok) {
+          const j3b = await r3b.json();
+          cachedGstr3b = j3b.data;
+          renderGstr3b(cachedGstr3b);
+        }
+      } catch (err) {
+        console.error('Failed to load GST returns:', err);
+      }
+    }
+
+    function renderGstr1(data) {
+      if (!data) return;
+      const s = data.summary || {};
+      document.getElementById('gstr1-tot-taxable').textContent = inr(s.totalTaxable);
+      document.getElementById('gstr1-tot-cgst').textContent = inr(s.totalCgst);
+      document.getElementById('gstr1-tot-sgst').textContent = inr(s.totalSgst);
+      document.getElementById('gstr1-tot-igst').textContent = inr(s.totalIgst);
+      document.getElementById('gstr1-tot-invoice').textContent = inr(s.totalInvoiceValue);
+
+      // Table 4: B2B
+      const b2b = data.b2b || [];
+      document.getElementById('gstr1-b2b-count').textContent = `${b2b.length} Invoices`;
+      const b2bTbody = document.getElementById('gstr1-b2b-tbody');
+      if (b2b.length === 0) {
+        b2bTbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">No B2B invoices in selected period.</td></tr>`;
+      } else {
+        b2bTbody.innerHTML = b2b.map((inv, idx) => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="text-align:center;color:var(--text-muted);">${idx + 1}</td>
+            <td>
+              <div style="font-weight:700;color:var(--text);">${escHtml(inv.customerName)}</div>
+              <div style="font-size:0.72rem;font-family:monospace;color:#38bdf8;">${escHtml(inv.customerGstin)}</div>
+            </td>
+            <td style="font-family:monospace;font-weight:700;">${escHtml(inv.invoiceNo)}</td>
+            <td>${fmtDate(inv.invoiceDate)}</td>
+            <td>${escHtml(inv.posState || 'Local')} (${inv.posStateCode || '27'})</td>
+            <td style="text-align:right;font-family:monospace;">${inr(inv.taxableValue)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(inv.cgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(inv.sgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#a855f7;">${inr(inv.igst)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:800;color:var(--text);">${inr(inv.invoiceValue)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Table 7: B2CS
+      const b2cs = data.b2cs || [];
+      document.getElementById('gstr1-b2cs-count').textContent = `${b2cs.length} Rate Slabs`;
+      const b2csTbody = document.getElementById('gstr1-b2cs-tbody');
+      if (b2cs.length === 0) {
+        b2csTbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No B2CS transactions in selected period.</td></tr>`;
+      } else {
+        b2csTbody.innerHTML = b2cs.map((it, idx) => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="text-align:center;color:var(--text-muted);">${idx + 1}</td>
+            <td><strong>${escHtml(it.posState || 'Local')}</strong> (${it.supplyType})</td>
+            <td style="text-align:center;font-weight:700;">${it.rate}%</td>
+            <td style="text-align:right;font-family:monospace;">${inr(it.taxableValue)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(it.cgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(it.sgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#a855f7;">${inr(it.igst)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:800;">${inr(it.totalValue)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Table 9: CDNR
+      const cdnr = data.cdnr || [];
+      document.getElementById('gstr1-cdnr-count').textContent = `${cdnr.length} Notes`;
+      const cdnrTbody = document.getElementById('gstr1-cdnr-tbody');
+      if (cdnr.length === 0) {
+        cdnrTbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">No credit / debit notes in selected period.</td></tr>`;
+      } else {
+        cdnrTbody.innerHTML = cdnr.map((n, idx) => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="text-align:center;color:var(--text-muted);">${idx + 1}</td>
+            <td>
+              <div style="font-weight:700;">${escHtml(n.partyName)}</div>
+              <div style="font-size:0.72rem;font-family:monospace;color:#38bdf8;">${escHtml(n.partyGstin || 'Unregistered')}</div>
+            </td>
+            <td><span style="font-weight:700;color:${n.noteType === 'CREDIT_NOTE' ? '#ef4444' : '#38bdf8'};">${n.noteType}</span></td>
+            <td>
+              <div style="font-family:monospace;font-weight:700;">${escHtml(n.noteNo)}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${fmtDate(n.noteDate)}</div>
+            </td>
+            <td>
+              <div style="font-family:monospace;">${escHtml(n.originalInvoiceNo || '—')}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">${fmtDate(n.originalInvoiceDate)}</div>
+            </td>
+            <td>${escHtml(n.reason || 'Sales Return')}</td>
+            <td style="text-align:right;font-family:monospace;">${inr(n.taxableValue)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(n.cgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(n.sgst)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:800;">${inr(n.totalNoteValue)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Table 12: HSN
+      const hsn = data.hsn || [];
+      document.getElementById('gstr1-hsn-count').textContent = `${hsn.length} HSN Codes`;
+      const hsnTbody = document.getElementById('gstr1-hsn-tbody');
+      if (hsn.length === 0) {
+        hsnTbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">No HSN data available.</td></tr>`;
+      } else {
+        hsnTbody.innerHTML = hsn.map((h, idx) => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="text-align:center;color:var(--text-muted);">${idx + 1}</td>
+            <td style="text-align:center;font-family:monospace;font-weight:700;color:#38bdf8;">${escHtml(h.hsnCode)}</td>
+            <td style="font-weight:600;">${escHtml(h.description)}</td>
+            <td style="text-align:center;">${escHtml(h.uqc || 'NOS')}</td>
+            <td style="text-align:right;font-weight:700;">${h.totalQty || 0}</td>
+            <td style="text-align:right;font-family:monospace;">${inr(h.totalValue)}</td>
+            <td style="text-align:right;font-family:monospace;font-weight:700;">${inr(h.taxableValue)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(h.cgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#38bdf8;">${inr(h.sgst)}</td>
+            <td style="text-align:right;font-family:monospace;color:#a855f7;">${inr(h.igst)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Table 13: Documents
+      const docs = data.docIssue || [];
+      const docsTbody = document.getElementById('gstr1-docs-tbody');
+      if (docs.length === 0) {
+        docsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">No documents recorded in period.</td></tr>`;
+      } else {
+        docsTbody.innerHTML = docs.map((d, idx) => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="text-align:center;color:var(--text-muted);">${idx + 1}</td>
+            <td style="font-weight:700;">${escHtml(d.docName)}</td>
+            <td style="font-family:monospace;">${escHtml(d.fromSerial || '—')}</td>
+            <td style="font-family:monospace;">${escHtml(d.toSerial || '—')}</td>
+            <td style="text-align:center;font-weight:700;">${d.totalNumber || 0}</td>
+            <td style="text-align:center;color:#ef4444;">${d.cancelled || 0}</td>
+            <td style="text-align:center;font-weight:800;color:#22c55e;">${d.netIssued || 0}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function renderGstr3b(data) {
+      if (!data) return;
+      const out = data.outwardSupplies || {};
+      const itc = data.itc || {};
+      const net = data.taxPayable || {};
+
+      document.getElementById('gstr3b-out-igst').textContent = inr(out.igst);
+      document.getElementById('gstr3b-out-cgst').textContent = inr(out.cgst);
+      document.getElementById('gstr3b-out-sgst').textContent = inr(out.sgst);
+      document.getElementById('gstr3b-out-total').textContent = inr((out.igst || 0) + (out.cgst || 0) + (out.sgst || 0));
+
+      document.getElementById('gstr3b-itc-igst').textContent = inr(itc.igst);
+      document.getElementById('gstr3b-itc-cgst').textContent = inr(itc.cgst);
+      document.getElementById('gstr3b-itc-sgst').textContent = inr(itc.sgst);
+      document.getElementById('gstr3b-itc-total').textContent = inr((itc.igst || 0) + (itc.cgst || 0) + (itc.sgst || 0));
+
+      document.getElementById('gstr3b-net-igst').textContent = inr(net.netIgstPayable);
+      document.getElementById('gstr3b-net-cgst').textContent = inr(net.netCgstPayable);
+      document.getElementById('gstr3b-net-sgst').textContent = inr(net.netSgstPayable);
+      document.getElementById('gstr3b-net-total').textContent = inr(net.netCashPayable);
+
+      const isPayable = (net.netCashPayable || 0) > 0;
+      const badge = document.getElementById('gstr3b-net-status-badge');
+      const rowLbl = document.getElementById('gstr3b-net-row-label');
+      if (isPayable) {
+        badge.textContent = `🔴 Net Cash Payable: ${inr(net.netCashPayable)}`;
+        badge.style.background = 'rgba(239,68,68,0.15)';
+        badge.style.color = '#ef4444';
+        badge.style.borderColor = 'rgba(239,68,68,0.3)';
+        rowLbl.textContent = '3. Net Tax Payable in Cash (Electronic Cash Ledger)';
+      } else {
+        badge.textContent = `🟢 ITC Surplus (Carry Forward): ${inr(net.itcCarryForward)}`;
+        badge.style.background = 'rgba(34,197,94,0.15)';
+        badge.style.color = '#4ade80';
+        badge.style.borderColor = 'rgba(34,197,94,0.3)';
+        rowLbl.textContent = '3. Surplus Input Tax Credit Carried Forward';
+      }
+    }
+
+    function exportGstr1Json() {
+      if (!cachedGstr1) {
+        alert('Please fetch GSTR-1 data first.');
+        return;
+      }
+      const jsonStr = JSON.stringify(cachedGstr1.portalUploadJson || cachedGstr1, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `GSTR1_Return_${new Date().toISOString().slice(0,7)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportGstr1Excel() {
+      if (!cachedGstr1) {
+        alert('Please fetch GSTR-1 data first.');
+        return;
+      }
+      const b2bRows = (cachedGstr1.b2b || []).map(b => [
+        b.customerName,
+        b.customerGstin,
+        b.invoiceNo,
+        b.invoiceDate,
+        b.posState,
+        b.taxableValue,
+        b.cgst,
+        b.sgst,
+        b.igst,
+        b.invoiceValue,
+      ]);
+      const headers = ['Customer Name', 'Customer GSTIN', 'Invoice No', 'Invoice Date', 'Place of Supply', 'Taxable Value', 'CGST', 'SGST', 'IGST', 'Total Invoice Value'];
+      downloadAsXls([headers, ...b2bRows], `GSTR1_B2B_Audit_${new Date().toISOString().slice(0,10)}`);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // SHELF BARCODE & PRICE TAG STICKER SHEET GENERATOR
+    // ═════════════════════════════════════════════════════════════════════════
+    function initStickersTab() {
+      populateStickerCategories();
+      populateStickerProducts();
+      generateStickerPreview();
+    }
+
+    function populateStickerCategories() {
+      const sel = document.getElementById('sticker-filter-cat');
+      if (!sel) return;
+      const cats = [...new Set(products.map(p => p.category?.name || p.category).filter(Boolean))];
+      sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+    }
+
+    function populateStickerProducts() {
+      const sel = document.getElementById('sticker-filter-prod');
+      if (!sel) return;
+      const cat = document.getElementById('sticker-filter-cat')?.value;
+      const filtered = cat ? products.filter(p => (p.category?.name || p.category) === cat) : products;
+      sel.innerHTML = '<option value="ALL">All Active Products (' + filtered.length + ' Items)</option>' +
+        filtered.map(p => `<option value="${p._id}">${escHtml(p.name)} (${escHtml(p.sku || 'No SKU')})</option>`).join('');
+    }
+
+    function filterStickerProducts() {
+      populateStickerProducts();
+      generateStickerPreview();
+    }
+
+    function generateBarcodeSvg(text) {
+      const clean = String(text || '000000').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      let bars = '';
+      let x = 6;
+      for (let i = 0; i < clean.length; i++) {
+        const code = clean.charCodeAt(i);
+        const w1 = (code % 3) + 1;
+        const w2 = ((code >> 1) % 3) + 1;
+        bars += `<rect x="${x}" y="0" width="${w1}" height="28" fill="#000" />`;
+        x += w1 + 1;
+        bars += `<rect x="${x}" y="0" width="${w2}" height="28" fill="#000" />`;
+        x += w2 + 2;
+      }
+      return `<svg viewBox="0 0 ${Math.max(x + 6, 90)} 28" style="width:100%;height:24px;" preserveAspectRatio="none">${bars}</svg>`;
+    }
+
+    function generateStickerPreview() {
+      const container = document.getElementById('sticker-sheet-paper');
+      if (!container) return;
+
+      const selectedProdId = document.getElementById('sticker-filter-prod')?.value || 'ALL';
+      const cat = document.getElementById('sticker-filter-cat')?.value;
+      const layout = parseInt(document.getElementById('sticker-layout')?.value, 10) || 40;
+      const copies = parseInt(document.getElementById('sticker-copies')?.value, 10) || 1;
+
+      const showComp = document.getElementById('stk-show-comp')?.checked;
+      const showMrp = document.getElementById('stk-show-mrp')?.checked;
+      const showSku = document.getElementById('stk-show-sku')?.checked;
+      const showBarcode = document.getElementById('stk-show-barcode')?.checked;
+
+      let candidateProds = products;
+      if (cat) {
+        candidateProds = candidateProds.filter(p => (p.category?.name || p.category) === cat);
+      }
+      if (selectedProdId !== 'ALL') {
+        candidateProds = candidateProds.filter(p => p._id === selectedProdId);
+      }
+
+      if (candidateProds.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:#64748b;">No products match criteria.</div>`;
+        return;
+      }
+
+      let stickers = [];
+      candidateProds.forEach(prod => {
+        for (let c = 0; c < copies; c++) {
+          stickers.push(prod);
+        }
+      });
+
+      let cols = 4;
+      let minH = '25.4mm';
+      if (layout === 24) { cols = 3; minH = '33.9mm'; }
+      else if (layout === 32) { cols = 4; minH = '33.9mm'; }
+      else if (layout === 40) { cols = 4; minH = '25.4mm'; }
+
+      container.style.display = 'grid';
+      container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      container.style.gap = '2mm';
+
+      const compName = 'WorkSpace Retail';
+
+      container.innerHTML = stickers.map(prod => {
+        const barcodeVal = prod.barcode || prod.sku || prod._id.slice(-8);
+        const price = prod.sellingPrice || prod.mrp || 0;
+        const mrp = prod.mrp || price;
+
+        return `
+          <div style="border:1px dashed #cbd5e1;padding:2.5mm 2mm;display:flex;flex-direction:column;justify-content:space-between;text-align:center;background:#fff;border-radius:3px;min-height:${minH};box-sizing:border-box;">
+            ${showComp ? `<div style="font-size:0.6rem;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:0.04em;">${escHtml(compName)}</div>` : ''}
+            <div style="font-size:0.68rem;font-weight:800;color:#0f172a;line-height:1.15;margin:1px 0;max-height:2.3em;overflow:hidden;">
+              ${escHtml(prod.name)}
+            </div>
+            ${showBarcode ? `
+              <div style="margin:1px 0;">
+                ${generateBarcodeSvg(barcodeVal)}
+                <div style="font-size:0.56rem;font-family:monospace;letter-spacing:0.08em;color:#0f172a;">${escHtml(barcodeVal)}</div>
+              </div>
+            ` : ''}
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:1px;border-top:0.5px solid #e2e8f0;margin-top:1px;">
+              ${showSku ? `<span style="font-size:0.56rem;color:#64748b;font-family:monospace;">${escHtml(prod.sku || '—')}</span>` : '<span></span>'}
+              ${showMrp ? `<span style="font-size:0.75rem;font-weight:900;color:#0f172a;">₹${Number(mrp).toFixed(2)}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function printStickerSheet() {
+      const sheet = document.getElementById('sticker-sheet-paper');
+      if (!sheet) return;
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Print Shelf Barcode Stickers (A4)</title>
+          <style>
+            @page { size: A4 portrait; margin: 8mm 6mm; }
+            body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+            .sticker-sheet-canvas { width: 100% !important; padding: 0 !important; box-shadow: none !important; }
+          </style>
+        </head>
+        <body>
+          <div class="sticker-sheet-canvas" style="${sheet.getAttribute('style')}">
+            ${sheet.innerHTML}
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.close(); };
+          <\/script>
+        </body>
+        </html>
+      `);
+      win.document.close();
+    }
+
+    window.switchGstSubtab = switchGstSubtab;
+    window.setGstPeriod = setGstPeriod;
+    window.loadGstReports = loadGstReports;
+    window.exportGstr1Json = exportGstr1Json;
+    window.exportGstr1Excel = exportGstr1Excel;
+    window.filterStickerProducts = filterStickerProducts;
+    window.generateStickerPreview = generateStickerPreview;
+    window.printStickerSheet = printStickerSheet;
+
     window.exportActiveReportToExcel = exportActiveReportToExcel;
     window.previewActiveReportInBrowser = previewActiveReportInBrowser;
     window.switchLedgerSubtab = switchLedgerSubtab;
     window.setPeriod = setPeriod;
     window.loadCustomerLedger = loadCustomerLedger;
     window.loadSupplierLedger = loadSupplierLedger;
+    window.loadBillsLedger = loadBillsLedger;
+    window.debounceBillsSearch = debounceBillsSearch;
+    window.openBillDetailModal = openBillDetailModal;
+    window.closeBillDetailModal = closeBillDetailModal;
+    window.exportBillsLedgerCSV = exportBillsLedgerCSV;
+    window.printBillsLedgerTable = printBillsLedgerTable;
+    window.printCurrentModalBill = printCurrentModalBill;
 
     init();
   </script>
   <script src="../js/inv-bg-animation.js"></script>
+  <script src="../js/sidebar.js"></script>
 </body>
 
 </html>
