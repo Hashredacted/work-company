@@ -1503,9 +1503,17 @@
         <div class="modal-title" id="vm-modal-title" style="margin-bottom:0;display:flex;align-items:center;gap:8px;">
           <span>🧾 Commercial Voucher</span>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" id="vm-btn-edit" onclick="openCorrectBillModal()"
+            style="display:none;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);color:#eab308;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:700;align-items:center;gap:4px;">
+            ✏️ Correct Bill
+          </button>
+          <button type="button" id="vm-btn-delete" onclick="deleteCurrentBill()"
+            style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#ef4444;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:700;align-items:center;gap:4px;">
+            🗑️ Delete
+          </button>
           <button onclick="window.print()"
-            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">🖨️
+            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--primary);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-weight:600;">🖨️
             Print Invoice</button>
           <button type="button" onclick="closeVoucherModal()"
             style="background:none;border:1px solid var(--border);color:var(--text-sub);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8rem;">✕
@@ -1516,6 +1524,126 @@
       <div id="vm-content">
         <div style="text-align:center;padding:40px;color:var(--text-muted);">Loading document details…</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ✏️ Correct Bill / Voucher Mistakes Modal -->
+  <div class="modal-overlay" id="correct-bill-modal">
+    <div class="modal" style="max-width:540px;padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="modal-title" style="margin-bottom:0;display:flex;align-items:center;gap:8px;">
+          <span>✏️ Correct Bill / Voucher</span>
+        </div>
+        <button type="button" onclick="closeCorrectBillModal()"
+          style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">✕</button>
+      </div>
+
+      <form id="correct-bill-form" onsubmit="submitBillCorrection(event)">
+        <!-- Info Banner -->
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Voucher No</div>
+            <div id="cb-voucher-badge" style="font-family:monospace;font-weight:800;color:var(--primary);font-size:0.95rem;">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Party</div>
+            <div id="cb-party-badge" style="font-weight:700;color:var(--text);font-size:0.85rem;">—</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label class="form-label" style="font-size:0.75rem;font-weight:600;">Total Bill Amount (₹) *</label>
+            <input type="number" id="cb-amount" class="form-input" step="0.01" min="0" required
+              style="font-family:monospace;font-weight:700;font-size:0.95rem;" />
+            <div id="cb-settled-info" style="font-size:0.7rem;color:#f87171;margin-top:3px;display:none;"></div>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.75rem;font-weight:600;">Ref / Bill / UTR No</label>
+            <input type="text" id="cb-ref" class="form-input" placeholder="e.g. INV/2026/01" style="font-family:monospace;" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label class="form-label" style="font-size:0.75rem;font-weight:600;">Bill Date *</label>
+            <input type="date" id="cb-date" class="form-input" required />
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.75rem;font-weight:600;">Due Date</label>
+            <input type="date" id="cb-due-date" class="form-input" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label class="form-label" style="font-size:0.75rem;font-weight:600;">GST &amp; Discount Mode</label>
+            <select id="cb-gst-discount-mode" class="form-input" style="font-size:0.78rem;" onchange="recalcCorrectionTotal()">
+              <option value="AFTER_DISCOUNT">🏷️ GST on Discounted Price (Sec 15(3))</option>
+              <option value="BEFORE_DISCOUNT">💰 GST on Original Price (Pre-Disc)</option>
+              <option value="INCLUSIVE">📦 Tax-Inclusive (MRP Pricing)</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.75rem;font-weight:600;color:#f87171;">💵 Cash Discount (₹)</label>
+            <input type="number" id="cb-cash-discount" class="form-input" min="0" step="any" placeholder="0.00" oninput="recalcCorrectionTotal()" style="font-size:0.85rem;color:#f87171;font-weight:700;" />
+          </div>
+        </div>
+
+        <!-- Optional Line Item Box if item attached -->
+        <div id="cb-items-box" style="display:none;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--primary);margin-bottom:8px;">📦 Attached Product / Quantity</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <label class="form-label" style="font-size:0.7rem;">Quantity</label>
+              <input type="number" id="cb-item-qty" class="form-input" min="0" step="any" oninput="recalcItemTotal()" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.7rem;">Rate / Unit Cost (₹)</label>
+              <input type="number" id="cb-item-rate" class="form-input" min="0" step="0.01" oninput="recalcItemTotal()" />
+            </div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;">
+            Adjusting qty / rate updates the bill total and synchronizes stock movement.
+          </div>
+        </div>
+
+        <!-- 🚚 Charges Breakdown Box in Bill Correction -->
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;">
+            <span>🚚 Additional Charges (भाड़ा, कूरियर व पैकिंग)</span>
+            <button type="button" onclick="recalcCorrectionTotal()" style="background:none;border:none;color:var(--primary);font-size:0.7rem;font-weight:700;cursor:pointer;">⚡ Update Total</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;">
+            <div>
+              <label class="form-label" style="font-size:0.68rem;margin-bottom:2px;">🚚 Transport / Freight (₹)</label>
+              <input type="number" id="cb-charge-transport" class="form-input" min="0" step="any" placeholder="0.00" oninput="recalcCorrectionTotal()" style="font-size:0.75rem;padding:3px 6px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.68rem;margin-bottom:2px;">📦 Courier / Shipping (₹)</label>
+              <input type="number" id="cb-charge-courier" class="form-input" min="0" step="any" placeholder="0.00" oninput="recalcCorrectionTotal()" style="font-size:0.75rem;padding:3px 6px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.68rem;margin-bottom:2px;">🎁 Packaging / Box (₹)</label>
+              <input type="number" id="cb-charge-packaging" class="form-input" min="0" step="any" placeholder="0.00" oninput="recalcCorrectionTotal()" style="font-size:0.75rem;padding:3px 6px;" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.68rem;margin-bottom:2px;">⚡ Other / Hamali (₹)</label>
+              <input type="number" id="cb-charge-other" class="form-input" min="0" step="any" placeholder="0.00" oninput="recalcCorrectionTotal()" style="font-size:0.75rem;padding:3px 6px;" />
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="form-label" style="font-size:0.75rem;font-weight:600;">Correction Note / Reason</label>
+          <textarea id="cb-notes" class="form-input" rows="2" placeholder="e.g. Corrected rate mistake, updated bill date per vendor copy" style="resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button type="button" onclick="closeCorrectBillModal()" class="btn-action" style="padding:7px 16px;">Cancel</button>
+          <button type="submit" id="cb-submit-btn" style="background:var(--primary);color:#fff;border:none;padding:7px 18px;border-radius:6px;font-weight:700;font-size:0.82rem;cursor:pointer;">💾 Save Corrections</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1800,7 +1928,10 @@
 
     let activeWaData = { name: '', phone: '', amount: 0, days: 0 };
     let selectedPartyDueAmount = 0;
+    let selectedPartyAdvanceBalance = 0;
     let cachedPendingBills = [];
+    let currentActiveVoucher = null;
+    let currentActiveParty = null;
 
     function debounceCust() { clearTimeout(custDebounceTimer); custDebounceTimer = setTimeout(renderCustomerTable, 250); }
     function debounceSupp() { clearTimeout(suppDebounceTimer); suppDebounceTimer = setTimeout(renderSupplierTable, 250); }
@@ -2337,6 +2468,7 @@
               <td>
                 <div style="display:flex;gap:4px;">
                   <button onclick="openVoucherModal('${p.voucherNo}', event)" class="btn-action" style="padding:4px 8px;font-size:0.72rem;">🧾 View</button>
+                  <button onclick="openCorrectBillDirect('${p.voucherNo}', event)" class="btn-action" style="padding:4px 8px;font-size:0.72rem;color:#facc15;border-color:rgba(234,179,8,0.35);" title="Correct mistakes in this bill">✏️ Edit</button>
                   ${p.partyId?._id ? `<button onclick="openStatement('${p.partyType}', '${p.partyId._id}', event)" class="btn-action" style="padding:4px 8px;font-size:0.72rem;">📜 Statement</button>` : ''}
                 </div>
               </td>
@@ -2500,7 +2632,7 @@
     window.previewVouchersHistoryInBrowser = previewVouchersHistoryInBrowser;
 
     // ─── Record Payment Modal & Bill-Wise Knockoff System ──────────────────────
-    function openPaymentModal(e) {
+    function openPaymentModal(e, skipPartyLoad = false) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
       const dateEl = document.getElementById('pm-date');
       const amtEl = document.getElementById('pm-amount');
@@ -2520,9 +2652,16 @@
       if (billsContainer) billsContainer.style.display = 'none';
 
       cachedPendingBills = [];
+      if (!cachedBankAccounts || !cachedBankAccounts.length) {
+        loadBankAccounts();
+      } else {
+        populateBankDropdowns();
+      }
       onPaymentModeChange();
       if (modal) modal.classList.add('show');
-      onPartyTypeSelect();
+      if (!skipPartyLoad) {
+        onPartyTypeSelect();
+      }
     }
 
     function closePaymentModal() {
@@ -2532,29 +2671,35 @@
 
     async function openRecordPaymentForParty(partyType, partyId, e) {
       if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-      openPaymentModal(e);
+      openPaymentModal(e, true);
       const typeEl = document.getElementById('pm-party-type');
       if (typeEl) typeEl.value = partyType;
-      await onPartyTypeSelect();
+      await onPartyTypeSelect(partyId);
       const pSel = document.getElementById('pm-party-id');
       if (pSel) {
         pSel.value = partyId;
-        if (pSel._searchable) pSel._searchable.refresh();
+        if (pSel._searchableSelect) pSel._searchableSelect.refresh();
         await onPartySelected();
       }
     }
 
-    async function onPartyTypeSelect() {
+    async function onPartyTypeSelect(targetPartyId = null) {
       const typeEl = document.getElementById('pm-party-type');
       const pSel = document.getElementById('pm-party-id');
       const title = document.getElementById('pm-title');
       const billsContainer = document.getElementById('pm-bills-container');
+      const dueInfo = document.getElementById('pm-due-info');
+      const amtInput = document.getElementById('pm-amount');
 
       const pType = typeEl ? typeEl.value : 'CUSTOMER';
       if (title) {
         title.textContent = pType === 'CUSTOMER' ? '💵 Record Payment Receipt (From Customer)' : '💸 Record Payment Voucher (To Supplier)';
       }
       if (billsContainer) billsContainer.style.display = 'none';
+      if (!targetPartyId) {
+        if (dueInfo) dueInfo.style.display = 'none';
+        if (amtInput) amtInput.value = '';
+      }
       if (!pSel) return;
 
       pSel.innerHTML = '<option value="">Loading parties…</option>';
@@ -2569,7 +2714,12 @@
         if (pType === 'CUSTOMER') rawCustomers = list;
         else rawSuppliers = list;
 
-        populatePartyDropdown('pm-party-id', list, { type: pType });
+        const selectedVal = targetPartyId || (pSel ? pSel.value : '');
+        populatePartyDropdown('pm-party-id', list, { type: pType, selectedValue: selectedVal });
+        if (selectedVal && pSel) {
+          pSel.value = selectedVal;
+          if (pSel._searchableSelect) pSel._searchableSelect.refresh();
+        }
       } catch (e) {
         console.error('Error loading parties:', e);
         pSel.innerHTML = '<option value="">Error loading</option>';
@@ -2598,7 +2748,7 @@
         selectedPartyDueAmount = found.outstanding || 0;
         if (dueVal) dueVal.textContent = inr(selectedPartyDueAmount);
         if (dueInfo) dueInfo.style.display = 'flex';
-        if (amtInput && selectedPartyDueAmount > 0 && !amtInput.value) {
+        if (amtInput && selectedPartyDueAmount > 0) {
           amtInput.value = selectedPartyDueAmount;
         }
       }
@@ -2613,12 +2763,14 @@
       const tbody = document.getElementById('pm-bills-tbody');
       if (!container || !tbody) return;
 
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text-muted);">Loading pending bills…</td></tr>';
       container.style.display = 'block';
 
       try {
         const r = await fetch(`${API}/inventory/payments/pending-bills?partyType=${partyType}&partyId=${partyId}`, { headers: H() });
         const json = await r.json();
+        if (!r.ok) throw new Error(json.message || 'Failed to fetch pending bills');
+
         cachedPendingBills = json.data?.bills || [];
         if (json.data?.totalPending !== undefined) selectedPartyDueAmount = json.data.totalPending;
         selectedPartyAdvanceBalance = json.data?.advanceBalance || 0;
@@ -2639,16 +2791,22 @@
 
         if (!cachedPendingBills.length) {
           countEl.textContent = '(0 open bills — Advance / On-Account payment)';
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--text-muted);">No open unpaid bills found. Payment will be credited directly as Advance Balance.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:14px;color:var(--text-muted);">No open unpaid bills found. Payment will be credited directly as Advance Balance.</td></tr>';
+          updateAllocationTotals();
           return;
         }
 
         countEl.textContent = `(${cachedPendingBills.length} open bills · Total Due: ${inr(json.data.totalPending)})`;
         renderBillsTbody();
-        updateAllocationTotals();
+        const amtInput = document.getElementById('pm-amount');
+        if (amtInput && Number(amtInput.value) > 0) {
+          autoKnockoffFifo(true);
+        } else {
+          updateAllocationTotals();
+        }
       } catch (err) {
         console.error('Error loading pending bills:', err);
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:12px;color:var(--error);">Failed to load bills.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--error);">Failed to load bills.</td></tr>';
       }
     }
 
@@ -2697,6 +2855,9 @@
                 onclick="fillSingleBill('${b._id}', ${b.pendingAmount})" title="Settle full pending on this bill">⚡</button>
             </div>
           </td>
+          <td id="bill-remaining-${b._id}" style="text-align:right;font-family:monospace;font-weight:700;color:#38bdf8;">
+            ${inr(b.pendingAmount)}
+          </td>
         </tr>
       `).join('');
     }
@@ -2718,11 +2879,11 @@
       updateAllocationTotals();
     }
 
-    function autoKnockoffFifo() {
+    function autoKnockoffFifo(silent = false) {
       const amtInput = document.getElementById('pm-amount');
       let remaining = Number(amtInput ? amtInput.value : 0);
       if (!remaining || remaining <= 0) {
-        showToast('Please enter a total payment amount first', 'warning');
+        if (!silent) showToast('Please enter a total payment amount first', 'warning');
         return;
       }
 
@@ -2739,7 +2900,7 @@
       });
 
       updateAllocationTotals();
-      showToast('FIFO Auto-Allocation applied across open bills!', 'success');
+      if (!silent) showToast('FIFO Auto-Allocation applied across open bills!', 'success');
     }
 
     function clearAllocations() {
@@ -2758,8 +2919,13 @@
       let totalAllocated = 0;
       cachedPendingBills.forEach(b => {
         const input = document.getElementById(`alloc-input-${b._id}`);
-        if (input && input.value) {
-          totalAllocated += Number(input.value);
+        const allocVal = Number(input && input.value ? input.value : 0);
+        totalAllocated += allocVal;
+        const remEl = document.getElementById(`bill-remaining-${b._id}`);
+        if (remEl) {
+          const rem = Math.max(0, b.pendingAmount - allocVal);
+          remEl.textContent = inr(rem);
+          remEl.style.color = rem === 0 ? '#4ade80' : '#38bdf8';
         }
       });
 
@@ -2852,6 +3018,9 @@
     function populateBankDropdowns() {
       const pmBank = document.getElementById('pm-bank-id');
       const ocfBank = document.getElementById('ocf-bank-id');
+      const currentPmVal = pmBank ? pmBank.value : '';
+      const currentOcfVal = ocfBank ? ocfBank.value : '';
+
       if (!cachedBankAccounts || !cachedBankAccounts.length) {
         const emptyHtml = '<option value="">— Primary Default Bank Account —</option>';
         if (pmBank) pmBank.innerHTML = emptyHtml;
@@ -2861,13 +3030,12 @@
       const optionsHtml = '<option value="">— Primary Default Bank Account —</option>' +
         cachedBankAccounts.map(b => {
           const accMask = b.accountNumberMasked || (b.accountNumber ? `•••• ${b.accountNumber.slice(-4)}` : '');
-          return `<option value="${b._id}" ${b.isDefault ? 'selected' : ''}>🏛️ ${escHtml(b.bankName)} (${escHtml(accMask)}) ${b.isDefault ? '⭐' : ''}</option>`;
+          const isSelected = currentPmVal ? (b._id === currentPmVal) : b.isDefault;
+          return `<option value="${b._id}" ${isSelected ? 'selected' : ''}>🏛️ ${escHtml(b.bankName)} (${escHtml(accMask)}) ${b.isDefault ? '⭐' : ''}</option>`;
         }).join('');
       if (pmBank) pmBank.innerHTML = optionsHtml;
       if (ocfBank) ocfBank.innerHTML = optionsHtml;
     }
-
-
 
     function autoFillPmRef() {
       const mode = document.getElementById('pm-mode')?.value || 'UPI';
@@ -2931,18 +3099,6 @@
       }
 
       autoFillPmRef();
-    }
-
-    async function openRecordPaymentForParty(type, partyId, e) {
-      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-      openPaymentModal();
-      const typeEl = document.getElementById('pm-party-type');
-      if (typeEl) typeEl.value = type;
-
-      await onPartyTypeSelect();
-      const pSel = document.getElementById('pm-party-id');
-      if (pSel) pSel.value = partyId;
-      await onPartySelected();
     }
 
     async function submitPayment(e) {
@@ -3178,6 +3334,16 @@
         const { txn, party, company, settlements } = json.data || {};
         if (!txn || !container) return;
 
+        currentActiveVoucher = txn;
+        currentActiveParty = party;
+        const btnEdit = document.getElementById('vm-btn-edit');
+        const btnDelete = document.getElementById('vm-btn-delete');
+        if (btnEdit) btnEdit.style.display = 'inline-flex';
+        if (btnDelete) {
+          const isSettled = txn.settledAmount && txn.settledAmount > 0;
+          btnDelete.style.display = isSettled ? 'none' : 'inline-flex';
+        }
+
         const isInvoice = txn.txnType === 'INVOICE';
         const isBill = txn.txnType === 'BILL';
         const isReceipt = txn.txnType === 'PAYMENT_IN';
@@ -3371,6 +3537,34 @@
                   <span>Total Amount:</span>
                   <strong style="color:var(--text);font-size:0.95rem;">${inr(txn.amount)}</strong>
                 </div>
+                ${(txn.charges && txn.charges.length > 0) ? `
+                  <div style="margin-top:4px;margin-bottom:6px;padding-top:4px;border-top:1px dashed var(--border);">
+                    <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Applied Charges:</div>
+                    ${txn.charges.map(c => `
+                      <div style="display:flex;justify-content:space-between;padding:1px 0;font-size:0.74rem;color:var(--text-sub);">
+                        <span>${c.chargeType === 'TRANSPORT' ? '🚚' : c.chargeType === 'COURIER' ? '📦' : c.chargeType === 'PACKAGING' ? '🎁' : c.chargeType === 'LOADING' ? '🏗️' : c.chargeType === 'INSURANCE' ? '🛡️' : '⚡'} ${escHtml(c.name)}:</span>
+                        <strong style="color:var(--text);font-family:monospace;">+ ${inr(c.amount)}</strong>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : (txn.additionalCharges > 0 ? `
+                  <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text-muted);font-size:0.75rem;">
+                    <span>🚚 Freight / Extra Charges:</span>
+                    <strong style="color:var(--text);font-family:monospace;">+ ${inr(txn.additionalCharges)}</strong>
+                  </div>
+                ` : '')}
+                ${txn.cashDiscount > 0 ? `
+                  <div style="display:flex;justify-content:space-between;padding:2px 0;color:#f87171;font-size:0.78rem;">
+                    <span>💵 Cash Discount (CD):</span>
+                    <strong style="font-family:monospace;">- ${inr(txn.cashDiscount)}</strong>
+                  </div>
+                ` : ''}
+                ${(isInvoice || isBill) ? `
+                  <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text-muted);font-size:0.72rem;">
+                    <span>GST Calculation:</span>
+                    <span style="font-weight:700;color:var(--primary);">${txn.gstDiscountMode === 'BEFORE_DISCOUNT' ? '💰 GST on Original Price' : (txn.gstDiscountMode === 'INCLUSIVE' ? '📦 Tax-Inclusive (MRP)' : '🏷️ GST on Discounted Price (Sec 15(3))')}</span>
+                  </div>
+                ` : ''}
                 ${(isInvoice || isBill) ? `
                   <div style="display:flex;justify-content:space-between;padding:4px 0;color:#4ade80;">
                     <span>Settled / Paid:</span>
@@ -3410,6 +3604,274 @@
     function closeVoucherModal() {
       const modal = document.getElementById('voucher-modal');
       if (modal) modal.classList.remove('show');
+    }
+
+    // ─── ✏️ Bill & Voucher Correction Functions ────────────────────────────────
+    function openCorrectBillModal() {
+      if (!currentActiveVoucher) return;
+      const v = currentActiveVoucher;
+      const modal = document.getElementById('correct-bill-modal');
+      if (!modal) return;
+
+      const badgeVoucher = document.getElementById('cb-voucher-badge');
+      const badgeParty = document.getElementById('cb-party-badge');
+      if (badgeVoucher) badgeVoucher.textContent = v.voucherNo || '—';
+      if (badgeParty) badgeParty.textContent = currentActiveParty?.name || v.partyName || '—';
+
+      const amountInput = document.getElementById('cb-amount');
+      if (amountInput) amountInput.value = v.amount !== undefined ? v.amount : '';
+
+      const settledInfo = document.getElementById('cb-settled-info');
+      const settledAmt = v.settledAmount || 0;
+      if (settledAmt > 0) {
+        if (settledInfo) {
+          settledInfo.style.display = 'block';
+          settledInfo.textContent = `⚠️ Already settled: ₹${settledAmt.toLocaleString('en-IN')}. Minimum allowed total is ₹${settledAmt.toLocaleString('en-IN')}.`;
+        }
+        if (amountInput) amountInput.min = settledAmt;
+      } else {
+        if (settledInfo) settledInfo.style.display = 'none';
+        if (amountInput) amountInput.min = 0;
+      }
+
+      if (v.paymentDate) {
+        const d = new Date(v.paymentDate);
+        if (!isNaN(d.getTime())) {
+          document.getElementById('cb-date').value = d.toISOString().split('T')[0];
+        }
+      } else {
+        document.getElementById('cb-date').value = '';
+      }
+
+      if (v.dueDate) {
+        const d = new Date(v.dueDate);
+        if (!isNaN(d.getTime())) {
+          document.getElementById('cb-due-date').value = d.toISOString().split('T')[0];
+        } else {
+          document.getElementById('cb-due-date').value = '';
+        }
+      } else {
+        document.getElementById('cb-due-date').value = '';
+      }
+
+      document.getElementById('cb-ref').value = v.referenceNo || '';
+      document.getElementById('cb-notes').value = v.notes || '';
+
+      // Populate bill charges if any
+      const ch = v.charges || [];
+      const getChVal = (type) => (ch.find(c => c.chargeType === type)?.amount || '');
+      const chTransport = document.getElementById('cb-charge-transport');
+      const chCourier = document.getElementById('cb-charge-courier');
+      const chPackaging = document.getElementById('cb-charge-packaging');
+      const chOther = document.getElementById('cb-charge-other');
+      if (chTransport) chTransport.value = getChVal('TRANSPORT');
+      if (chCourier) chCourier.value = getChVal('COURIER');
+      if (chPackaging) chPackaging.value = getChVal('PACKAGING');
+      const otherAmt = ch.filter(c => !['TRANSPORT', 'COURIER', 'PACKAGING'].includes(c.chargeType)).reduce((s, c) => s + c.amount, 0);
+      if (chOther) chOther.value = otherAmt > 0 ? otherAmt : (ch.length === 0 && v.additionalCharges > 0 ? v.additionalCharges : '');
+
+      const itemsBox = document.getElementById('cb-items-box');
+      const ledger = v.stockLedgerId;
+      if (ledger && ledger.productId) {
+        itemsBox.style.display = 'block';
+        const qty = Math.abs(ledger.qty || 0);
+        const rate = ledger.unitCost || 0;
+        document.getElementById('cb-item-qty').value = qty;
+        document.getElementById('cb-item-rate').value = rate;
+      } else {
+        itemsBox.style.display = 'none';
+      }
+
+      const modeEl = document.getElementById('cb-gst-discount-mode');
+      if (modeEl) modeEl.value = v.gstDiscountMode || 'AFTER_DISCOUNT';
+      const cdEl = document.getElementById('cb-cash-discount');
+      if (cdEl) cdEl.value = v.cashDiscount > 0 ? v.cashDiscount : '';
+
+      modal.classList.add('show');
+    }
+
+    function recalcItemTotal() {
+      const qty = parseFloat(document.getElementById('cb-item-qty')?.value) || 0;
+      const rate = parseFloat(document.getElementById('cb-item-rate')?.value) || 0;
+      const t = parseFloat(document.getElementById('cb-charge-transport')?.value) || 0;
+      const c = parseFloat(document.getElementById('cb-charge-courier')?.value) || 0;
+      const p = parseFloat(document.getElementById('cb-charge-packaging')?.value) || 0;
+      const o = parseFloat(document.getElementById('cb-charge-other')?.value) || 0;
+      const cd = parseFloat(document.getElementById('cb-cash-discount')?.value) || 0;
+      const totalCharges = t + c + p + o;
+      if (qty > 0 && rate > 0) {
+        document.getElementById('cb-amount').value = Math.max(0, ((qty * rate) + totalCharges - cd)).toFixed(2);
+      }
+    }
+
+    function recalcCorrectionTotal() {
+      const qty = parseFloat(document.getElementById('cb-item-qty')?.value) || 0;
+      const rate = parseFloat(document.getElementById('cb-item-rate')?.value) || 0;
+      const t = parseFloat(document.getElementById('cb-charge-transport')?.value) || 0;
+      const c = parseFloat(document.getElementById('cb-charge-courier')?.value) || 0;
+      const p = parseFloat(document.getElementById('cb-charge-packaging')?.value) || 0;
+      const o = parseFloat(document.getElementById('cb-charge-other')?.value) || 0;
+      const cd = parseFloat(document.getElementById('cb-cash-discount')?.value) || 0;
+      const totalCharges = t + c + p + o;
+
+      if (qty > 0 && rate > 0) {
+        document.getElementById('cb-amount').value = Math.max(0, ((qty * rate) + totalCharges - cd)).toFixed(2);
+      } else {
+        const curAmt = parseFloat(document.getElementById('cb-amount')?.value) || 0;
+        if (totalCharges > 0 && curAmt === 0) {
+          document.getElementById('cb-amount').value = Math.max(0, (totalCharges - cd)).toFixed(2);
+        }
+      }
+    }
+
+    function closeCorrectBillModal() {
+      const modal = document.getElementById('correct-bill-modal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function openCorrectBillDirect(voucherNo, e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      try {
+        const r = await fetch(`${API}/inventory/payments/voucher/${encodeURIComponent(voucherNo)}`, { headers: H() });
+        if (!r.ok) {
+          showToast('Could not load bill details', 'error');
+          return;
+        }
+        const json = await r.json();
+        const { txn, party } = json.data || {};
+        if (!txn) {
+          showToast('Bill not found', 'error');
+          return;
+        }
+        currentActiveVoucher = txn;
+        currentActiveParty = party;
+        openCorrectBillModal();
+      } catch (err) {
+        showToast('Failed to load bill: ' + err.message, 'error');
+      }
+    }
+
+    async function submitBillCorrection(e) {
+      e.preventDefault();
+      if (!currentActiveVoucher) return;
+      const v = currentActiveVoucher;
+      const submitBtn = document.getElementById('cb-submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving…';
+      }
+
+      try {
+        const amount = parseFloat(document.getElementById('cb-amount').value);
+        const paymentDate = document.getElementById('cb-date').value;
+        const dueDate = document.getElementById('cb-due-date').value || null;
+        const referenceNo = document.getElementById('cb-ref').value;
+        const notes = document.getElementById('cb-notes').value;
+        const gstDiscountMode = document.getElementById('cb-gst-discount-mode')?.value || 'AFTER_DISCOUNT';
+        const cashDiscount = parseFloat(document.getElementById('cb-cash-discount')?.value) || 0;
+
+        const t = parseFloat(document.getElementById('cb-charge-transport')?.value) || 0;
+        const c = parseFloat(document.getElementById('cb-charge-courier')?.value) || 0;
+        const p = parseFloat(document.getElementById('cb-charge-packaging')?.value) || 0;
+        const o = parseFloat(document.getElementById('cb-charge-other')?.value) || 0;
+        const chargesPayload = [];
+        if (t > 0) chargesPayload.push({ chargeType: 'TRANSPORT', name: 'Transport / Freight Charges', amount: t });
+        if (c > 0) chargesPayload.push({ chargeType: 'COURIER', name: 'Courier / Shipping Charges', amount: c });
+        if (p > 0) chargesPayload.push({ chargeType: 'PACKAGING', name: 'Packaging & Box Charges', amount: p });
+        if (o > 0) chargesPayload.push({ chargeType: 'OTHER', name: 'Other / Hamali Charges', amount: o });
+
+        const payload = {
+          amount,
+          paymentDate,
+          dueDate,
+          referenceNo,
+          notes,
+          gstDiscountMode,
+          cashDiscount,
+          charges: chargesPayload,
+          additionalCharges: t + c + p + o,
+        };
+
+        const itemsBox = document.getElementById('cb-items-box');
+        if (itemsBox && itemsBox.style.display !== 'none') {
+          const qty = parseFloat(document.getElementById('cb-item-qty').value);
+          const rate = parseFloat(document.getElementById('cb-item-rate').value);
+          if (!isNaN(qty) && !isNaN(rate)) {
+            payload.items = [{
+              qty,
+              unitCost: rate,
+              totalCost: qty * rate,
+            }];
+          }
+        }
+
+        const res = await fetch(`${API}/inventory/payments/voucher/${encodeURIComponent(v.voucherNo)}`, {
+          method: 'PUT',
+          headers: { ...H(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to update bill');
+        }
+
+        showToast(`Bill ${v.voucherNo} corrected successfully!`, 'success');
+        closeCorrectBillModal();
+
+        // Reload data
+        if (typeof loadKpis === 'function') loadKpis();
+        if (typeof loadCustomerOutstandings === 'function') loadCustomerOutstandings();
+        if (typeof loadSupplierOutstandings === 'function') loadSupplierOutstandings();
+        if (typeof loadVouchers === 'function') loadVouchers();
+
+        // If voucher modal is open, refresh it
+        const vmModal = document.getElementById('voucher-modal');
+        if (vmModal && vmModal.classList.contains('show')) {
+          openVoucherModal(v.voucherNo);
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '💾 Save Corrections';
+        }
+      }
+    }
+
+    async function deleteCurrentBill() {
+      if (!currentActiveVoucher) return;
+      const v = currentActiveVoucher;
+      if (v.settledAmount && v.settledAmount > 0) {
+        alert(`Cannot delete ${v.voucherNo} because it has already been settled (₹${v.settledAmount.toLocaleString('en-IN')}). Please remove settlements first.`);
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to completely void and delete bill ${v.voucherNo}? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/inventory/payments/voucher/${encodeURIComponent(v.voucherNo)}`, {
+          method: 'DELETE',
+          headers: H(),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to delete bill');
+        }
+
+        showToast(`Bill ${v.voucherNo} deleted successfully!`, 'success');
+        closeVoucherModal();
+
+        if (typeof loadKpis === 'function') loadKpis();
+        if (typeof loadCustomerOutstandings === 'function') loadCustomerOutstandings();
+        if (typeof loadSupplierOutstandings === 'function') loadSupplierOutstandings();
+        if (typeof loadVouchers === 'function') loadVouchers();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     }
 
     // ─── WhatsApp Reminder Modal ───────────────────────────────────────────────
@@ -3831,6 +4293,7 @@
 
     // ─── Init ──────────────────────────────────────────────────────────────────
     loadKpis();
+    loadBankAccounts();
     const urlParams = new URLSearchParams(window.location.search);
     const initTab = urlParams.get('tab') || 'customers';
     const initType = urlParams.get('type') || '';

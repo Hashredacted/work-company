@@ -419,6 +419,9 @@ async function createInvoice(req, res, next) {
       sgstTotal,
       igstTotal,
       additionalCharges,
+      charges, // [{ chargeType, name, amount, taxPct, taxAmount }]
+      gstDiscountMode, // 'AFTER_DISCOUNT' | 'BEFORE_DISCOUNT' | 'INCLUSIVE'
+      cashDiscount,
       roundOff,
       totalAmount,
       // Payment Settlement
@@ -536,9 +539,27 @@ async function createInvoice(req, res, next) {
       // Base price is charged on billedQty only (freeQty is 0 cost to buyer)
       const lineBase = billedQty * rate;
       const lineDisc = (lineBase * discPct) / 100;
-      const lineTaxable = lineBase - lineDisc;
-      const lineTax = (lineTaxable * taxPct) / 100;
-      const lineAmt = Math.round((lineTaxable + lineTax) * 100) / 100;
+      let lineTaxable = 0;
+      let lineTax = 0;
+      let lineAmt = 0;
+
+      if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+        // GST assessed on Gross/Original Price before discount
+        lineTaxable = lineBase;
+        lineTax = (lineTaxable * taxPct) / 100;
+        lineAmt = Math.round((lineBase - lineDisc + lineTax) * 100) / 100;
+      } else if (gstDiscountMode === 'INCLUSIVE') {
+        // Tax-inclusive (MRP) rate: price includes GST, reverse calculate taxable base
+        const netInclusive = Math.max(0, lineBase - lineDisc);
+        lineTaxable = taxPct > 0 ? (netInclusive / (1 + (taxPct / 100))) : netInclusive;
+        lineTax = netInclusive - lineTaxable;
+        lineAmt = Math.round(netInclusive * 100) / 100;
+      } else {
+        // Standard Section 15(3) CGST Act: GST on Discounted Price (Net Transaction Value)
+        lineTaxable = Math.max(0, lineBase - lineDisc);
+        lineTax = (lineTaxable * taxPct) / 100;
+        lineAmt = Math.round((lineTaxable + lineTax) * 100) / 100;
+      }
 
       const cgstR = isInter ? 0 : taxPct / 2;
       const sgstR = isInter ? 0 : taxPct / 2;
@@ -663,10 +684,33 @@ async function createInvoice(req, res, next) {
     const finalCgstTotal = cgstTotal !== undefined ? Number(cgstTotal) : calcCgst;
     const finalSgstTotal = sgstTotal !== undefined ? Number(sgstTotal) : calcSgst;
     const finalIgstTotal = igstTotal !== undefined ? Number(igstTotal) : calcIgst;
-    const finalExtra = Number(additionalCharges) || 0;
+    let finalExtra = Number(additionalCharges) || 0;
+    let processedCharges = [];
+    if (Array.isArray(charges) && charges.length > 0) {
+      processedCharges = charges
+        .filter(c => Number(c.amount) > 0)
+        .map(c => ({
+          chargeType: c.chargeType || 'OTHER',
+          name: c.name || 'Additional Charge',
+          amount: Math.max(0, Number(c.amount) || 0),
+          taxPct: Number(c.taxPct) || 0,
+          taxAmount: Number(c.taxAmount) || 0,
+        }));
+      const chargesSum = processedCharges.reduce((s, c) => s + c.amount, 0);
+      if (chargesSum > 0 || processedCharges.length > 0) {
+        finalExtra = chargesSum;
+      }
+    }
+
+    const finalCashDiscount = Math.max(0, Number(cashDiscount) || 0);
 
     // Automatic Indian Statutory Round-Off Calculation (Nearest Integer Rupee)
-    const rawTotal = finalSubtotal - finalDiscTotal + finalTaxTotal + finalExtra;
+    let rawTotal = 0;
+    if (gstDiscountMode === 'INCLUSIVE') {
+      rawTotal = (finalSubtotal - finalDiscTotal) + finalExtra - finalCashDiscount;
+    } else {
+      rawTotal = (finalSubtotal - finalDiscTotal) + finalTaxTotal + finalExtra - finalCashDiscount;
+    }
     const roundedTotal = Math.round(rawTotal);
     const calculatedRoundOff = Math.round((roundedTotal - rawTotal) * 100) / 100;
     const finalRoundOff = roundOff !== undefined ? Number(roundOff) : calculatedRoundOff;
@@ -686,6 +730,19 @@ async function createInvoice(req, res, next) {
     } else if (invoiceNumber) {
       finalVoucherNo = `${seqType}-${invoiceNumber}`;
     } else {
+      finalVoucherNo = await nextSeq(req.tenantId, seqType);
+    }
+
+    // Guard against duplicate voucher numbers within the same tenant
+    const existingTxn = await PaymentTransaction.findOne({ tenantId: req.tenantId, voucherNo: finalVoucherNo });
+    if (existingTxn) {
+      if (invoiceNumber) {
+        return res.status(409).json({
+          data: null,
+          message: `Voucher number "${finalVoucherNo}" already exists. Please enter a different invoice/bill number.`,
+          errors: null,
+        });
+      }
       finalVoucherNo = await nextSeq(req.tenantId, seqType);
     }
 
@@ -767,6 +824,9 @@ async function createInvoice(req, res, next) {
       sgstTotal: finalSgstTotal,
       igstTotal: finalIgstTotal,
       additionalCharges: finalExtra,
+      charges: processedCharges,
+      gstDiscountMode: ['AFTER_DISCOUNT', 'BEFORE_DISCOUNT', 'INCLUSIVE'].includes(gstDiscountMode) ? gstDiscountMode : 'AFTER_DISCOUNT',
+      cashDiscount: finalCashDiscount,
       roundOff: finalRoundOff,
       prefix: prefix || '',
       invoiceNumber: invoiceNumber || '',

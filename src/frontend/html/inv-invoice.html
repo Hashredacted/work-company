@@ -536,10 +536,88 @@
       gap: 10px;
     }
 
-    .meta-row-terms-tax {
+    .meta-row-terms-3 {
       display: grid;
-      grid-template-columns: 1fr 1.1fr 1.8fr;
+      grid-template-columns: 1fr 1.15fr 1.35fr;
       gap: 10px;
+    }
+
+    .meta-row-gst-mode {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .items-card-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .gst-mode-segmented-control {
+      display: inline-flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .gst-seg-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .gst-seg-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .gst-seg-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+      font-weight: 700;
+    }
+
+    .gst-seg-btn.active#seg-mode-BEFORE_DISCOUNT {
+      background: #d97706;
+      border-color: #f59e0b;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+    }
+
+    .gst-seg-btn.active#seg-mode-INCLUSIVE {
+      background: #7c3aed;
+      border-color: #9333ea;
+      box-shadow: 0 2px 10px rgba(147, 51, 234, 0.4);
+    }
+
+    .gst-pill-tag {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: 800;
     }
 
     .meta-row-2 {
@@ -2476,7 +2554,7 @@
               </div>
             </div>
 
-            <div class="meta-row-terms-tax">
+            <div class="meta-row-terms-3">
               <div class="input-field-wrap">
                 <label class="field-lbl">Payment Terms (Days)</label>
                 <input type="number" id="inv-terms" class="clean-input" value="30" oninput="onTermsChange()" />
@@ -2491,6 +2569,24 @@
                   <option value="INTRA">📍 Intra-State (CGST + SGST)</option>
                   <option value="INTER">🌐 Inter-State (IGST)</option>
                 </select>
+              </div>
+            </div>
+
+            <div class="meta-row-gst-mode">
+              <div class="input-field-wrap">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+                  <label class="field-lbl" style="margin-bottom:0;">⚖️ GST &amp; Discount Calculation Method</label>
+                  <span id="inv-gst-mode-badge" style="font-size:0.65rem;padding:2px 7px;border-radius:4px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:700;">Sec 15(3) Post-Disc</span>
+                </div>
+                <select id="inv-gst-discount-mode" class="clean-input" onchange="onGstDiscountModeChange()" style="font-weight:600;font-size:0.84rem;">
+                  <option value="AFTER_DISCOUNT" selected>🏷️ GST on Discounted Price (Post-Discount / Section 15(3)) — Default</option>
+                  <option value="BEFORE_DISCOUNT">💰 GST on Original Price (Pre-Discount / Cash Discount)</option>
+                  <option value="INCLUSIVE">📦 Tax-Inclusive Rates (MRP / Retail Reverse GST)</option>
+                </select>
+              </div>
+              <div id="inv-gst-mode-hint" style="margin-top:4px;font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:5px 9px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;">
+                <span style="color:#38bdf8;font-size:0.85rem;">⚖️</span>
+                <span id="inv-gst-mode-desc"><strong>Standard Section 15(3) Trade Discount:</strong> GST is assessed on the discounted price: <code>Taxable = (Qty × Rate) - Disc</code>, <code>GST = Taxable × GST%</code>.</span>
               </div>
             </div>
           </div>
@@ -2668,6 +2764,41 @@
 
         <!-- ── Section 2: Items & Services Grid ───────────────────────────────── -->
         <div class="items-card">
+          <!-- Items Card Header & GST Mode Switcher Toolbar -->
+          <div class="items-card-toolbar">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:0.88rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px;">
+                <span>📦</span> <span>Items &amp; Services</span>
+              </span>
+              <span id="items-count-badge" style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:var(--surface-2);color:var(--text-muted);font-weight:700;border:1px solid var(--border);">1 item</span>
+            </div>
+
+            <!-- Prominent Segmented GST Calculation Mode Switcher -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:0.74rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">⚖️ Apply GST:</span>
+              <div class="gst-mode-segmented-control">
+                <button type="button" class="gst-seg-btn active" id="seg-mode-AFTER_DISCOUNT" onclick="setGstDiscountMode('AFTER_DISCOUNT')" title="Standard Section 15(3) Trade Discount: GST is calculated on discounted price (Base - Discount)">
+                  <span>🏷️ On Discounted Price</span> <span class="gst-pill-tag">Sec 15(3)</span>
+                </button>
+                <button type="button" class="gst-seg-btn" id="seg-mode-BEFORE_DISCOUNT" onclick="setGstDiscountMode('BEFORE_DISCOUNT')" title="GST on Original Price: Assessed on Gross Price before discount (Pre-Discount / Cash Discount)">
+                  <span>💰 On Original Price</span> <span class="gst-pill-tag">Gross</span>
+                </button>
+                <button type="button" class="gst-seg-btn" id="seg-mode-INCLUSIVE" onclick="setGstDiscountMode('INCLUSIVE')" title="Retail MRP / Reverse Tax: Unit price includes GST; taxable value is back-calculated">
+                  <span>📦 Tax-Inclusive</span> <span class="gst-pill-tag">MRP</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formula Info Strip -->
+          <div id="table-gst-formula-strip" style="background:rgba(56,189,248,0.06);border-bottom:1px solid rgba(56,189,248,0.15);padding:6px 16px;font-size:0.73rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="color:#38bdf8;">💡</span>
+              <span id="formula-strip-text"><strong>Section 15(3) Trade Discount:</strong> Taxable = (Qty × Rate) − Disc | GST = Taxable × GST% | Total = Taxable + GST</span>
+            </div>
+            <span style="font-size:0.68rem;color:#38bdf8;font-weight:700;">Indian GST Statutory Standard</span>
+          </div>
+
           <div class="items-table-wrapper">
             <table class="items-table" id="items-table">
               <thead>
@@ -2678,7 +2809,7 @@
                   <th style="width:52px;text-align:right;">QTY</th>
                   <th style="width:58px;text-align:right;color:#16a34a;" title="Free Scheme / Bonus Units (Charged at ₹0)">FREE</th>
                   <th style="width:68px;text-align:center;">UNIT</th>
-                  <th style="width:78px;text-align:right;">PRICE (₹)</th>
+                  <th style="width:78px;text-align:right;" id="th-price-header">PRICE (₹)</th>
                   <th style="width:48px;text-align:right;">DISC (%)</th>
                   <th style="width:96px;" id="th-tax-header">TAX</th>
                   <th style="width:90px;text-align:right;">AMOUNT (₹)</th>
@@ -2827,6 +2958,18 @@
 
           <!-- Right Column: GST Totals Calculation Card -->
           <div class="totals-card">
+            <!-- Quick GST Mode Switch in Totals -->
+            <div class="total-line" style="border-bottom:1px solid var(--border);padding-bottom:7px;margin-bottom:7px;">
+              <span style="display:flex;align-items:center;gap:6px;font-size:0.75rem;font-weight:700;color:var(--text-muted);">
+                <span>⚖️ GST Mode:</span>
+              </span>
+              <select id="tot-gst-mode-select" class="clean-select" style="font-size:0.74rem;padding:3px 8px;max-width:190px;font-weight:700;color:var(--primary);border-color:rgba(99,102,241,0.35);" onchange="setGstDiscountMode(this.value)">
+                <option value="AFTER_DISCOUNT">🏷️ On Discounted (Sec 15(3))</option>
+                <option value="BEFORE_DISCOUNT">💰 On Original Price (Gross)</option>
+                <option value="INCLUSIVE">📦 Tax-Inclusive (MRP)</option>
+              </select>
+            </div>
+
             <div class="total-line">
               <span>Taxable Value (Subtotal)</span>
               <span id="tot-subtotal" style="font-family:monospace;font-weight:700;">₹ 0.00</span>
@@ -2850,13 +2993,111 @@
               <span id="tot-igst" style="font-family:monospace;color:#a855f7;">+ ₹ 0.00</span>
             </div>
 
-            <div class="total-line">
+            <div class="total-line" style="cursor:pointer;" onclick="toggleChargesBreakdown()" title="Click to view/hide detailed charges breakdown">
               <span style="display:flex;align-items:center;gap:6px;">
-                <span>Additional Charges</span>
-                <input type="number" id="inv-extra-charges" class="clean-input"
-                  style="width:80px;padding:3px 6px;font-size:0.75rem;" placeholder="0" oninput="calcTotals()" />
+                <span style="font-weight:600;">🚚 Additional Charges &amp; Freight</span>
+                <span id="charges-toggle-icon" style="font-size:0.65rem;color:var(--primary);transition:transform 0.2s;">▼</span>
               </span>
-              <span id="tot-extra" style="font-family:monospace;">₹ 0.00</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="number" id="inv-extra-charges" class="clean-input"
+                  style="width:85px;padding:3px 6px;font-size:0.75rem;text-align:right;font-family:monospace;font-weight:700;"
+                  placeholder="0.00" oninput="onGeneralExtraInput()" onclick="event.stopPropagation()" />
+                <span id="tot-extra" style="font-family:monospace;display:none;">₹ 0.00</span>
+              </div>
+            </div>
+
+            <!-- Itemized Charges Breakdown Box -->
+            <div id="charges-breakdown-box" style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:0.75rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-weight:700;color:var(--text);font-size:0.72rem;">📦 Itemized Bill Charges (परिवहन व अन्य शुल्क)</span>
+                <span style="font-size:0.65rem;color:var(--text-muted);">Auto-calculated to total</span>
+              </div>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;">
+                <!-- 1. Transport / Freight Charges -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:4px 8px;border-radius:5px;border:1px solid var(--border);">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:0.72rem;" title="Transport / Freight Charges (भाड़ा)">
+                    <span>🚚</span> <span>Transport / Freight</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:2px;">
+                    <span style="color:var(--text-muted);font-size:0.7rem;">₹</span>
+                    <input type="number" id="charge-transport" class="clean-input" min="0" step="any" placeholder="0"
+                      style="width:65px;padding:2px 4px;font-size:0.75rem;text-align:right;font-family:monospace;" oninput="onSpecificChargeInput()" />
+                  </div>
+                </div>
+
+                <!-- 2. Courier / Shipping Charges -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:4px 8px;border-radius:5px;border:1px solid var(--border);">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:0.72rem;" title="Courier / Postal / Parcel Charges (कूरियर)">
+                    <span>📦</span> <span>Courier / Parcel</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:2px;">
+                    <span style="color:var(--text-muted);font-size:0.7rem;">₹</span>
+                    <input type="number" id="charge-courier" class="clean-input" min="0" step="any" placeholder="0"
+                      style="width:65px;padding:2px 4px;font-size:0.75rem;text-align:right;font-family:monospace;" oninput="onSpecificChargeInput()" />
+                  </div>
+                </div>
+
+                <!-- 3. Packaging & Box Charges -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:4px 8px;border-radius:5px;border:1px solid var(--border);">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:0.72rem;" title="Packaging & Box Charges (पैकिंग)">
+                    <span>🎁</span> <span>Packaging / Box</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:2px;">
+                    <span style="color:var(--text-muted);font-size:0.7rem;">₹</span>
+                    <input type="number" id="charge-packaging" class="clean-input" min="0" step="any" placeholder="0"
+                      style="width:65px;padding:2px 4px;font-size:0.75rem;text-align:right;font-family:monospace;" oninput="onSpecificChargeInput()" />
+                  </div>
+                </div>
+
+                <!-- 4. Loading / Unloading / Hamali -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:4px 8px;border-radius:5px;border:1px solid var(--border);">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:0.72rem;" title="Loading, Unloading & Hamali Charges (हमाली / लोडिंग)">
+                    <span>🏗️</span> <span>Loading / Hamali</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:2px;">
+                    <span style="color:var(--text-muted);font-size:0.7rem;">₹</span>
+                    <input type="number" id="charge-loading" class="clean-input" min="0" step="any" placeholder="0"
+                      style="width:65px;padding:2px 4px;font-size:0.75rem;text-align:right;font-family:monospace;" oninput="onSpecificChargeInput()" />
+                  </div>
+                </div>
+
+                <!-- 5. Transit Insurance -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:4px 8px;border-radius:5px;border:1px solid var(--border);">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:0.72rem;" title="Transit Insurance Protection (बीमा)">
+                    <span>🛡️</span> <span>Transit Insurance</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:2px;">
+                    <span style="color:var(--text-muted);font-size:0.7rem;">₹</span>
+                    <input type="number" id="charge-insurance" class="clean-input" min="0" step="any" placeholder="0"
+                      style="width:65px;padding:2px 4px;font-size:0.75rem;text-align:right;font-family:monospace;" oninput="onSpecificChargeInput()" />
+                  </div>
+                </div>
+
+                <!-- 6. Other / Custom Charges -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:4px 8px;border-radius:5px;border:1px solid var(--border);">
+                  <span style="display:flex;align-items:center;gap:4px;font-size:0.72rem;" title="Installation, Service or Other Miscellaneous Charges">
+                    <span>⚡</span> <span>Other / Custom</span>
+                  </span>
+                  <div style="display:flex;align-items:center;gap:2px;">
+                    <span style="color:var(--text-muted);font-size:0.7rem;">₹</span>
+                    <input type="number" id="charge-other" class="clean-input" min="0" step="any" placeholder="0"
+                      style="width:65px;padding:2px 4px;font-size:0.75rem;text-align:right;font-family:monospace;" oninput="onSpecificChargeInput()" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="total-line" id="row-cash-discount">
+              <span style="display:flex;align-items:center;gap:6px;">
+                <span>💵 Invoice Cash Discount (CD)</span>
+              </span>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#f87171;font-size:0.75rem;font-weight:700;">- ₹</span>
+                <input type="number" id="inv-cash-discount" class="clean-input" min="0" step="any"
+                  style="width:80px;padding:3px 6px;font-size:0.75rem;text-align:right;font-family:monospace;font-weight:700;color:#f87171;"
+                  placeholder="0.00" oninput="calcTotals()" />
+                <span id="tot-cash-discount" style="font-family:monospace;color:#f87171;display:none;">- ₹ 0.00</span>
+              </div>
             </div>
             <div class="total-line" id="row-roundoff">
               <span style="font-size:0.8rem;color:var(--text-muted);">Auto Round Off (Statutory)</span>
@@ -3168,6 +3409,14 @@
           <label class="field-lbl">Default Payment Terms (Days)</label>
           <input type="number" id="set-default-terms" class="clean-input" value="30" />
         </div>
+        <div class="input-field-wrap">
+          <label class="field-lbl">Default GST &amp; Discount Calculation Mode</label>
+          <select id="set-default-gst-mode" class="clean-input" style="font-weight:600;">
+            <option value="AFTER_DISCOUNT">🏷️ On Discounted Price (Post-Discount / Sec 15(3)) — Default</option>
+            <option value="BEFORE_DISCOUNT">💰 On Original Price (Pre-Discount / Gross Base)</option>
+            <option value="INCLUSIVE">📦 Tax-Inclusive Rates (MRP / Retail Reverse)</option>
+          </select>
+        </div>
         <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
           <input type="checkbox" id="set-auto-sms" checked style="width:18px;height:18px;cursor:pointer;" />
           <label for="set-auto-sms" style="font-size:0.84rem;font-weight:600;cursor:pointer;">Enable Automatic SMS &amp;
@@ -3262,8 +3511,14 @@
 
       // Automatically restore draft if one was previously saved
       const draftRestored = restoreSavedDraftIfExists(initialMode);
-      if (!draftRestored && lineItems.length === 0) {
-        addNewItemRow();
+      if (!draftRestored) {
+        const defaultGstMode = localStorage.getItem('default_gst_discount_mode') || 'AFTER_DISCOUNT';
+        setGstDiscountMode(defaultGstMode);
+        if (lineItems.length === 0) {
+          addNewItemRow();
+        }
+      } else {
+        onGstDiscountModeChange();
       }
 
       // Attach autosave listeners to all form controls to prevent progress loss on refresh
@@ -3480,7 +3735,17 @@
             terms: document.getElementById('inv-terms')?.value || '30',
             dueDate: document.getElementById('inv-due-date')?.value || '',
             supplyType: document.getElementById('inv-supply-type')?.value || 'INTRA',
+            gstDiscountMode: document.getElementById('inv-gst-discount-mode')?.value || 'AFTER_DISCOUNT',
+            cashDiscount: document.getElementById('inv-cash-discount')?.value || '0',
             extraCharges: document.getElementById('inv-extra-charges')?.value || '0',
+            charges: {
+              transport: document.getElementById('charge-transport')?.value || '',
+              courier: document.getElementById('charge-courier')?.value || '',
+              packaging: document.getElementById('charge-packaging')?.value || '',
+              loading: document.getElementById('charge-loading')?.value || '',
+              insurance: document.getElementById('charge-insurance')?.value || '',
+              other: document.getElementById('charge-other')?.value || '',
+            },
             isRcm: document.getElementById('inv-is-rcm')?.checked || false,
           },
           payment: {
@@ -3572,7 +3837,23 @@
           if (draft.header.terms !== undefined) document.getElementById('inv-terms').value = draft.header.terms;
           if (draft.header.dueDate) document.getElementById('inv-due-date').value = draft.header.dueDate;
           if (draft.header.supplyType) document.getElementById('inv-supply-type').value = draft.header.supplyType;
+          if (draft.header.gstDiscountMode && document.getElementById('inv-gst-discount-mode')) {
+            document.getElementById('inv-gst-discount-mode').value = draft.header.gstDiscountMode;
+            if (typeof onGstDiscountModeChange === 'function') onGstDiscountModeChange();
+          }
+          if (draft.header.cashDiscount !== undefined && document.getElementById('inv-cash-discount')) {
+            document.getElementById('inv-cash-discount').value = draft.header.cashDiscount;
+          }
           if (draft.header.extraCharges !== undefined) document.getElementById('inv-extra-charges').value = draft.header.extraCharges;
+          if (draft.header.charges) {
+            const ch = draft.header.charges;
+            if (ch.transport !== undefined) document.getElementById('charge-transport').value = ch.transport;
+            if (ch.courier !== undefined) document.getElementById('charge-courier').value = ch.courier;
+            if (ch.packaging !== undefined) document.getElementById('charge-packaging').value = ch.packaging;
+            if (ch.loading !== undefined) document.getElementById('charge-loading').value = ch.loading;
+            if (ch.insurance !== undefined) document.getElementById('charge-insurance').value = ch.insurance;
+            if (ch.other !== undefined) document.getElementById('charge-other').value = ch.other;
+          }
           if (draft.header.isRcm !== undefined && document.getElementById('inv-is-rcm')) {
             document.getElementById('inv-is-rcm').checked = !!draft.header.isRcm;
           }
@@ -3715,6 +3996,10 @@
       if (refNoEl) refNoEl.value = '';
       const extraEl = document.getElementById('inv-extra-charges');
       if (extraEl) extraEl.value = '';
+      ['charge-transport', 'charge-courier', 'charge-packaging', 'charge-loading', 'charge-insurance', 'charge-other'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
       const chkShip = document.getElementById('inv-has-ship-to');
       if (chkShip) { chkShip.checked = false; toggleShipToFields(); }
       onPayStatusChange();
@@ -4710,15 +4995,176 @@
       }
     }
 
+    // ─── 🚚 Bill Additional Charges Breakdown Logic (Transport, Courier, etc.) ─
+    function toggleChargesBreakdown() {
+      const box = document.getElementById('charges-breakdown-box');
+      const icon = document.getElementById('charges-toggle-icon');
+      if (!box) return;
+      const isHidden = box.style.display === 'none';
+      box.style.display = isHidden ? 'block' : 'none';
+      if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function onSpecificChargeInput() {
+      const t = parseFloat(document.getElementById('charge-transport')?.value) || 0;
+      const c = parseFloat(document.getElementById('charge-courier')?.value) || 0;
+      const p = parseFloat(document.getElementById('charge-packaging')?.value) || 0;
+      const l = parseFloat(document.getElementById('charge-loading')?.value) || 0;
+      const i = parseFloat(document.getElementById('charge-insurance')?.value) || 0;
+      const o = parseFloat(document.getElementById('charge-other')?.value) || 0;
+      const sum = t + c + p + l + i + o;
+      const extraInput = document.getElementById('inv-extra-charges');
+      if (extraInput) {
+        extraInput.value = sum > 0 ? sum.toFixed(2) : '';
+      }
+      calcTotals();
+    }
+
+    function onGeneralExtraInput() {
+      calcTotals();
+    }
+
+    function getChargesPayload() {
+      const list = [];
+      const add = (id, type, name) => {
+        const val = parseFloat(document.getElementById(id)?.value) || 0;
+        if (val > 0) {
+          list.push({ chargeType: type, name: name, amount: val });
+        }
+      };
+      add('charge-transport', 'TRANSPORT', 'Transport / Freight Charges');
+      add('charge-courier', 'COURIER', 'Courier / Shipping Charges');
+      add('charge-packaging', 'PACKAGING', 'Packaging & Box Charges');
+      add('charge-loading', 'LOADING', 'Loading / Hamali Charges');
+      add('charge-insurance', 'INSURANCE', 'Transit Insurance Charges');
+      add('charge-other', 'OTHER', 'Other / Custom Charges');
+
+      const extra = parseFloat(document.getElementById('inv-extra-charges')?.value) || 0;
+      if (list.length === 0 && extra > 0) {
+        list.push({ chargeType: 'OTHER', name: 'Additional Charges', amount: extra });
+      }
+      return list;
+    }
+
     // ─── GST Tax Calculations & CGST/SGST/IGST Breakup ─────────────────────────
-    function calcTotals() {
+    function setGstDiscountMode(mode) {
+      const modeSelect = document.getElementById('inv-gst-discount-mode');
+      if (modeSelect) modeSelect.value = mode;
+      const totSelect = document.getElementById('tot-gst-mode-select');
+      if (totSelect) totSelect.value = mode;
+      onGstDiscountModeChange();
+    }
+
+    function onGstDiscountModeChange() {
+      const mode = document.getElementById('inv-gst-discount-mode')?.value || 'AFTER_DISCOUNT';
+
+      // 1. Synchronize segmented buttons
+      ['AFTER_DISCOUNT', 'BEFORE_DISCOUNT', 'INCLUSIVE'].forEach(m => {
+        const btn = document.getElementById(`seg-mode-${m}`);
+        if (btn) {
+          if (m === mode) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+      });
+
+      // 2. Synchronize totals card select
+      const totSelect = document.getElementById('tot-gst-mode-select');
+      if (totSelect && totSelect.value !== mode) {
+        totSelect.value = mode;
+      }
+
+      // 3. Update descriptions, badges and formula strips
+      const badge = document.getElementById('inv-gst-mode-badge');
+      const desc = document.getElementById('inv-gst-mode-desc');
+      const stripText = document.getElementById('formula-strip-text');
+      const thPrice = document.getElementById('th-price-header');
+      const thTax = document.getElementById('th-tax-header');
       const supplyType = document.getElementById('inv-supply-type')?.value || 'INTRA';
       const isInter = supplyType === 'INTER';
 
-      // Update column header to reflect active tax mode
+      if (mode === 'BEFORE_DISCOUNT') {
+        if (badge) {
+          badge.textContent = 'Pre-Discount Gross';
+          badge.style.background = 'rgba(234,179,8,0.18)';
+          badge.style.color = '#fbbf24';
+        }
+        if (desc) {
+          desc.innerHTML = '<strong>💰 Pre-Discount / Financial Discount:</strong> Tax is calculated on original base value: <code>Taxable = Qty × Rate</code>, <code>GST = Base × GST%</code>, line discount is deducted after tax assessment.';
+        }
+        if (stripText) {
+          stripText.innerHTML = '<strong>💰 Pre-Discount GST (Gross):</strong> Taxable = Qty × Rate | GST = Base × GST% | Total = (Base − Disc) + GST';
+        }
+        if (thPrice) {
+          thPrice.innerHTML = 'PRICE (₹)<br><span style="font-size:0.6rem;color:var(--text-muted);font-weight:normal;">(Excl. Tax)</span>';
+        }
+        if (thTax) {
+          thTax.innerHTML = `${isInter ? 'TAX (IGST)' : 'TAX (CGST+SGST)'}<br><span style="font-size:0.6rem;color:#fbbf24;font-weight:700;">(On Gross)</span>`;
+        }
+      } else if (mode === 'INCLUSIVE') {
+        if (badge) {
+          badge.textContent = 'MRP / Inclusive';
+          badge.style.background = 'rgba(168,85,247,0.18)';
+          badge.style.color = '#c084fc';
+        }
+        if (desc) {
+          desc.innerHTML = '<strong>📦 Tax-Inclusive MRP Rates:</strong> Entered price already contains GST. <code>Net = (Qty × Rate) - Disc</code>, <code>Taxable = Net / (1 + GST%)</code>, <code>GST = Net - Taxable</code>.';
+        }
+        if (stripText) {
+          stripText.innerHTML = '<strong>📦 Tax-Inclusive MRP:</strong> Net = (Qty × Rate) − Disc | Taxable = Net ÷ (1 + GST%) | GST = Net − Taxable';
+        }
+        if (thPrice) {
+          thPrice.innerHTML = 'PRICE (₹)<br><span style="font-size:0.6rem;color:#c084fc;font-weight:700;">(MRP Incl.)</span>';
+        }
+        if (thTax) {
+          thTax.innerHTML = `${isInter ? 'TAX (IGST)' : 'TAX (CGST+SGST)'}<br><span style="font-size:0.6rem;color:#c084fc;font-weight:700;">(Reverse MRP)</span>`;
+        }
+      } else {
+        if (badge) {
+          badge.textContent = 'Sec 15(3) Post-Disc';
+          badge.style.background = 'rgba(56,189,248,0.15)';
+          badge.style.color = '#38bdf8';
+        }
+        if (desc) {
+          desc.innerHTML = '<strong>🏷️ Standard Section 15(3) Trade Discount:</strong> GST is assessed on discounted price: <code>Taxable = (Qty × Rate) - Disc</code>, <code>GST = Taxable × GST%</code>.';
+        }
+        if (stripText) {
+          stripText.innerHTML = '<strong>🏷️ Section 15(3) Trade Discount:</strong> Taxable = (Qty × Rate) − Disc | GST = Taxable × GST% | Total = Taxable + GST';
+        }
+        if (thPrice) {
+          thPrice.innerHTML = 'PRICE (₹)<br><span style="font-size:0.6rem;color:var(--text-muted);font-weight:normal;">(Excl. Tax)</span>';
+        }
+        if (thTax) {
+          thTax.innerHTML = `${isInter ? 'TAX (IGST)' : 'TAX (CGST+SGST)'}<br><span style="font-size:0.6rem;color:#38bdf8;font-weight:700;">(Post-Disc)</span>`;
+        }
+      }
+
+      calcTotals();
+      if (typeof autoSaveDraft === 'function') autoSaveDraft();
+    }
+
+    function calcTotals() {
+      const supplyType = document.getElementById('inv-supply-type')?.value || 'INTRA';
+      const isInter = supplyType === 'INTER';
+      const gstDiscountMode = document.getElementById('inv-gst-discount-mode')?.value || 'AFTER_DISCOUNT';
+
+      // Update column headers to reflect active tax mode
       const thTax = document.getElementById('th-tax-header');
+      const thPrice = document.getElementById('th-price-header');
+      const modeSub = gstDiscountMode === 'BEFORE_DISCOUNT'
+        ? '<br><span style="font-size:0.6rem;color:#fbbf24;font-weight:700;">(On Gross)</span>'
+        : (gstDiscountMode === 'INCLUSIVE'
+          ? '<br><span style="font-size:0.6rem;color:#c084fc;font-weight:700;">(Reverse MRP)</span>'
+          : '<br><span style="font-size:0.6rem;color:#38bdf8;font-weight:700;">(Post-Disc)</span>');
       if (thTax) {
-        thTax.textContent = isInter ? 'TAX (IGST)' : 'TAX (CGST + SGST)';
+        thTax.innerHTML = (isInter ? 'TAX (IGST)' : 'TAX (CGST+SGST)') + modeSub;
+      }
+      if (thPrice) {
+        thPrice.innerHTML = gstDiscountMode === 'INCLUSIVE'
+          ? 'PRICE (₹)<br><span style="font-size:0.6rem;color:#c084fc;font-weight:700;">(MRP Incl.)</span>'
+          : 'PRICE (₹)<br><span style="font-size:0.6rem;color:var(--text-muted);font-weight:normal;">(Excl. Tax)</span>';
       }
 
       let taxableTotal = 0;
@@ -4727,6 +5173,7 @@
       let totalCgst = 0;
       let totalSgst = 0;
       let totalIgst = 0;
+      let totalGrossBase = 0;
 
       lineItems.forEach((item, idx) => {
         const q = Math.max(0, Number(item.qty) || 0);
@@ -4738,9 +5185,27 @@
         // Base price calculated strictly on billed quantity
         const base = q * rate;
         const discAmt = (base * discPct) / 100;
-        const taxable = base - discAmt;
-        const taxAmt = (taxable * taxPct) / 100;
-        const lineTotal = taxable + taxAmt;
+        let taxable = 0;
+        let taxAmt = 0;
+        let lineTotal = 0;
+
+        if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+          // GST assessed on gross/original price before discount
+          taxable = base;
+          taxAmt = (taxable * taxPct) / 100;
+          lineTotal = (base - discAmt) + taxAmt;
+        } else if (gstDiscountMode === 'INCLUSIVE') {
+          // Tax-inclusive: entered price contains GST
+          const netInclusive = Math.max(0, base - discAmt);
+          taxable = taxPct > 0 ? (netInclusive / (1 + (taxPct / 100))) : netInclusive;
+          taxAmt = netInclusive - taxable;
+          lineTotal = netInclusive;
+        } else {
+          // Standard Section 15(3) Trade Discount: GST on Discounted Price
+          taxable = Math.max(0, base - discAmt);
+          taxAmt = (taxable * taxPct) / 100;
+          lineTotal = taxable + taxAmt;
+        }
 
         const cgstAmt = isInter ? 0 : taxAmt / 2;
         const sgstAmt = isInter ? 0 : taxAmt / 2;
@@ -4753,6 +5218,7 @@
         item.igstAmt = igstAmt;
         item.amount = lineTotal;
 
+        totalGrossBase += base;
         taxableTotal += taxable;
         totalDiscount += discAmt;
         totalTax += taxAmt;
@@ -4763,8 +5229,14 @@
         const cell = document.getElementById(`line-amt-${idx}`);
         if (cell) {
           const taxBadgeClass = isInter ? 'tax-split-igst' : 'tax-split-intra';
-          const taxSubText = (taxAmt > 0 && taxable > 0)
-            ? `<div style="font-size:0.68rem;font-weight:700;font-family:sans-serif;margin-top:2px;"><span class="${taxBadgeClass}">${isInter ? `IGST: ₹${igstAmt.toFixed(2)}` : `C: ₹${cgstAmt.toFixed(2)} + S: ₹${sgstAmt.toFixed(2)}`}</span></div>`
+          let methodBadge = '';
+          if (gstDiscountMode === 'INCLUSIVE') {
+            methodBadge = `<span style="font-size:0.62rem;color:#a855f7;font-weight:700;display:block;">(Incl. Tax ₹${taxAmt.toFixed(2)})</span>`;
+          } else if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+            methodBadge = `<span style="font-size:0.62rem;color:#eab308;font-weight:700;display:block;">(Tax on ₹${base.toFixed(2)})</span>`;
+          }
+          const taxSubText = (taxAmt > 0)
+            ? `<div style="font-size:0.68rem;font-weight:700;font-family:sans-serif;margin-top:2px;"><span class="${taxBadgeClass}">${isInter ? `IGST: ₹${igstAmt.toFixed(2)}` : `C: ₹${cgstAmt.toFixed(2)} + S: ₹${sgstAmt.toFixed(2)}`}</span>${methodBadge}</div>`
             : '';
           const freeBadge = freeQ > 0 ? `<div class="free-scheme-badge">🎁 ${freeQ} Free</div>` : '';
 
@@ -4777,13 +5249,29 @@
       });
 
       const extra = Number(document.getElementById('inv-extra-charges')?.value) || 0;
-      const rawTotal = taxableTotal + totalTax + extra;
+      const cashDiscount = Math.max(0, Number(document.getElementById('inv-cash-discount')?.value) || 0);
+
+      let rawTotal = 0;
+      if (gstDiscountMode === 'INCLUSIVE') {
+        rawTotal = (totalGrossBase - totalDiscount) + extra - cashDiscount;
+      } else if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+        rawTotal = (totalGrossBase - totalDiscount) + totalTax + extra - cashDiscount;
+      } else {
+        rawTotal = taxableTotal + totalTax + extra - cashDiscount;
+      }
+
       const roundedTotal = Math.round(rawTotal);
       const roundOff = Math.round((roundedTotal - rawTotal) * 100) / 100;
       const grandTotal = roundedTotal;
 
-      document.getElementById('tot-subtotal').textContent = `₹ ${taxableTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-      document.getElementById('tot-discount').textContent = `- ₹ ${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      const subtotalEl = document.getElementById('tot-subtotal');
+      if (subtotalEl) {
+        subtotalEl.textContent = `₹ ${taxableTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      }
+      const discEl = document.getElementById('tot-discount');
+      if (discEl) {
+        discEl.textContent = `- ₹ ${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      }
 
       // Show CGST + SGST or IGST based on Supply Type
       const rowCgst = document.getElementById('row-cgst');
@@ -5180,8 +5668,12 @@
     }
 
     function getInvoiceGrandTotal() {
+      const gstDiscountMode = document.getElementById('inv-gst-discount-mode')?.value || 'AFTER_DISCOUNT';
       let taxableTotal = 0;
+      let totalDiscount = 0;
       let totalTax = 0;
+      let totalGrossBase = 0;
+
       lineItems.forEach(item => {
         const q = Math.max(0, Number(item.qty) || 0);
         const rate = Number(item.unitPrice) || 0;
@@ -5189,13 +5681,39 @@
         const taxPct = Number(item.taxPct) || 0;
         const base = q * rate;
         const discAmt = (base * discPct) / 100;
-        const taxable = base - discAmt;
-        const taxAmt = (taxable * taxPct) / 100;
+        let taxable = 0;
+        let taxAmt = 0;
+
+        if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+          taxable = base;
+          taxAmt = (taxable * taxPct) / 100;
+        } else if (gstDiscountMode === 'INCLUSIVE') {
+          const netInclusive = Math.max(0, base - discAmt);
+          taxable = taxPct > 0 ? (netInclusive / (1 + (taxPct / 100))) : netInclusive;
+          taxAmt = netInclusive - taxable;
+        } else {
+          taxable = Math.max(0, base - discAmt);
+          taxAmt = (taxable * taxPct) / 100;
+        }
+
+        totalGrossBase += base;
         taxableTotal += taxable;
+        totalDiscount += discAmt;
         totalTax += taxAmt;
       });
+
       const extra = Number(document.getElementById('inv-extra-charges')?.value) || 0;
-      const rawTotal = taxableTotal + totalTax + extra;
+      const cashDiscount = Math.max(0, Number(document.getElementById('inv-cash-discount')?.value) || 0);
+
+      let rawTotal = 0;
+      if (gstDiscountMode === 'INCLUSIVE') {
+        rawTotal = (totalGrossBase - totalDiscount) + extra - cashDiscount;
+      } else if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+        rawTotal = (totalGrossBase - totalDiscount) + totalTax + extra - cashDiscount;
+      } else {
+        rawTotal = taxableTotal + totalTax + extra - cashDiscount;
+      }
+
       return Math.round(rawTotal);
     }
 
@@ -5360,8 +5878,19 @@
       const partyGst = selectedParty?.gstin || 'Unregistered Consumer';
       const partyAddress = selectedParty?.address || 'Local Counter';
 
+      const gstDiscountMode = document.getElementById('inv-gst-discount-mode')?.value || 'AFTER_DISCOUNT';
+      const cashDiscount = Math.max(0, Number(document.getElementById('inv-cash-discount')?.value) || 0);
+
+      const modeBadgeLabel = gstDiscountMode === 'BEFORE_DISCOUNT'
+        ? 'GST on Original Price (Pre-Discount)'
+        : (gstDiscountMode === 'INCLUSIVE'
+          ? 'Tax-Inclusive Rates (MRP)'
+          : 'GST on Discounted Price (Sec 15(3))');
+
       let totalTaxable = 0;
       let totalTax = 0;
+      let totalGrossBase = 0;
+      let totalDiscount = 0;
 
       const activeItems = lineItems.filter(i => (i.productName || i.productId) && (Number(i.qty) > 0 || Number(i.freeQty) > 0));
 
@@ -5372,14 +5901,37 @@
         const taxPct = Number(item.taxPct) || 0;
         const base = q * rate;
         const disc = (base * discPct) / 100;
-        const taxable = base - disc;
-        const tax = (taxable * taxPct) / 100;
+        let taxable = 0;
+        let tax = 0;
+
+        if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+          taxable = base;
+          tax = (taxable * taxPct) / 100;
+        } else if (gstDiscountMode === 'INCLUSIVE') {
+          const net = Math.max(0, base - disc);
+          taxable = taxPct > 0 ? (net / (1 + (taxPct / 100))) : net;
+          tax = net - taxable;
+        } else {
+          taxable = Math.max(0, base - disc);
+          tax = (taxable * taxPct) / 100;
+        }
+
+        totalGrossBase += base;
+        totalDiscount += disc;
         totalTaxable += taxable;
         totalTax += tax;
       });
 
       const extra = Number(document.getElementById('inv-extra-charges').value) || 0;
-      const rawTotal = totalTaxable + totalTax + extra;
+      const chargesList = typeof getChargesPayload === 'function' ? getChargesPayload() : [];
+      let rawTotal = 0;
+      if (gstDiscountMode === 'INCLUSIVE') {
+        rawTotal = (totalGrossBase - totalDiscount) + extra - cashDiscount;
+      } else if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+        rawTotal = (totalGrossBase - totalDiscount) + totalTax + extra - cashDiscount;
+      } else {
+        rawTotal = totalTaxable + totalTax + extra - cashDiscount;
+      }
       const grandTotal = Math.round(rawTotal);
       const roundOff = Math.round((grandTotal - rawTotal) * 100) / 100;
       const numInWords = toIndianWords(grandTotal);
@@ -5432,9 +5984,24 @@
           const taxPct = Number(item.taxPct) || 0;
           const base = q * rate;
           const disc = (base * discPct) / 100;
-          const taxable = base - disc;
-          const tax = (taxable * taxPct) / 100;
-          const total = taxable + tax;
+          let taxable = 0;
+          let tax = 0;
+          let total = 0;
+
+          if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+            taxable = base;
+            tax = (taxable * taxPct) / 100;
+            total = (base - disc) + tax;
+          } else if (gstDiscountMode === 'INCLUSIVE') {
+            const net = Math.max(0, base - disc);
+            taxable = taxPct > 0 ? (net / (1 + (taxPct / 100))) : net;
+            tax = net - taxable;
+            total = net;
+          } else {
+            taxable = Math.max(0, base - disc);
+            tax = (taxable * taxPct) / 100;
+            total = taxable + tax;
+          }
           return `
             <div style="margin-bottom:6px;border-bottom:1px dashed #cbd5e1;padding-bottom:4px;">
               <div style="font-weight:700;display:flex;justify-content:space-between;">
@@ -5473,11 +6040,15 @@
             <div style="font-size:0.8rem;border-bottom:1px dashed #475569;padding-bottom:8px;margin-bottom:10px;">
               <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Subtotal:</span><span>₹${totalTaxable.toFixed(2)}</span></div>
               <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>GST Total:</span><span>+ ₹${totalTax.toFixed(2)}</span></div>
-              ${extra ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Charges:</span><span>+ ₹${extra.toFixed(2)}</span></div>` : ''}
+              ${chargesList.length > 0 ? chargesList.map(c => `
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span>${escHtml(c.name)}:</span><span>+ ₹${c.amount.toFixed(2)}</span></div>
+              `).join('') : (extra ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Charges:</span><span>+ ₹${extra.toFixed(2)}</span></div>` : '')}
+              ${cashDiscount > 0 ? `<div style="display:flex;justify-content:space-between;padding:2px 0;color:#dc2626;font-weight:700;"><span>Cash Discount:</span><span>- ₹${cashDiscount.toFixed(2)}</span></div>` : ''}
               ${roundOff !== 0 ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Round Off:</span><span>${roundOff >= 0 ? '+' : ''}₹${roundOff.toFixed(2)}</span></div>` : ''}
               <div style="display:flex;justify-content:space-between;font-size:1.05rem;font-weight:900;border-top:1px dashed #0f172a;padding-top:6px;margin-top:4px;">
                 <span>GRAND TOTAL:</span><span>₹${grandTotal.toFixed(2)}</span>
               </div>
+              <div style="font-size:0.68rem;color:#64748b;text-align:center;margin-top:3px;">Method: ${escHtml(modeBadgeLabel)}</div>
               <div style="font-size:0.72rem;font-weight:700;color:#0f172a;border-top:1px dashed #cbd5e1;padding-top:4px;margin-top:4px;">
                 Settlement: ${escHtml(paySummaryText)}
               </div>
@@ -5514,9 +6085,24 @@
           const taxPct = Number(item.taxPct) || 0;
           const base = q * rate;
           const disc = (base * discPct) / 100;
-          const taxable = base - disc;
-          const tax = (taxable * taxPct) / 100;
-          const total = taxable + tax;
+          let taxable = 0;
+          let tax = 0;
+          let total = 0;
+
+          if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+            taxable = base;
+            tax = (taxable * taxPct) / 100;
+            total = (base - disc) + tax;
+          } else if (gstDiscountMode === 'INCLUSIVE') {
+            const net = Math.max(0, base - disc);
+            taxable = taxPct > 0 ? (net / (1 + (taxPct / 100))) : net;
+            tax = net - taxable;
+            total = net;
+          } else {
+            taxable = Math.max(0, base - disc);
+            tax = (taxable * taxPct) / 100;
+            total = taxable + tax;
+          }
           const qtyDisplay = freeQ > 0 ? `${q} + ${freeQ} Free` : `${q} ${escHtml(item.unit || 'PCS')}`;
 
           return `
@@ -5540,7 +6126,8 @@
               <div style="font-size:0.72rem;color:#475569;margin-top:2px;">📍 ${escHtml(compAddress)} · <strong>GSTIN:</strong> ${escHtml(compGst)}</div>
             </div>
             <div style="text-align:right;">
-              <span class="doc-badge-type" style="font-size:0.85rem;font-weight:900;background:#0f172a;color:#fff;padding:2px 10px;border-radius:4px;display:inline-block;">${docType} </span>
+              <span class="doc-badge-type" style="font-size:0.85rem;font-weight:900;background:#0f172a;color:#fff;padding:2px 10px;border-radius:4px;display:inline-block;">${docType}</span>
+              <div style="font-size:0.68rem;color:#0284c7;font-weight:700;margin-top:2px;">${escHtml(modeBadgeLabel)}</div>
               <div style="font-size:0.78rem;font-weight:800;margin-top:4px;">Invoice #: <span style="font-family:monospace;">${escHtml(invNo)}</span> · Date: ${invDate}</div>
               ${ewayBill ? `<div style="font-size:0.7rem;color:#0284c7;font-weight:700;">E-Way Bill: ${escHtml(ewayBill)}</div>` : ''}
             </div>
@@ -5617,7 +6204,12 @@
                     <td style="text-align:right;color:#0284c7;font-weight:700;padding:3px 6px;">+ ₹${totalTax.toFixed(2)}</td>
                   </tr>
                 `}
-                ${extra ? `<tr><td style="padding:3px 6px;">Additional</td><td style="text-align:right;padding:3px 6px;">₹${extra.toFixed(2)}</td></tr>` : ''}
+                ${chargesList.length > 0 ? chargesList.map(c => `
+                  <tr><td style="padding:3px 6px;">${escHtml(c.name)}</td><td style="text-align:right;padding:3px 6px;">+ ₹${c.amount.toFixed(2)}</td></tr>
+                `).join('') : (extra ? `<tr><td style="padding:3px 6px;">Additional Charges</td><td style="text-align:right;padding:3px 6px;">+ ₹${extra.toFixed(2)}</td></tr>` : '')}
+                ${cashDiscount > 0 ? `
+                  <tr><td style="padding:3px 6px;color:#dc2626;font-weight:700;">Cash Discount (CD)</td><td style="text-align:right;color:#dc2626;font-weight:700;padding:3px 6px;">- ₹${cashDiscount.toFixed(2)}</td></tr>
+                ` : ''}
                 ${roundOff !== 0 ? `<tr><td style="padding:3px 6px;color:#64748b;">Round Off</td><td style="text-align:right;padding:3px 6px;color:#64748b;">${roundOff >= 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
                 <tr style="background:#0f172a !important;color:#ffffff !important;font-weight:900;">
                   <td style="color:#ffffff !important;font-weight:900;padding:4px 6px;">Grand Total</td>
@@ -5647,9 +6239,24 @@
           const taxPct = Number(item.taxPct) || 0;
           const base = q * rate;
           const disc = (base * discPct) / 100;
-          const taxable = base - disc;
-          const tax = (taxable * taxPct) / 100;
-          const total = taxable + tax;
+          let taxable = 0;
+          let tax = 0;
+          let total = 0;
+
+          if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+            taxable = base;
+            tax = (taxable * taxPct) / 100;
+            total = (base - disc) + tax;
+          } else if (gstDiscountMode === 'INCLUSIVE') {
+            const net = Math.max(0, base - disc);
+            taxable = taxPct > 0 ? (net / (1 + (taxPct / 100))) : net;
+            tax = net - taxable;
+            total = net;
+          } else {
+            taxable = Math.max(0, base - disc);
+            tax = (taxable * taxPct) / 100;
+            total = taxable + tax;
+          }
           const qtyText = freeQ > 0 ? `${q} <span style="color:#16a34a;font-size:0.75rem;">(+${freeQ} Free)</span>` : `${q} ${escHtml(item.unit || 'PCS')}`;
 
           return `
@@ -5695,7 +6302,8 @@
             </div>
             <div style="text-align:right;">
               <span class="doc-badge-type" style="font-size:1.1rem;font-weight:900;background:#0f172a;color:#fff;padding:4px 16px;border-radius:4px;display:inline-block;letter-spacing:0.04em;">${docType}</span>
-              <div style="font-size:0.88rem;font-weight:800;margin-top:6px;">Invoice #: <span style="font-family:monospace;">${escHtml(invNo)}</span></div>
+              <div style="font-size:0.75rem;color:#0284c7;font-weight:700;margin-top:3px;">Method: ${escHtml(modeBadgeLabel)}</div>
+              <div style="font-size:0.88rem;font-weight:800;margin-top:4px;">Invoice #: <span style="font-family:monospace;">${escHtml(invNo)}</span></div>
               <div style="font-size:0.78rem;color:#64748b;margin-top:2px;">Date: <strong>${invDate}</strong> · Due: <strong>${dueDate}</strong></div>
               ${ewayBill ? `<div style="font-size:0.8rem;font-weight:800;color:#0284c7;margin-top:3px;">E-Way Bill: ${escHtml(ewayBill)}</div>` : ''}
             </div>
@@ -5795,7 +6403,18 @@
                     <td style="text-align:right;color:#0284c7;font-weight:700;padding:6px 10px;">+ ₹ ${(totalTax / 2).toFixed(2)}</td>
                   </tr>
                 `}
-                ${extra ? `<tr><td style="padding:6px 10px;">Additional Charges / Freight</td><td style="text-align:right;padding:6px 10px;">₹ ${extra.toFixed(2)}</td></tr>` : ''}
+                ${chargesList.length > 0 ? chargesList.map(c => `
+                  <tr>
+                    <td style="padding:5px 10px;color:#334155;">${escHtml(c.name)}</td>
+                    <td style="text-align:right;font-weight:600;padding:5px 10px;">+ ₹ ${c.amount.toFixed(2)}</td>
+                  </tr>
+                `).join('') : (extra ? `<tr><td style="padding:6px 10px;">Additional Charges / Freight</td><td style="text-align:right;padding:6px 10px;">₹ ${extra.toFixed(2)}</td></tr>` : '')}
+                ${cashDiscount > 0 ? `
+                  <tr>
+                    <td style="padding:5px 10px;color:#dc2626;font-weight:700;">Invoice Cash Discount (CD)</td>
+                    <td style="text-align:right;color:#dc2626;font-weight:700;padding:5px 10px;">- ₹ ${cashDiscount.toFixed(2)}</td>
+                  </tr>
+                ` : ''}
                 ${roundOff !== 0 ? `<tr><td style="padding:6px 10px;color:#64748b;">Round Off (Statutory)</td><td style="text-align:right;padding:6px 10px;color:#64748b;">${roundOff >= 0 ? '+' : ''}₹ ${roundOff.toFixed(2)}</td></tr>` : ''}
                 <tr class="total-row-highlight" style="background:#0f172a !important;color:#ffffff !important;font-weight:900;font-size:0.95rem;">
                   <td style="color:#ffffff !important;font-weight:900;padding:10px 12px;">Grand Total</td>
@@ -5902,6 +6521,9 @@
 
     // ─── Settings Modal ────────────────────────────────────────────────────────
     function openInvoiceSettingsModal() {
+      const savedGstMode = localStorage.getItem('default_gst_discount_mode') || 'AFTER_DISCOUNT';
+      const setGstEl = document.getElementById('set-default-gst-mode');
+      if (setGstEl) setGstEl.value = savedGstMode;
       document.getElementById('settings-modal').classList.add('show');
     }
 
@@ -5913,6 +6535,7 @@
       const sPrefix = document.getElementById('set-sales-prefix').value.trim();
       const pPrefix = document.getElementById('set-purchase-prefix').value.trim();
       const dTerms = document.getElementById('set-default-terms').value.trim();
+      const dGstMode = document.getElementById('set-default-gst-mode')?.value;
 
       if (currentMode === 'SALES' && sPrefix) document.getElementById('inv-prefix').value = sPrefix;
       if (currentMode === 'PURCHASE' && pPrefix) document.getElementById('inv-prefix').value = pPrefix;
@@ -5920,8 +6543,13 @@
         document.getElementById('inv-terms').value = dTerms;
         onTermsChange();
       }
+      if (dGstMode) {
+        localStorage.setItem('default_gst_discount_mode', dGstMode);
+        setGstDiscountMode(dGstMode);
+      }
 
       closeSettingsModal();
+      showSuccessToast('Invoice settings saved successfully!');
     }
 
     function openKeyboardHelpModal() {
@@ -5975,19 +6603,53 @@
           pincode: document.getElementById('ship-pin')?.value.trim() || undefined,
         } : undefined;
 
-        // Auto round-off
+        // Auto round-off & multi-mode GST totals
+        const gstDiscountMode = document.getElementById('inv-gst-discount-mode')?.value || 'AFTER_DISCOUNT';
+        const cashDiscount = Math.max(0, Number(document.getElementById('inv-cash-discount')?.value) || 0);
+
         let subtotal = 0;
         let taxTotal = 0;
+        let grossBaseTotal = 0;
+        let discTotal = 0;
+
         validItems.forEach(it => {
           const q = Math.max(0, Number(it.qty) || 0);
-          const base = q * (Number(it.unitPrice) || 0);
-          const disc = (base * (Number(it.discountPct) || 0)) / 100;
-          const taxable = base - disc;
+          const rate = Number(it.unitPrice) || 0;
+          const discPct = Number(it.discountPct) || 0;
+          const taxPct = Number(it.taxPct) || 0;
+          const base = q * rate;
+          const disc = (base * discPct) / 100;
+          let taxable = 0;
+          let lineTax = 0;
+
+          if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+            taxable = base;
+            lineTax = (taxable * taxPct) / 100;
+          } else if (gstDiscountMode === 'INCLUSIVE') {
+            const net = Math.max(0, base - disc);
+            taxable = taxPct > 0 ? (net / (1 + (taxPct / 100))) : net;
+            lineTax = net - taxable;
+          } else {
+            taxable = Math.max(0, base - disc);
+            lineTax = (taxable * taxPct) / 100;
+          }
+
+          grossBaseTotal += base;
+          discTotal += disc;
           subtotal += taxable;
-          taxTotal += (taxable * (Number(it.taxPct) || 0)) / 100;
+          taxTotal += lineTax;
         });
+
         const extra = Number(document.getElementById('inv-extra-charges')?.value) || 0;
-        const rawTotal = subtotal + taxTotal + extra;
+        let rawTotal = 0;
+        if (gstDiscountMode === 'INCLUSIVE') {
+          rawTotal = (grossBaseTotal - discTotal) + extra - cashDiscount;
+        } else if (gstDiscountMode === 'BEFORE_DISCOUNT') {
+          rawTotal = (grossBaseTotal - discTotal) + taxTotal + extra - cashDiscount;
+        } else {
+          rawTotal = subtotal + taxTotal + extra - cashDiscount;
+        }
+
         const roundedTotal = Math.round(rawTotal);
         const roundOff = Math.round((roundedTotal - rawTotal) * 100) / 100;
         const grandTotal = roundedTotal;
@@ -6048,8 +6710,11 @@
           paymentTerms: Number(document.getElementById('inv-terms').value) || 30,
           dueDate: document.getElementById('inv-due-date').value,
           supplyType,
+          gstDiscountMode,
+          cashDiscount,
           items: validItems,
           additionalCharges: extra,
+          charges: getChargesPayload(),
           roundOff,
           isRcm: document.getElementById('inv-is-rcm')?.checked || false,
           paymentStatus: isUnpaid ? 'UNPAID' : (finalPaidAmount >= grandTotal ? 'PAID' : (finalPaidAmount > 0 ? 'PARTIAL' : 'UNPAID')),

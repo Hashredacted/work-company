@@ -137,6 +137,25 @@ const PaymentTransactionSchema = new mongoose.Schema({
   sgstTotal: { type: Number, default: 0 },
   igstTotal: { type: Number, default: 0 },
   additionalCharges: { type: Number, default: 0 },
+  charges: [
+    {
+      chargeType: {
+        type: String,
+        enum: ['TRANSPORT', 'COURIER', 'PACKAGING', 'LOADING', 'INSURANCE', 'INSTALLATION', 'OTHER'],
+        default: 'OTHER',
+      },
+      name: { type: String, trim: true },
+      amount: { type: Number, default: 0, min: 0 },
+      taxPct: { type: Number, default: 0 },
+      taxAmount: { type: Number, default: 0 },
+    },
+  ],
+  gstDiscountMode: {
+    type: String,
+    enum: ['AFTER_DISCOUNT', 'BEFORE_DISCOUNT', 'INCLUSIVE'],
+    default: 'AFTER_DISCOUNT',
+  },
+  cashDiscount: { type: Number, default: 0, min: 0 },
   roundOff: { type: Number, default: 0 }, // Statutory round-off (+/- 0.49 INR)
   prefix: { type: String, trim: true, default: '' },
   invoiceNumber: { type: String, trim: true, default: '' },
@@ -199,6 +218,7 @@ const PaymentTransactionSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+PaymentTransactionSchema.index({ tenantId: 1, voucherNo: 1 }, { unique: true });
 PaymentTransactionSchema.index({ tenantId: 1, partyId: 1, paymentDate: -1 });
 PaymentTransactionSchema.index({ tenantId: 1, partyType: 1, txnType: 1 });
 PaymentTransactionSchema.index({ tenantId: 1, bankAccountId: 1, paymentDate: -1 });

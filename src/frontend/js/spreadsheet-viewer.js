@@ -139,12 +139,18 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     `;
 
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    modal.className = 'sv-modal ' + (isLight ? 'sv-light-theme' : 'sv-dark-theme');
+
     const totalRows = dataRows.length;
     const totalCols = headers.length;
 
     modal.innerHTML = `
       <style>
         @keyframes svFadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .sv-modal.sv-light-theme {
+          background: rgba(15, 23, 42, 0.4) !important;
+        }
         .sv-btn {
           padding: 7px 14px;
           border-radius: 6px;
@@ -164,20 +170,20 @@
         .sv-btn-excel:hover { background: rgba(34, 197, 94, 0.28); }
         .sv-btn-secondary { background: rgba(255,255,255,0.06); color: #e2e8f0; border-color: rgba(255,255,255,0.12); }
         .sv-btn-secondary:hover { background: rgba(255,255,255,0.12); }
+
         .sv-grid-table {
           width: 100%;
           border-collapse: collapse;
           font-size: 0.8rem;
-          color: #f1f5f9;
         }
         .sv-grid-table th, .sv-grid-table td {
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
           padding: 7px 14px;
           white-space: nowrap;
         }
         .sv-grid-table thead th {
-          background: #1e293b;
-          color: #94a3b8;
+          background: #1e293b !important;
+          color: #94a3b8 !important;
           font-weight: 700;
           position: sticky;
           top: 0;
@@ -185,18 +191,23 @@
           text-align: left;
         }
         .sv-grid-table thead tr.sv-col-letters th {
-          background: #0f172a;
-          color: #64748b;
+          background: #0f172a !important;
+          color: #64748b !important;
           font-size: 0.7rem;
           text-align: center;
           padding: 3px 8px;
           font-family: monospace;
         }
-        .sv-grid-table tbody tr:nth-child(even) {
-          background: rgba(255, 255, 255, 0.02);
+        .sv-grid-table tbody td {
+          background: #0b1329 !important;
+          color: #f1f5f9 !important;
         }
-        .sv-grid-table tbody tr:hover {
-          background: rgba(56, 189, 248, 0.08);
+        .sv-grid-table tbody tr:nth-child(even) td {
+          background: #0f1833 !important;
+        }
+        .sv-grid-table tbody tr:hover td {
+          background: rgba(56, 189, 248, 0.12) !important;
+          color: #ffffff !important;
         }
         .sv-row-num {
           background: #0f172a !important;
@@ -210,21 +221,98 @@
           left: 0;
           z-index: 1;
         }
+
+        /* ─── Light Mode Theme ────────────────────────────────────────────── */
+        .sv-light-theme .sv-card {
+          background: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+        .sv-light-theme .sv-header-bar {
+          background: #f8fafc !important;
+          border-bottom-color: #e2e8f0 !important;
+        }
+        .sv-light-theme .sv-title-text {
+          color: #0f172a !important;
+        }
+        .sv-light-theme .sv-subtitle-text {
+          color: #64748b !important;
+        }
+        .sv-light-theme .sv-subtitle-text strong {
+          color: #0f172a !important;
+        }
+        .sv-light-theme .sv-search-input {
+          background: #ffffff !important;
+          border-color: #cbd5e1 !important;
+          color: #0f172a !important;
+        }
+        .sv-light-theme .sv-btn-secondary {
+          background: #ffffff !important;
+          color: #334155 !important;
+          border-color: #cbd5e1 !important;
+        }
+        .sv-light-theme .sv-btn-secondary:hover {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+        }
+        .sv-light-theme .sv-btn-excel {
+          background: rgba(34, 197, 94, 0.12) !important;
+          color: #15803d !important;
+          border-color: rgba(34, 197, 94, 0.3) !important;
+        }
+        .sv-light-theme .sv-formula-bar {
+          background: #f1f5f9 !important;
+          border-bottom-color: #e2e8f0 !important;
+          color: #64748b !important;
+        }
+        .sv-light-theme .sv-formula-fx {
+          background: #e2e8f0 !important;
+          color: #334155 !important;
+        }
+        .sv-light-theme .sv-grid-table th,
+        .sv-light-theme .sv-grid-table td {
+          border: 1px solid #e2e8f0 !important;
+        }
+        .sv-light-theme .sv-grid-table thead th {
+          background: #f8fafc !important;
+          color: #334155 !important;
+          border-bottom: 2px solid #cbd5e1 !important;
+        }
+        .sv-light-theme .sv-grid-table thead tr.sv-col-letters th {
+          background: #f1f5f9 !important;
+          color: #64748b !important;
+          border-bottom: 1px solid #e2e8f0 !important;
+        }
+        .sv-light-theme .sv-grid-table tbody td {
+          background: #ffffff !important;
+          color: #0f172a !important;
+        }
+        .sv-light-theme .sv-grid-table tbody tr:nth-child(even) td {
+          background: #f8fafc !important;
+        }
+        .sv-light-theme .sv-grid-table tbody tr:hover td {
+          background: #e0e7ff !important;
+          color: #1e1b4b !important;
+        }
+        .sv-light-theme .sv-row-num {
+          background: #f1f5f9 !important;
+          color: #64748b !important;
+        }
       </style>
-      <div style="background:#0b1329;border:1px solid rgba(255,255,255,0.14);border-radius:14px;box-shadow:0 25px 60px -15px rgba(0,0,0,0.8);width:96vw;max-width:1300px;height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div class="sv-card" style="background:#0b1329;border:1px solid rgba(255,255,255,0.14);border-radius:14px;box-shadow:0 25px 60px -15px rgba(0,0,0,0.8);width:96vw;max-width:1300px;height:90vh;display:flex;flex-direction:column;overflow:hidden;">
         
         <!-- Header Bar -->
-        <div style="padding:14px 20px;background:#0f172a;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div class="sv-header-bar" style="padding:14px 20px;background:#0f172a;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:38px;height:38px;border-radius:8px;background:linear-gradient(135deg, #10b981, #059669);display:flex;align-items:center;justify-content:center;font-size:1.25rem;box-shadow:0 4px 12px rgba(16,185,129,0.3);">
               📊
             </div>
             <div>
               <div style="font-size:1.1rem;font-weight:800;color:#f8fafc;display:flex;align-items:center;gap:8px;">
-                <span>${esc(title)}</span>
+                <span class="sv-title-text">${esc(title)}</span>
                 <span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;background:rgba(56,189,248,0.12);color:#38bdf8;font-weight:700;">Live Browser View</span>
               </div>
-              <div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">
+              <div class="sv-subtitle-text" style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">
                 Interactive Grid · <strong style="color:#e2e8f0;">${totalRows}</strong> records × <strong style="color:#e2e8f0;">${totalCols}</strong> columns
               </div>
             </div>
@@ -232,7 +320,7 @@
 
           <!-- Quick Actions -->
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <input id="sv-search" type="text" placeholder="🔍 Filter rows..." style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#f8fafc;padding:7px 12px;border-radius:6px;font-size:0.8rem;width:190px;outline:none;" />
+            <input id="sv-search" class="sv-search-input" type="text" placeholder="🔍 Filter rows..." style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#f8fafc;padding:7px 12px;border-radius:6px;font-size:0.8rem;width:190px;outline:none;" />
             <button id="sv-copy-btn" class="sv-btn sv-btn-secondary" title="Copy formatted table to clipboard to paste directly in Excel / Google Sheets">
               <span>📋</span> Copy Table
             </button>
@@ -252,9 +340,9 @@
         </div>
 
         <!-- Excel Formula / Status Bar -->
-        <div style="padding:6px 20px;background:#090d1a;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:#64748b;">
+        <div class="sv-formula-bar" style="padding:6px 20px;background:#090d1a;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:#64748b;">
           <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:4px;color:#94a3b8;">fx A1:${getExcelColName(totalCols - 1)}${totalRows + 1}</span>
+            <span class="sv-formula-fx" style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:4px;color:#94a3b8;">fx A1:${getExcelColName(totalCols - 1)}${totalRows + 1}</span>
             <span id="sv-match-count" style="color:#38bdf8;">Showing all ${totalRows} records</span>
           </div>
           <div>Powered by <strong style="color:#4ade80;">SheetJS</strong> &middot; Tip: use search above to filter without downloading</div>

@@ -111,6 +111,8 @@ router.get   ('/payments/daily-summary',                                        
 router.get   ('/payments/statement',                                                           READ,   payCtrl.getPartyStatement);
 router.get   ('/payments/statement/:partyType/:partyId', validateObjectId('partyId'),         READ,   payCtrl.getPartyStatement);
 router.get   ('/payments/voucher/:voucherNoOrId',                                              READ,   payCtrl.getVoucherDetail);
+router.put   ('/payments/voucher/:voucherNoOrId', financialLimiter,                            MANAGE, payCtrl.updateVoucher);
+router.delete('/payments/voucher/:voucherNoOrId',                                              MANAGE, payCtrl.deleteVoucher);
 router.get   ('/payments',                                                                     READ,   payCtrl.listPayments);
 router.post  ('/payments', financialLimiter, validateCashLimit,                                MANAGE, payCtrl.recordPayment);
 router.post  ('/payments/outside-cashflow', financialLimiter, validateCashLimit,               MANAGE, payCtrl.recordOutsideCashflow);

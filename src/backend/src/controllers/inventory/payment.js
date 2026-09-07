@@ -7,6 +7,7 @@ const Customer          = require('../../models/inv/Customer');
 const Supplier          = require('../../models/inv/Supplier');
 const Tenant            = require('../../models/Tenant');
 const AuditLog          = require('../../models/AuditLog');
+const StockLedger       = require('../../models/inv/StockLedger');
 const { nextSeq }       = require('../../utils/sequence');
 const { decrypt, mask } = require('../../utils/encryption');
 const { getTenantId }   = require('../../utils/tenant');
@@ -1496,6 +1497,172 @@ async function getVoucherDetail(req, res, next) {
   }
 }
 
+// ─── PUT /api/inventory/payments/voucher/:voucherNoOrId (Correct Mistakes in Bill / Voucher) ─
+async function updateVoucher(req, res, next) {
+  try {
+    const { voucherNoOrId } = req.params;
+    const isObjectId = mongoose.Types.ObjectId.isValid(voucherNoOrId);
+
+    const query = {
+      tenantId: req.tenantId,
+      ...(isObjectId ? { $or: [{ _id: voucherNoOrId }, { voucherNo: voucherNoOrId }] } : { voucherNo: voucherNoOrId }),
+    };
+
+    const txn = await PaymentTransaction.findOne(query);
+    if (!txn) {
+      return res.status(404).json({ data: null, message: 'Voucher or Bill not found', errors: null });
+    }
+
+    const { amount, paymentDate, dueDate, referenceNo, notes, items, additionalCharges, charges, gstDiscountMode, cashDiscount } = req.body;
+
+    if (gstDiscountMode && ['AFTER_DISCOUNT', 'BEFORE_DISCOUNT', 'INCLUSIVE'].includes(gstDiscountMode)) {
+      txn.gstDiscountMode = gstDiscountMode;
+    }
+    if (cashDiscount !== undefined) {
+      txn.cashDiscount = Math.max(0, Number(cashDiscount) || 0);
+    }
+
+    if (Array.isArray(charges)) {
+      txn.charges = charges
+        .filter(c => Number(c.amount) > 0)
+        .map(c => ({
+          chargeType: c.chargeType || 'OTHER',
+          name: c.name || 'Additional Charge',
+          amount: Math.max(0, Number(c.amount) || 0),
+          taxPct: Number(c.taxPct) || 0,
+          taxAmount: Number(c.taxAmount) || 0,
+        }));
+      txn.additionalCharges = txn.charges.reduce((s, c) => s + c.amount, 0);
+    } else if (additionalCharges !== undefined) {
+      txn.additionalCharges = Math.max(0, Number(additionalCharges) || 0);
+    }
+
+    // If bill amount is changing, verify it is not reduced below already settled payments
+    if (amount !== undefined) {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount < 0) {
+        return res.status(400).json({ data: null, message: 'Invalid bill amount', errors: null });
+      }
+      const settled = txn.settledAmount || 0;
+      if (settled > 0 && numAmount < settled) {
+        return res.status(400).json({
+          data: null,
+          message: `Cannot reduce bill total below already settled amount of ₹${settled.toLocaleString('en-IN')}`,
+          errors: null,
+        });
+      }
+      txn.amount = numAmount;
+      if (settled >= numAmount && numAmount > 0) {
+        txn.paymentStatus = 'PAID';
+      } else if (settled > 0) {
+        txn.paymentStatus = 'PARTIALLY_PAID';
+      } else {
+        txn.paymentStatus = 'UNPAID';
+      }
+    }
+
+    if (paymentDate) {
+      txn.paymentDate = new Date(paymentDate);
+    }
+    if (dueDate !== undefined) {
+      txn.dueDate = dueDate ? new Date(dueDate) : null;
+    }
+    if (referenceNo !== undefined) {
+      txn.referenceNo = String(referenceNo).trim();
+    }
+    if (notes !== undefined) {
+      txn.notes = String(notes).trim();
+    }
+
+    // If items are provided, update them and sync the stock ledger if linked
+    if (Array.isArray(items) && items.length > 0) {
+      txn.items = items;
+      if (txn.stockLedgerId) {
+        const firstItem = items[0];
+        if (firstItem) {
+          const qty = Math.abs(Number(firstItem.qty) || 0);
+          const rate = Number(firstItem.unitCost || firstItem.unitPrice || 0);
+          const isOut = ['INVOICE', 'QUICK_STOCK_OUT', 'SALES'].includes(txn.txnType);
+          await StockLedger.updateOne(
+            { _id: txn.stockLedgerId, tenantId: req.tenantId },
+            { $set: { qty: isOut ? -qty : qty, unitCost: rate, totalCost: qty * rate } }
+          );
+        }
+      }
+    }
+
+    await txn.save();
+
+    await AuditLog.create({
+      tenantId: req.tenantId,
+      userId: req.user._id,
+      action: 'BILL_UPDATE',
+      resource: 'inventory',
+      resourceId: txn._id ? txn._id.toString() : null,
+      details: { voucherNo: txn.voucherNo, amount: txn.amount, paymentDate: txn.paymentDate },
+    });
+
+    res.json({
+      data: txn,
+      message: `${txn.voucherNo} updated successfully!`,
+      errors: null,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+// ─── DELETE /api/inventory/payments/voucher/:voucherNoOrId (Void / Delete Unsettled Bill) ─────
+async function deleteVoucher(req, res, next) {
+  try {
+    const { voucherNoOrId } = req.params;
+    const isObjectId = mongoose.Types.ObjectId.isValid(voucherNoOrId);
+
+    const query = {
+      tenantId: req.tenantId,
+      ...(isObjectId ? { $or: [{ _id: voucherNoOrId }, { voucherNo: voucherNoOrId }] } : { voucherNo: voucherNoOrId }),
+    };
+
+    const txn = await PaymentTransaction.findOne(query);
+    if (!txn) {
+      return res.status(404).json({ data: null, message: 'Voucher or Bill not found', errors: null });
+    }
+
+    if ((txn.settledAmount || 0) > 0) {
+      return res.status(400).json({
+        data: null,
+        message: 'Cannot delete a bill that has linked settled payments. Delete or unallocate payments first.',
+        errors: null,
+      });
+    }
+
+    // Delete linked stock ledger entry if any
+    if (txn.stockLedgerId) {
+      await StockLedger.deleteOne({ _id: txn.stockLedgerId, tenantId: req.tenantId });
+    }
+    await StockLedger.deleteMany({ refModel: 'InvPaymentTransaction', refId: txn._id, tenantId: req.tenantId });
+
+    await PaymentTransaction.deleteOne({ _id: txn._id, tenantId: req.tenantId });
+
+    await AuditLog.create({
+      tenantId: req.tenantId,
+      userId: req.user._id,
+      action: 'DELETE',
+      entity: 'PaymentTransaction',
+      entityId: txn._id,
+      details: { voucherNo: txn.voucherNo, amount: txn.amount },
+    });
+
+    res.json({
+      data: null,
+      message: `${txn.voucherNo} deleted successfully!`,
+      errors: null,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
 module.exports = {
   recordPayment,
   recordOutsideCashflow,
@@ -1507,6 +1674,8 @@ module.exports = {
   getPartyStatement,
   listPayments,
   getVoucherDetail,
+  updateVoucher,
+  deleteVoucher,
   getAccessibleCompanies,
 };
 
